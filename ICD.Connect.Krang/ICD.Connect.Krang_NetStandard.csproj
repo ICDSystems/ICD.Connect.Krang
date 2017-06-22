@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard1.6</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;STANDARD</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="SIMPLSharpLogs\**" />
+    <Compile Remove="SPlusInterfaces\**" />
+    <EmbeddedResource Remove="SIMPLSharpLogs\**" />
+    <EmbeddedResource Remove="SPlusInterfaces\**" />
+    <None Remove="SIMPLSharpLogs\**" />
+    <None Remove="SPlusInterfaces\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ObfuscationSettings.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Remote\Broadcast\KrangDiscoveryBroadcastHandler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ICD.SimplSharp.projectinfo" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ICD.SimplSharp.Network\ICD.NetStandard.Network.csproj" />
+    <ProjectReference Include="..\..\RSD.SimplSharp.LoggingUtils\RSD.NetStandard.LoggingUtils.csproj" />
+    <ProjectReference Include="..\ICD.SimplSharp.API\ICD.NetStandard.API.csproj" />
+    <ProjectReference Include="..\ICD.SimplSharp.Common\ICD.NetStandard.Common.csproj" />
+  </ItemGroup>
+
+</Project>

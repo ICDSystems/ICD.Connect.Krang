@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ConsoleCommandServer.cs" />
+    <Compile Remove="KrangControlSystem.cs" />
+    <Compile Remove="ObfuscationSettings.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove=".git" />
+    <None Remove=".gitignore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ICD.SimplSharp.Network\ICD.NetStandard.Network.csproj" />
+    <ProjectReference Include="..\RSD.SimplSharp.Common.Interfaces\ICD.SimplSharp.API\ICD.NetStandard.API.csproj" />
+    <ProjectReference Include="..\RSD.SimplSharp.Common.Interfaces\ICD.SimplSharp.Common\ICD.NetStandard.Common.csproj" />
+    <ProjectReference Include="..\RSD.SimplSharp.Common.Interfaces\ICD.SimplSharp.KrangLib\ICD.NetStandard.KrangLib.csproj" />
+    <ProjectReference Include="..\RSD.SimplSharp.LoggingUtils\RSD.NetStandard.LoggingUtils.csproj" />
+  </ItemGroup>
+
+</Project>
