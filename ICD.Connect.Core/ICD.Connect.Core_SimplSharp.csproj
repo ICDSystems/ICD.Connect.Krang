@@ -116,7 +116,7 @@
       <Project>{5ED52F05-EA6C-4FC5-8AA0-9B9727F6AECD}</Project>
       <Name>ICD.Connect.Protocol.Network</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\lib\ICD.Common.Utils\src\ICD.Common\ICD.Common_SimplSharp.csproj">
+    <ProjectReference Include="..\..\lib\ICD.Common.Utils\src\ICD.Common.Utils\ICD.Common.Utils_SimplSharp.csproj">
       <Project>{CB4055C6-D59E-479E-9C56-2C92335A7D9A}</Project>
       <Name>ICD.Common</Name>
     </ProjectReference>

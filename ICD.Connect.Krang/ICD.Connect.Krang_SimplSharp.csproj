@@ -138,7 +138,7 @@
       <Project>{8093AE94-7250-411E-9C55-68AB2B5D705A}</Project>
       <Name>RSD.SimplSharp.LoggingUtils</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\lib\ICD.Common.Utils\src\ICD.Common\ICD.Common_SimplSharp.csproj">
+    <ProjectReference Include="..\..\lib\ICD.Common.Utils\src\ICD.Common.Utils\ICD.Common.Utils_SimplSharp.csproj">
       <Project>{CB4055C6-D59E-479E-9C56-2C92335A7D9A}</Project>
       <Name>ICD.SimplSharp.Utils</Name>
     </ProjectReference>
