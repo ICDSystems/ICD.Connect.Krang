@@ -1,9 +1,9 @@
-﻿using System;
+﻿#if SIMPLSHARP
+using System;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
 
-#if SIMPLSHARP
 
 namespace ICD.Connect.Krang.SPlusInterfaces
 {

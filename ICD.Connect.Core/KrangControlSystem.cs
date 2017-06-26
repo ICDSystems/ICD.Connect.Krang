@@ -1,12 +1,11 @@
-﻿using Crestron.SimplSharpPro;
+﻿#if SIMPLSHARP
+using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.Diagnostics;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Misc.CrestronPro;
-
-#if SIMPLSHARP
 
 namespace ICD.Connect.Core
 {

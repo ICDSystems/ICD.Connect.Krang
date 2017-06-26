@@ -58,7 +58,7 @@
     </Reference>
     <Reference Include="SimplSharpNewtonsoft, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpNewtonsoft.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpNewtonsoft.dll</HintPath>
     </Reference>
     <Reference Include="SimplSharpReflectionInterface, Version=1.0.5583.25238, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="Core\CoreDeviceFactory.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
+    <Compile Include="KrangPlugin.cs" />
     <Compile Include="Remote\Direct\CostUpdateHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdateMessage.cs" />
     <Compile Include="Remote\Direct\DisconnectHandler.cs" />
@@ -115,7 +116,6 @@
     <Compile Include="SPlusInterfaces\SPlusOnKrangLoadedEventRelay.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplRoom.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplSource.cs" />
-    <Compile Include="SPlusInterfaces\SPlusSwitcherInterface.cs" />
     <Compile Include="SPlusInterfaces\SPlusUiInterface.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
