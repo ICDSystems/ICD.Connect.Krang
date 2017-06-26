@@ -116,6 +116,7 @@
     <Compile Include="SPlusInterfaces\SPlusOnKrangLoadedEventRelay.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplRoom.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplSource.cs" />
+    <Compile Include="SPlusInterfaces\SPlusSwitcherInterface.cs" />
     <Compile Include="SPlusInterfaces\SPlusUiInterface.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
@@ -155,6 +156,10 @@
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.Mock\ICD.Connect.Routing.Mock_SimplSharp.csproj">
       <Project>{97A3B247-7928-461D-A083-077B4C875FFB}</Project>
       <Name>ICD.Connect.Routing.Mock</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.SPlus\ICD.Connect.Routing.SPlus_SimplSharp.csproj">
+      <Project>{6A03FD4D-3620-4B08-8C57-5291A3F0A213}</Project>
+      <Name>ICD.Connect.Routing.SPlus_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing\ICD.Connect.Routing_SimplSharp.csproj">
       <Project>{B0C0CA1C-FA55-4BEA-8A8B-EDB2141C523E}</Project>

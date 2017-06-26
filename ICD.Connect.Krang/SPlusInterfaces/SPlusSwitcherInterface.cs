@@ -1,16 +1,15 @@
 ﻿#if SIMPLSHARP
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.Devices;
 using ICD.Connect.Krang.SPlusInterfaces;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.SPlus;
-
-using System;
-using System.Collections.Generic;
+using ICD.Connect.Settings;
 
 namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 {
@@ -134,7 +133,7 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 		/// <returns></returns>
 		private SPlusSwitcherControl GetSwitcherControl(ushort id)
 		{
-			IDevice device;
+			IOriginator device;
 			if (!SPlusKrangBootstrap.Krang.Originators.TryGetChild(id, out device))
 				return null;
 
