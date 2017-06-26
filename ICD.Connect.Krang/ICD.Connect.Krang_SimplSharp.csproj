@@ -116,6 +116,7 @@
     <Compile Include="SPlusInterfaces\SPlusOnKrangLoadedEventRelay.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplRoom.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplSource.cs" />
+    <Compile Include="SPlusInterfaces\SPlusUiInterface.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>

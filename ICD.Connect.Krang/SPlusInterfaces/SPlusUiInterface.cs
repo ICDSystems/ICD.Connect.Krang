@@ -6,12 +6,13 @@ using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.Interfaces.Rooms;
-using ICD.Connect.Interfaces.Routing.Connections;
-using ICD.Connect.Interfaces.Routing.Endpoints;
-using ICD.Connect.Interfaces.Routing.Endpoints.Destinations;
-using ICD.Connect.Interfaces.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
+using ICD.Connect.Rooms;
+using ICD.Connect.Rooms.Extensions;
+using ICD.Connect.Routing.Connections;
+using ICD.Connect.Routing.Endpoints;
+using ICD.Connect.Routing.Endpoints.Destinations;
+using ICD.Connect.Routing.Endpoints.Sources;
 
 namespace ICD.Connect.Krang.SPlusInterfaces
 {
@@ -37,7 +38,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// </summary>
 		public event RoomInfoCallback OnRoomChanged;
 
-	/// <summary>
+		/// <summary>
 		/// Raises for each source that is routed to the room destinations.
 		/// </summary>
 		public event SourceInfoCallback OnSourceChanged;
@@ -308,7 +309,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			var roomListDictionaryReverse = new Dictionary<IRoom, ushort>();
 			var handler = OnRoomListChanged;
 			ushort i = INDEX_START;
-			foreach (var room in SPlusKrangBootstrap.Krang.Rooms)
+			foreach (var room in SPlusKrangBootstrap.Krang.GetRooms())
 			{
 				roomListDictionary[i] = room;
 				roomListDictionaryReverse[room] = i;
@@ -364,8 +365,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[CanBeNull]
 		private IRoom GetRoom()
 		{
-			return SPlusKrangBootstrap.Krang.Rooms.ContainsChild(m_RoomId)
-				       ? SPlusKrangBootstrap.Krang.Rooms[m_RoomId]
+			return SPlusKrangBootstrap.Krang.Originators.ContainsChild(m_RoomId)
+					   ? SPlusKrangBootstrap.Krang.Originators[m_RoomId] as IRoom
 				       : null;
 		}
 
