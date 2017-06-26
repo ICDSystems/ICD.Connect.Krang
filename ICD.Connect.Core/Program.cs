@@ -1,8 +1,8 @@
 ﻿#if !SIMPLSHARP
 using System;
 using System.Runtime.Loader;
-using ICD.SimplSharp.Common.Console;
-using ICD.SimplSharp.KrangLib.Core;
+using ICD.Connect.Krang.Core;
+using ICD.Connect.API;
 
 namespace ICD.NetStandard.Core
 {
@@ -21,7 +21,7 @@ namespace ICD.NetStandard.Core
 		        string command = Console.ReadLine();
                 if (command.Equals("exit", StringComparison.OrdinalIgnoreCase))
                     break;
-		        IcdConsole.ExecuteCommand(command);
+		        ApiConsole.ExecuteCommand(command);
 	        }
 		}
     }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Crestron.SimplSharp.Reflection;
 using ICD.Common.Attributes;
 using ICD.Common.Properties;
 using ICD.Common.Services;
@@ -12,7 +11,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 
 #if SIMPLSHARP
-
+using Crestron.SimplSharp.Reflection;
 #else
 using System.Reflection;
 #endif

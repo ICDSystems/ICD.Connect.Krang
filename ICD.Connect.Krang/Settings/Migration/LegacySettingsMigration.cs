@@ -1,13 +1,8 @@
-﻿#if SIMPLSHARP
-#else
-using System.Xml;
-#endif
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Crestron.SimplSharp.CrestronXml;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
 using ICD.Common.Utils.Collections;
@@ -16,6 +11,11 @@ using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Header;
+#if SIMPLSHARP
+using Crestron.SimplSharp.CrestronXml;
+#else
+using System.Xml;
+#endif
 
 namespace ICD.Connect.Krang.Settings.Migration
 {

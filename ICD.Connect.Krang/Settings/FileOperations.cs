@@ -1,9 +1,4 @@
-﻿#if SIMPLSHARP
-#else
-using System;
-#endif
-using System.Text;
-using Crestron.SimplSharp.Reflection;
+﻿using System.Text;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
@@ -12,6 +7,11 @@ using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Krang.Settings.Migration;
 using ICD.Connect.Settings.Core;
+#if SIMPLSHARP
+using Crestron.SimplSharp.Reflection;
+#else
+using System;
+#endif
 
 namespace ICD.Connect.Krang.Settings
 {

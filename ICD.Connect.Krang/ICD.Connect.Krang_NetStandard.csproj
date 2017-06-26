@@ -25,4 +25,12 @@
     <None Remove="ICD.SimplSharp.projectinfo" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\ICD.Common.Logging\ICD.Common.Logging.Console\ICD.Common.Logging.Console_NetStandard.csproj" />
+    <ProjectReference Include="..\..\ICD.Connect.Panels\ICD.Connect.Panels\ICD.Connect.Panels_NetStandard.csproj" />
+    <ProjectReference Include="..\..\ICD.Connect.Rooms\ICD.Connect.Rooms\ICD.Connect.Rooms_NetStandard.csproj" />
+    <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.Mock\ICD.Connect.Routing.Mock_NetStandard.csproj" />
+    <ProjectReference Include="..\..\ICD.Connect.UI\ICD.Connect.UI\ICD.Connect.UI_NetStandard.csproj" />
+  </ItemGroup>
+
 </Project>

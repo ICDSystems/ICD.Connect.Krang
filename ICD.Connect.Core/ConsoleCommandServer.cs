@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SIMPLSHARP
+using System;
 using System.Linq;
 using Crestron.SimplSharp.WebScripting;
 using ICD.Connect.API.Nodes;
@@ -42,3 +43,4 @@ namespace ICD.Connect.Core
 		}
 	}
 }
+#endif

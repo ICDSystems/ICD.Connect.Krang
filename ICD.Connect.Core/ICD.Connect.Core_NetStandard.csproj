@@ -25,4 +25,8 @@
     <None Remove="ICD.SimplSharp.projectinfo" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_NetStandard.csproj" />
+  </ItemGroup>
+
 </Project>
