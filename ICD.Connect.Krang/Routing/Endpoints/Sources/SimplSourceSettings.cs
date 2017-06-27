@@ -1,4 +1,5 @@
-﻿using ICD.Common.Properties;
+﻿using System;
+using ICD.Common.Properties;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
@@ -22,6 +23,11 @@ namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 		/// </summary>
 		public override string FactoryName { get { return FACTORY_NAME; } }
 
+		/// <summary>
+		/// Gets the type of the originator for this settings instance.
+		/// </summary>
+		public override Type OriginatorType { get { return typeof(SimplSource); } }
+
 		[PublicAPI]
 		public ushort CrosspointId { get; set; }
 
@@ -43,18 +49,6 @@ namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 			writer.WriteElementString(CROSSPOINT_ID_ELEMENT, IcdXmlConvert.ToString(CrosspointId));
 			writer.WriteElementString(CROSSPOINT_TYPE_ELEMENT, IcdXmlConvert.ToString(CrosspointType));
 			writer.WriteElementString(SOURCE_VISIBILITY_ELEMENT, SourceVisibility.ToString());
-		}
-
-		/// <summary>
-		/// Creates a new originator instance from the settings.
-		/// </summary>
-		/// <param name="factory"></param>
-		/// <returns></returns>
-		public override IOriginator ToOriginator(IDeviceFactory factory)
-		{
-			SimplSource output = new SimplSource();
-			output.ApplySettings(this, factory);
-			return output;
 		}
 
 		/// <summary>

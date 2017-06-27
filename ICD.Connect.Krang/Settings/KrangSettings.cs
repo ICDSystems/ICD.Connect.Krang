@@ -186,6 +186,11 @@ namespace ICD.Connect.Krang.Settings
 			get { return FACTORY_NAME; }
 		}
 
+		/// <summary>
+		/// Gets the type of the originator for this settings instance.
+		/// </summary>
+		public override Type OriginatorType { get { return typeof(Core.Krang); } }
+
 		#endregion
 
 		/// <summary>
@@ -197,13 +202,6 @@ namespace ICD.Connect.Krang.Settings
 			m_Header = new ConfigurationHeader();
 
 			m_OriginatorSettings.OnItemRemoved += DeviceSettingsOnItemRemoved;
-		}
-
-		public override IOriginator ToOriginator(IDeviceFactory factory)
-		{
-			Core.Krang output = new Core.Krang();
-			output.ApplySettings(this, factory);
-			return output;
 		}
 
 		/// <summary>

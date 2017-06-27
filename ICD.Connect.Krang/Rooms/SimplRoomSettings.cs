@@ -30,6 +30,11 @@ namespace ICD.Connect.Krang.Rooms
 		/// </summary>
 		public override string FactoryName { get { return FACTORY_NAME; } }
 
+		/// <summary>
+		/// Gets the type of the originator for this settings instance.
+		/// </summary>
+		public override Type OriginatorType { get { return typeof(SimplRoom); } }
+
 		#endregion
 
 		/// <summary>
@@ -85,18 +90,6 @@ namespace ICD.Connect.Krang.Rooms
 
 			XmlUtils.WriteDictToXml(writer, m_Crosspoints, CROSSPOINTS_ELEMENT, CROSSPOINT_ELEMENT, CROSSPOINT_ID_ELEMENT,
 			                        CROSSPOINT_TYPE_ELEMENT);
-		}
-
-		/// <summary>
-		/// Creates a new originator instance from the settings.
-		/// </summary>
-		/// <param name="factory"></param>
-		/// <returns></returns>
-		public override IOriginator ToOriginator(IDeviceFactory factory)
-		{
-			SimplRoom output = new SimplRoom();
-			output.ApplySettings(this, factory);
-			return output;
 		}
 
 		/// <summary>

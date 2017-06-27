@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Routing;
@@ -101,12 +102,10 @@ namespace ICD.Connect.Krang.Settings
 
 		public override string FactoryName { get { return FACTORY_NAME; } }
 
-		public override IOriginator ToOriginator(IDeviceFactory factory)
-		{
-			RoutingGraph output = new RoutingGraph();
-			output.ApplySettings(this, factory);
-			return output;
-		}
+		/// <summary>
+		/// Gets the type of the originator for this settings instance.
+		/// </summary>
+		public override Type OriginatorType { get { return typeof(RoutingGraph); } }
 
 		public override IEnumerable<int> GetDeviceDependencies()
 		{
