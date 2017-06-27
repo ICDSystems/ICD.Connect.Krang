@@ -7,11 +7,11 @@ using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.Interfaces.Rooms;
-using ICD.Connect.Interfaces.Routing.Connections;
-using ICD.Connect.Interfaces.Routing.Endpoints;
-using ICD.Connect.Interfaces.Routing.Endpoints.Destinations;
-using ICD.Connect.Interfaces.Routing.Endpoints.Sources;
+using ICD.Connect.Rooms;
+using ICD.Connect.Routing.Connections;
+using ICD.Connect.Routing.Endpoints;
+using ICD.Connect.Routing.Endpoints.Destinations;
+using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
 
 
