@@ -5,7 +5,6 @@ using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
-using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Settings
 {

@@ -12,7 +12,6 @@ using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Panels;
-using ICD.Connect.Protocol;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
@@ -22,7 +21,6 @@ using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Groups;
 using ICD.Connect.Routing.Endpoints.Sources;
-using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.UI;
@@ -281,7 +279,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="settings"></param>
 		void ICore.ApplySettings(ICoreSettings settings)
 		{
-			IDeviceFactory factory = new CoreDeviceFactory(settings, this);
+			IDeviceFactory factory = new CoreDeviceFactory(settings);
 			ApplySettings((KrangSettings)settings, factory);
 		}
 

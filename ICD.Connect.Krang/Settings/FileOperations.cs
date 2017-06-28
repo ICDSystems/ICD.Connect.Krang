@@ -5,7 +5,6 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Core;
-using ICD.Connect.Krang.Settings.Migration;
 using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
@@ -32,7 +31,7 @@ namespace ICD.Connect.Krang.Settings
 			where TCore : ICore
 		{
 			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Applying settings.");
-			IDeviceFactory factory = new CoreDeviceFactory(settings, core);
+			IDeviceFactory factory = new CoreDeviceFactory(settings);
 			core.ApplySettings(settings, factory);
 		}
 

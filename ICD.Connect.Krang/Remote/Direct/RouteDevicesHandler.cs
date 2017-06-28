@@ -2,9 +2,7 @@
 using System.Linq;
 using ICD.Common.Services;
 using ICD.Common.Utils;
-using ICD.Connect.Krang.Core;
 using ICD.Connect.Protocol.Network.Direct;
-using ICD.Connect.Routing;
 using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Settings.Core;

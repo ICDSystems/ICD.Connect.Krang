@@ -10,7 +10,6 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Devices;
 using ICD.Connect.Devices.Extensions;
-using ICD.Connect.Krang.Core;
 using ICD.Connect.Krang.Routing.Connections;
 using ICD.Connect.Krang.Routing.ConnectionUsage;
 using ICD.Connect.Krang.Routing.StaticRoutes;

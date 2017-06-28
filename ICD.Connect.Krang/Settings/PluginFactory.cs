@@ -36,7 +36,6 @@ namespace ICD.Connect.Krang.Settings
 			s_AttributeNameMethodMap = new Dictionary<Type, Dictionary<string, MethodInfo>>();
 			s_SettingsFactoryNameMap = new Dictionary<Type, string>();
 
-			BuildCache();
 			try
 			{
 				BuildCache();
@@ -44,10 +43,6 @@ namespace ICD.Connect.Krang.Settings
 			catch (Exception e)
 			{
 				IcdErrorLog.Exception(e.GetBaseException(), "Failed to cache plugins");
-			}
-			finally
-			{
-				IcdConsole.PrintLine(StringUtils.ArrayFormat(s_SettingsFactoryNameMap.Keys.Select(t => t.Name)));
 			}
 		}
 
