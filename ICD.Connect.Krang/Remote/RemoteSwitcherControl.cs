@@ -15,7 +15,7 @@ namespace ICD.Connect.Krang.Remote
 {
 	public sealed class RemoteSwitcherControl : AbstractRouteSwitcherControl<RemoteSwitcher>
 	{
-		private readonly Core.Krang m_Krang;
+		private readonly Core.KrangCore m_Krang;
 
 		private readonly Dictionary<ConnectorInfo, int> m_RoutedOutputMap;
 
@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.Remote
 		public RemoteSwitcherControl(RemoteSwitcher parent)
 			: base(parent, 0)
 		{
-			m_Krang = ServiceProvider.GetService<ICore>() as Core.Krang;
+			m_Krang = ServiceProvider.GetService<ICore>() as Core.KrangCore;
 			m_RoutedOutputMap = new Dictionary<ConnectorInfo, int>();
 		}
 

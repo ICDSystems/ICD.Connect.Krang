@@ -18,7 +18,7 @@ namespace ICD.Connect.Krang.Core
 {
 	public sealed class KrangBootstrap : IConsoleNode
 	{
-		private readonly Krang m_Core;
+		private readonly KrangCore m_Core;
 
 		#region Properties
 
@@ -35,7 +35,7 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Gets the Krang instance.
 		/// </summary>
-		public Krang Krang { get { return m_Core; } }
+		public KrangCore Krang { get { return m_Core; } }
 
 		#endregion
 
@@ -43,7 +43,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			AddServices();
 
-			m_Core = new Krang();
+			m_Core = new KrangCore();
 			m_Core.OnSettingsApplied += RoomOnSettingsApplied;
 
 			ApiConsole.RegisterChild(this);
@@ -60,7 +60,7 @@ namespace ICD.Connect.Krang.Core
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 			try
 			{
-				FileOperations.LoadCoreSettings<Krang, KrangSettings>(m_Core);
+				FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
 			}
 			catch (Exception e)
 			{

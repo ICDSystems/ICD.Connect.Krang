@@ -16,7 +16,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private static readonly KrangBootstrap s_Bootstrap;
 
-		public static Core.Krang Krang { get { return s_Bootstrap.Krang; } }
+		public static Core.KrangCore Krang { get { return s_Bootstrap.Krang; } }
 
 		static SPlusKrangBootstrap()
 		{

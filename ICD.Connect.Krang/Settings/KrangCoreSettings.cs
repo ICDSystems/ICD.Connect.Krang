@@ -21,7 +21,7 @@ namespace ICD.Connect.Krang.Settings
 	/// Settings for the Krang core.
 	/// </summary>
 	[PublicAPI]
-	public sealed class KrangSettings : AbstractSettings, ICoreSettings
+	public sealed class KrangCoreSettings : AbstractSettings, ICoreSettings
 	{
 		public const string ROOT_ELEMENT = "IcdConfig";
 
@@ -188,14 +188,14 @@ namespace ICD.Connect.Krang.Settings
 		/// <summary>
 		/// Gets the type of the originator for this settings instance.
 		/// </summary>
-		public override Type OriginatorType { get { return typeof(Core.Krang); } }
+		public override Type OriginatorType { get { return typeof(Core.KrangCore); } }
 
 		#endregion
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public KrangSettings()
+		public KrangCoreSettings()
 		{
 			m_OriginatorSettings = new SettingsCollection();
 			m_Header = new ConfigurationHeader();

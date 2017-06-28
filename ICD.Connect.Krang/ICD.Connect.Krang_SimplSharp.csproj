@@ -106,8 +106,8 @@
     <Compile Include="Settings\Migration\SourceDestinationRoutingMigration.cs" />
     <Compile Include="Settings\PluginFactory.cs" />
     <Compile Include="Settings\FileOperations.cs" />
-    <Compile Include="Core\Krang.cs" />
-    <Compile Include="Settings\KrangSettings.cs" />
+    <Compile Include="Core\KrangCore.cs" />
+    <Compile Include="Settings\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Settings\Migration\LegacySettingsMigration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

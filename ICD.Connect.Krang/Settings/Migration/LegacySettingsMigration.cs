@@ -94,10 +94,10 @@ namespace ICD.Connect.Krang.Settings.Migration
 		/// <returns></returns>
 		private static void SingleRoomToMultiRoom(IcdXmlTextWriter writer, string configXml)
 		{
-			writer.WriteStartElement(KrangSettings.ROOT_ELEMENT);
+			writer.WriteStartElement(KrangCoreSettings.ROOT_ELEMENT);
 			{
 				writer.WriteAttributeString(AbstractSettings.ID_ATTRIBUTE, "1");
-				writer.WriteAttributeString(AbstractSettings.TYPE_ATTRIBUTE, KrangSettings.FACTORY_NAME);
+				writer.WriteAttributeString(AbstractSettings.TYPE_ATTRIBUTE, KrangCoreSettings.FACTORY_NAME);
 
 				// Name of the core
 				writer.WriteElementString(AbstractSettings.NAME_ELEMENT, "IcdCore");
@@ -106,9 +106,9 @@ namespace ICD.Connect.Krang.Settings.Migration
 				new ConfigurationHeader(true).ToXml(writer);
 
 				// The meat
-				CopyXml(writer, configXml, KrangSettings.PORTS_ELEMENT);
-				CopyXml(writer, configXml, KrangSettings.DEVICES_ELEMENT);
-				CopyXml(writer, configXml, KrangSettings.PANELS_ELEMENT);
+				CopyXml(writer, configXml, KrangCoreSettings.PORTS_ELEMENT);
+				CopyXml(writer, configXml, KrangCoreSettings.DEVICES_ELEMENT);
+				CopyXml(writer, configXml, KrangCoreSettings.PANELS_ELEMENT);
 
 				// Routes got renamed
 				CopyRoutesXml(writer, configXml);
@@ -137,7 +137,7 @@ namespace ICD.Connect.Krang.Settings.Migration
 
 		private static void WriteRooms(IcdXmlTextWriter writer, string configXml)
 		{
-			writer.WriteStartElement(KrangSettings.ROOMS_ELEMENT);
+			writer.WriteStartElement(KrangCoreSettings.ROOMS_ELEMENT);
 			{
 				writer.WriteStartElement(AbstractRoomSettings.ROOM_ELEMENT);
 				{
@@ -154,15 +154,15 @@ namespace ICD.Connect.Krang.Settings.Migration
 
 						switch (name)
 						{
-							case KrangSettings.PORTS_ELEMENT:
-								WriteIds(writer, child, KrangSettings.PORTS_ELEMENT, AbstractPortSettings.PORT_ELEMENT);
+							case KrangCoreSettings.PORTS_ELEMENT:
+								WriteIds(writer, child, KrangCoreSettings.PORTS_ELEMENT, AbstractPortSettings.PORT_ELEMENT);
 								break;
-							case KrangSettings.DEVICES_ELEMENT:
+							case KrangCoreSettings.DEVICES_ELEMENT:
 								devicesXml = child;
-								WriteIds(writer, child, KrangSettings.DEVICES_ELEMENT, AbstractDeviceSettings.DEVICE_ELEMENT);
+								WriteIds(writer, child, KrangCoreSettings.DEVICES_ELEMENT, AbstractDeviceSettings.DEVICE_ELEMENT);
 								break;
-							case KrangSettings.PANELS_ELEMENT:
-								WriteIds(writer, child, KrangSettings.PANELS_ELEMENT, AbstractPanelDeviceSettings.PANEL_ELEMENT);
+							case KrangCoreSettings.PANELS_ELEMENT:
+								WriteIds(writer, child, KrangCoreSettings.PANELS_ELEMENT, AbstractPanelDeviceSettings.PANEL_ELEMENT);
 								break;
 
 							case "Sources":

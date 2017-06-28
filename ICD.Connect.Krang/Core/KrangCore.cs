@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Properties;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Common.Services;
@@ -27,7 +28,7 @@ using ICD.Connect.UI;
 
 namespace ICD.Connect.Krang.Core
 {
-	public sealed class Krang : AbstractOriginator<KrangSettings>, ICore, IConsoleNode
+	public sealed class KrangCore : AbstractOriginator<KrangCoreSettings>, ICore, IConsoleNode
 	{
 		private readonly CoreOriginatorCollection m_Originators;
 
@@ -52,6 +53,7 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Gets the routing graph for the program.
 		/// </summary>
+		[CanBeNull]
 		public RoutingGraph RoutingGraph { get { return m_Originators.OfType<RoutingGraph>().SingleOrDefault(); } }
 
 		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
@@ -65,7 +67,7 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public Krang()
+		public KrangCore()
 		{
 			ServiceProvider.AddService<ICore>(this);
 
@@ -117,14 +119,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.DisposeFinal(disposing);
 
-			RoutingGraph.Clear();
-
 			DisposeOriginators();
-			//DisposeUiFactories();
-			//DisposeRooms();
-			//DisposePanels();
-			//DisposeDevices();
-			//DisposePorts();
 		}
 
 		private void SetOriginators(IEnumerable<IOriginator> originators)
@@ -132,57 +127,7 @@ namespace ICD.Connect.Krang.Core
 			DisposeOriginators();
 			m_Originators.SetChildren(originators);
 		}
-		/*
-		/// <summary>
-		/// Disposes the old devices and sets the new devices in the program.
-		/// </summary>
-		/// <param name="uiFactories"></param>
-		private void SetUiFactories(IEnumerable<IUserInterfaceFactory> uiFactories)
-		{
-			DisposeUiFactories();
-			GetUiFactories().SetChildren(uiFactories);
-		}
 
-		/// <summary>
-		/// Disposes the old devices and sets the new devices in the program.
-		/// </summary>
-		/// <param name="devices"></param>
-		private void SetDevices(IEnumerable<IDevice> devices)
-		{
-			DisposeDevices();
-			m_Devices.SetChildren(devices);
-		}
-
-		/// <summary>
-		/// Disposes the old ports and sets the new ports in the program.
-		/// </summary>
-		/// <param name="ports"></param>
-		private void SetPorts(IEnumerable<IPort> ports)
-		{
-			DisposePorts();
-			m_Ports.SetChildren(ports);
-		}
-
-		/// <summary>
-		/// Disposes the old panels and sets the new panels in the program.
-		/// </summary>
-		/// <param name="panels"></param>
-		private void SetPanels(IEnumerable<IPanelDevice> panels)
-		{
-			DisposePanels();
-			m_Panels.SetChildren(panels);
-		}
-
-		/// <summary>
-		/// Disposes the old rooms and sets the new rooms in the program.
-		/// </summary>
-		/// <param name="rooms"></param>
-		private void SetRooms(IEnumerable<IRoom> rooms)
-		{
-			DisposeRooms();
-			m_Rooms.SetChildren(rooms);
-		}
-		*/
 		/// <summary>
 		/// Unsubscribes, disposes and clears the devices.
 		/// </summary>
@@ -192,57 +137,7 @@ namespace ICD.Connect.Krang.Core
 				originator.Dispose();
 			m_Originators.Clear();
 		}
-		/*
-		/// <summary>
-		/// Unsubscribes, disposes and clears the devices.
-		/// </summary>
-		private void DisposeUiFactories()
-		{
-			foreach (IDisposable uiFactory in m_UiFactories.OfType<IDisposable>())
-				uiFactory.Dispose();
-			m_UiFactories.Clear();
-		}
-
-		/// <summary>
-		/// Unsubscribes, disposes and clears the devices.
-		/// </summary>
-		private void DisposeDevices()
-		{
-			foreach (IDisposable device in m_Devices.OfType<IDisposable>())
-				device.Dispose();
-			m_Devices.Clear();
-		}
-
-		/// <summary>
-		/// Unsubscribes, disposes and clears the ports.
-		/// </summary>
-		private void DisposePorts()
-		{
-			foreach (IDisposable port in m_Ports.OfType<IDisposable>())
-				port.Dispose();
-			m_Ports.Clear();
-		}
-
-		/// <summary>
-		/// Unsubscribes, disposes and clears the panels.
-		/// </summary>
-		private void DisposePanels()
-		{
-			foreach (IDisposable panel in m_Panels.OfType<IDisposable>())
-				panel.Dispose();
-			m_Panels.Clear();
-		}
-
-		/// <summary>
-		/// Unsubscribes, disposes and clears the rooms.
-		/// </summary>
-		private void DisposeRooms()
-		{
-			foreach (IDisposable room in m_Rooms.OfType<IDisposable>())
-				room.Dispose();
-			m_Rooms.Clear();
-		}
-		*/
+		
 		#endregion
 
 		#region Settings
@@ -253,7 +148,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="settings"></param>
 		void ICore.CopySettings(ICoreSettings settings)
 		{
-			CopySettings((KrangSettings)settings);
+			CopySettings((KrangCoreSettings)settings);
 		}
 
 		/// <summary>
@@ -270,7 +165,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		public void LoadSettings()
 		{
-			FileOperations.LoadCoreSettings<Krang, KrangSettings>(this);
+			FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(this);
 		}
 
 		/// <summary>
@@ -280,14 +175,14 @@ namespace ICD.Connect.Krang.Core
 		void ICore.ApplySettings(ICoreSettings settings)
 		{
 			IDeviceFactory factory = new CoreDeviceFactory(settings);
-			ApplySettings((KrangSettings)settings, factory);
+			ApplySettings((KrangCoreSettings)settings, factory);
 		}
 
 		/// <summary>
 		/// Override to apply properties to the settings instance.
 		/// </summary>
 		/// <param name="settings"></param>
-		protected override void CopySettingsFinal(KrangSettings settings)
+		protected override void CopySettingsFinal(KrangCoreSettings settings)
 		{
 			base.CopySettingsFinal(settings);
 
@@ -297,7 +192,8 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(m_Originators.OfType<IRoom>().Select(r => r.CopySettings()));
 			settings.OriginatorSettings.AddRange(m_Originators.OfType<IUserInterfaceFactory>().Select(u => u.CopySettings()));
 
-			var routingSettings = RoutingGraph.CopySettings();
+			var routingGraph = RoutingGraph;
+			var routingSettings = routingGraph == null ? new RoutingSettings() : routingGraph.CopySettings();
 			settings.OriginatorSettings.Add(routingSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.ConnectionSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.StaticRouteSettings);
@@ -313,11 +209,6 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.ClearSettingsFinal();
 			SetOriginators(Enumerable.Empty<IOriginator>());
-			//SetUiFactories(Enumerable.Empty<IUserInterfaceFactory>());
-			//SetRooms(Enumerable.Empty<IRoom>());
-			//SetDevices(Enumerable.Empty<IDevice>());
-			//SetPanels(Enumerable.Empty<IPanelDevice>());
-			//SetPorts(Enumerable.Empty<IPort>());
 		}
 
 		/// <summary>
@@ -325,7 +216,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <param name="factory"></param>
-		protected override void ApplySettingsFinal(KrangSettings settings, IDeviceFactory factory)
+		protected override void ApplySettingsFinal(KrangCoreSettings settings, IDeviceFactory factory)
 		{
 			base.ApplySettingsFinal(settings, factory);
 			SetOriginators(factory.GetOriginators());
@@ -357,8 +248,13 @@ namespace ICD.Connect.Krang.Core
 			addRow("Panel count", m_Originators.OfType<IPanelDevice>().Count());
 			addRow("Device count", m_Originators.OfType<IDevice>().Count());
 			addRow("Port count", m_Originators.OfType<IPort>().Count());
-			addRow("Connection count", RoutingGraph.Connections.Count);
-			addRow("Static Routes count", RoutingGraph.StaticRoutes.Count);
+
+			if (RoutingGraph != null)
+			{
+				addRow("Connection count", RoutingGraph.Connections.Count);
+				addRow("Static Routes count", RoutingGraph.StaticRoutes.Count);
+			}
+
 			addRow("Room count", m_Originators.OfType<IRoom>().Count());
 		}
 
@@ -373,7 +269,9 @@ namespace ICD.Connect.Krang.Core
 			yield return ConsoleNodeGroup.KeyNodeMap("Devices", m_Originators.OfType<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Ports", m_Originators.OfType<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", m_Originators.OfType<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
-			yield return RoutingGraph;
+
+			if (RoutingGraph != null)
+				yield return RoutingGraph;
 		}
 
 		/// <summary>
