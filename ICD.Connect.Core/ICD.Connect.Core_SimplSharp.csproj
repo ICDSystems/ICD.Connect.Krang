@@ -7,7 +7,7 @@
     <ProjectGuid>{0B385B90-CA64-4665-B85B-0BCBBFC57EAF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ICD.Connect.Core_SimplSharp</RootNamespace>
+    <RootNamespace>ICD.Connect.Core</RootNamespace>
     <AssemblyName>ICD.Connect.Core_SimplSharp</AssemblyName>
     <ProjectTypeGuids>{0B4745B0-194B-4BB6-8E21-E9057CA92230};{4D628B5B-2FBC-4AA6-8C16-197242AEB884};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <PlatformFamilyName>WindowsCE</PlatformFamilyName>
