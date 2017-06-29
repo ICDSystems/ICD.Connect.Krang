@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Services.Logging;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Common.Properties;
@@ -970,16 +971,25 @@ namespace ICD.Connect.Krang.Routing
 
 		#endregion
 
+		#region Settings
+
 		protected override void ApplySettingsFinal(RoutingSettings settings, IDeviceFactory factory)
 		{
 			m_Connections.OnConnectionsChanged -= ConnectionsOnConnectionsChanged;
 
 			base.ApplySettingsFinal(settings, factory);
-			Connections.SetConnections(settings.ConnectionSettings.Select(s => factory.GetConnectionById(s.Id)));
-			StaticRoutes.SetStaticRoutes(settings.StaticRouteSettings.Select(s => factory.GetStaticRouteById(s.Id)));
-			Sources.SetChildren(settings.SourceSettings.Select(s => factory.GetSourceById(s.Id)));
-			Destinations.SetChildren(settings.DestinationSettings.Select(s => factory.GetDestinationById(s.Id)));
-			DestinationGroups.SetChildren(settings.DestinationGroupSettings.Select(s => factory.GetDestinationGroupById(s.Id)));
+
+			IEnumerable<Connection> connections = GetConnections(settings, factory);
+			IEnumerable<StaticRoute> staticRoutes = GetStaticRoutes(settings, factory);
+			IEnumerable<ISource> sources = GetSources(settings, factory);
+			IEnumerable<IDestination> destinations = GetDestinations(settings, factory);
+			IEnumerable<IDestinationGroup> destinationGroups = GetDestinationGroups(settings, factory);
+
+			Connections.SetConnections(connections);
+			StaticRoutes.SetStaticRoutes(staticRoutes);
+			Sources.SetChildren(sources);
+			Destinations.SetChildren(destinations);
+			DestinationGroups.SetChildren(destinationGroups);
 
 			UnsubscribeSwitchers();
 			m_SubscribedSwitchers.AddRange(Connections.GetConnections().SelectMany(c => GetFactorySwitcherControls(c, factory)));
@@ -987,6 +997,52 @@ namespace ICD.Connect.Krang.Routing
 				Subscribe(switcher);
 
 			m_Connections.OnConnectionsChanged += ConnectionsOnConnectionsChanged;
+		}
+
+		private IEnumerable<StaticRoute> GetStaticRoutes(RoutingSettings settings, IDeviceFactory factory)
+		{
+			return GetOriginatorsSkipExceptions<StaticRoute>(settings.StaticRouteSettings, factory);
+		}
+
+		private IEnumerable<ISource> GetSources(RoutingSettings settings, IDeviceFactory factory)
+		{
+			return GetOriginatorsSkipExceptions<ISource>(settings.SourceSettings, factory);
+		}
+
+		private IEnumerable<IDestination> GetDestinations(RoutingSettings settings, IDeviceFactory factory)
+		{
+			return GetOriginatorsSkipExceptions<IDestination>(settings.DestinationSettings, factory);
+		}
+
+		private IEnumerable<IDestinationGroup> GetDestinationGroups(RoutingSettings settings, IDeviceFactory factory)
+		{
+			return GetOriginatorsSkipExceptions<IDestinationGroup>(settings.DestinationGroupSettings, factory);
+		}
+
+		private IEnumerable<Connection> GetConnections(RoutingSettings settings, IDeviceFactory factory)
+		{
+			return GetOriginatorsSkipExceptions<Connection>(settings.ConnectionSettings, factory);
+		}
+
+		private IEnumerable<T> GetOriginatorsSkipExceptions<T>(IEnumerable<ISettings> originatorSettings, IDeviceFactory factory)
+			where T : class, IOriginator
+		{
+			foreach (ISettings settings in originatorSettings)
+			{
+				T output;
+
+				try
+				{
+					output = factory.GetOriginatorById<T>(settings.Id);
+				}
+				catch (Exception e)
+				{
+					Logger.AddEntry(eSeverity.Error, e, "Failed to instantiate {0} with id {1} - {2}", typeof(T).Name, settings.Id, e.Message);
+					continue;
+				}
+
+				yield return output;
+			}
 		}
 
 		private IEnumerable<IRouteSwitcherControl> GetFactorySwitcherControls(Connection c, IDeviceFactory factory)
@@ -1010,6 +1066,8 @@ namespace ICD.Connect.Krang.Routing
 			settings.DestinationSettings.SetRange(Destinations.Select(r => r.CopySettings()));
 			settings.DestinationGroupSettings.SetRange(DestinationGroups.Select(r => r.CopySettings()));
 		}
+
+		#endregion
 
 		#region Console
 
