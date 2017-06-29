@@ -100,61 +100,33 @@
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ICD.Common.Utils\ICD.Common.Utils\ICD.Common.Utils_SimplSharp.csproj">
+      <Project>{CB4055C6-D59E-479E-9C56-2C92335A7D9A}</Project>
+      <Name>ICD.Common.Utils_SimplSharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.API\ICD.Connect.API\ICD.Connect.API_SimplSharp.csproj">
       <Project>{727F5820-5A61-440D-8899-E454FE8238D7}</Project>
-      <Name>ICD.Connect.API</Name>
+      <Name>ICD.Connect.API_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Devices\ICD.Connect.Devices\ICD.Connect.Devices_SimplSharp.csproj">
       <Project>{FD46A717-5836-4B73-ADD0-2706639DA8ED}</Project>
-      <Name>ICD.Connect.Devices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Panels\ICD.Connect.Panels\ICD.Connect.Panels_SimplSharp.csproj">
-      <Project>{A441FE98-6A8E-4EF3-98F0-D17041D2E118}</Project>
-      <Name>ICD.Connect.Panels</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Network\ICD.Connect.Protocol.Network_SimplSharp.csproj">
-      <Project>{5ED52F05-EA6C-4FC5-8AA0-9B9727F6AECD}</Project>
-      <Name>ICD.Connect.Protocol.Network</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Common.Utils\ICD.Common.Utils\ICD.Common.Utils_SimplSharp.csproj">
-      <Project>{CB4055C6-D59E-479E-9C56-2C92335A7D9A}</Project>
-      <Name>ICD.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_SimplSharp.csproj">
-      <Project>{CC672DB0-ED3A-4579-809F-4261B345BA1D}</Project>
-      <Name>ICD.Connect.Krang</Name>
+      <Name>ICD.Connect.Devices_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Misc\ICD.Connect.Misc.CrestronPro\ICD.Connect.Misc.CrestronPro_SimplSharp.csproj">
       <Project>{46CD87DE-F3EF-41D4-8783-9ECF21183765}</Project>
-      <Name>ICD.Connect.Misc.CrestronPro</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Common.Logging\ICD.Common.Logging.Console\ICD.Common.Logging.Console_SimplSharp.csproj">
-      <Project>{8093AE94-7250-411E-9C55-68AB2B5D705A}</Project>
-      <Name>ICD.Common.Logging.Console</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol\ICD.Connect.Protocol_SimplSharp.csproj">
-      <Project>{2E4E01B8-D4EA-4FB1-9FCE-0A0DC8D83C8A}</Project>
-      <Name>ICD.Connect.Protocol</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Rooms\ICD.Connect.Rooms\ICD.Connect.Rooms_SimplSharp.csproj">
-      <Project>{42FB8CF0-6AE6-4C70-AFDD-DF95F07E077F}</Project>
-      <Name>ICD.Connect.Rooms</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.Mock\ICD.Connect.Routing.Mock_SimplSharp.csproj">
-      <Project>{97A3B247-7928-461D-A083-077B4C875FFB}</Project>
-      <Name>ICD.Connect.Routing.Mock</Name>
+      <Name>ICD.Connect.Misc.CrestronPro_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing\ICD.Connect.Routing_SimplSharp.csproj">
       <Project>{B0C0CA1C-FA55-4BEA-8A8B-EDB2141C523E}</Project>
-      <Name>ICD.Connect.Routing</Name>
+      <Name>ICD.Connect.Routing_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Settings\ICD.Connect.Settings\ICD.Connect.Settings_SimplSharp.csproj">
       <Project>{5B84EB3C-1C3A-4C4D-98C2-69F67CF51D5A}</Project>
-      <Name>ICD.Connect.Settings</Name>
+      <Name>ICD.Connect.Settings_SimplSharp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.UI\ICD.Connect.UI\ICD.Connect.UI_SimplSharp.csproj">
-      <Project>{89BF27D5-374B-4863-AD92-D217924D6D8F}</Project>
-      <Name>ICD.Connect.UI</Name>
+    <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_SimplSharp.csproj">
+      <Project>{CC672DB0-ED3A-4579-809F-4261B345BA1D}</Project>
+      <Name>ICD.Connect.Krang_SimplSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
