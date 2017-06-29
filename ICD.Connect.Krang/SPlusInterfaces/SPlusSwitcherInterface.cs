@@ -18,7 +18,7 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 	{
 		#region S+ Delegates
 
-		public delegate bool SPlusGetSignalDetectedState(ushort input);
+		public delegate ushort SPlusGetSignalDetectedState(ushort input);
 
 		public delegate ushort SPlusGetInputCount();
 
@@ -26,9 +26,9 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 
 		public delegate ushort SPlusGetInputForOutput(ushort output);
 
-		public delegate bool SPlusRoute(ushort input, ushort output);
+		public delegate ushort SPlusRoute(ushort input, ushort output);
 
-		public delegate bool SPlusClearOutput(ushort output);
+		public delegate ushort SPlusClearOutput(ushort output);
 
 		#endregion
 
@@ -195,12 +195,12 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 
 		private bool SwitcherControlClearOutputCallback(int output, eConnectionType type)
 		{
-			return ClearOutputCallback((ushort)output);
+			return (ClearOutputCallback((ushort)output) != 0);
 		}
 
 		private bool SwitcherControlRouteCallback(RouteOperation info)
 		{
-			return RouteCallback != null && RouteCallback((ushort)info.LocalInput, (ushort)info.LocalOutput);
+			return RouteCallback != null && (RouteCallback((ushort)info.LocalInput, (ushort)info.LocalOutput) != 0);
 		}
 
 		private IEnumerable<ConnectorInfo> SwitcherControlGetInputsForOutputCallback(int output, eConnectionType type)
@@ -243,7 +243,7 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 			{
 				case eConnectionType.Audio:
 				case eConnectionType.Video:
-					return GetSignalDetectedStateCallback != null && GetSignalDetectedStateCallback((ushort)input);
+					return GetSignalDetectedStateCallback != null && (GetSignalDetectedStateCallback((ushort)input) != 0);
 			}
 
 			return false;
