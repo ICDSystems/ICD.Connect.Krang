@@ -347,7 +347,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			var sourceListDictionary = new Dictionary<ushort, Dictionary<ushort,   SimplSource>>();
 			var sourceListDictionaryReverse = new Dictionary<ISource, ushort[]>();
 
-			ushort[] indexArray = new ushort[] {INDEX_START, INDEX_START};
+			ushort[] indexArray = {INDEX_START, INDEX_START};
 
 			var sources = GetRoom().Sources.ToList();
 
