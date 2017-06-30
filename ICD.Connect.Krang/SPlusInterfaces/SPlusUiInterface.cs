@@ -26,29 +26,31 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		public delegate void RoomInfoCallback(ushort id, SimplSharpString name, ushort index);
 
-		public delegate void SourceInfoCallback(ushort id, SimplSharpString name, ushort crosspointId, ushort crosspointType);
+		public delegate void SourceInfoCallback(
+			ushort id, SimplSharpString name, ushort crosspointId, ushort crosspointType, ushort sourceListIndex,
+			ushort sourceIndex);
 
 		public delegate void RoomListCallback(ushort index, ushort roomId, SimplSharpString roomName);
 
 		public delegate void SourceListCallback(
-			ushort index, ushort sourceId, SimplSharpString sourceName, ushort crosspointId, ushort crosspointType);
+			ushort listIndex, ushort index, ushort sourceId, SimplSharpString sourceName, ushort crosspointId, ushort crosspointType);
 
 		/// <summary>
 		/// Raises the room info when the wrapped room changes.
 		/// </summary>
-		public event RoomInfoCallback OnRoomChanged;
+		public RoomInfoCallback OnRoomChanged { get; set; }
 
 		/// <summary>
 		/// Raises for each source that is routed to the room destinations.
 		/// </summary>
-		public event SourceInfoCallback OnSourceChanged;
+		public SourceInfoCallback OnSourceChanged { get; set; }
 
 		/// <summary>
 		/// Raised to update the rooms list for new rooms
 		/// </summary>
-		public event RoomListCallback OnRoomListChanged;
+		public RoomListCallback OnRoomListChanged { get; set; }
 
-		public event SourceListCallback OnSourceListChanged;
+		public SourceListCallback OnSourceListChanged { get; set; }
 
 		private ushort m_RoomId;
 
@@ -128,6 +130,20 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				Unroute();
 			else
 				Route(source);
+		}
+
+		public void SetSourceIndex(ushort sourceList, ushort sourceIndex)
+		{
+			SimplSource source;
+
+			Dictionary<ushort, SimplSource> listDict;
+
+			if (!m_SourceListDictionary.TryGetValue(sourceList, out listDict))
+				return;
+			if (!listDict.TryGetValue(sourceIndex, out source))
+				return;
+
+			Route(source);
 		}
 
 		/// <summary>
@@ -276,7 +292,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
 				ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
 
-				handler(id, new SimplSharpString(name), crosspointId, crosspointType);
+				//todo: Add source list index and source index - need to figure out if source is audio or video
+				handler(id, new SimplSharpString(name), crosspointId, crosspointType, 0, 0);
 			}
 		}
 
@@ -343,7 +360,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					sourceListDictionary[AUDIO_LIST_INDEX][indexArray[AUDIO_LIST_INDEX]] = ss;
 					sourceListDictionaryReverse[ss][AUDIO_LIST_INDEX] = indexArray[AUDIO_LIST_INDEX];
 					if (handler != null)
-						handler(indexArray[AUDIO_LIST_INDEX], (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
+						handler(AUDIO_LIST_INDEX, indexArray[AUDIO_LIST_INDEX], (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
 					indexArray[AUDIO_LIST_INDEX]++;
 				}
 				if (ss.SourceVisibility.HasFlag(eConnectionType.Video))
@@ -351,7 +368,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					sourceListDictionary[VIDEO_LIST_INDEX][indexArray[VIDEO_LIST_INDEX]] = ss;
 					sourceListDictionaryReverse[ss][VIDEO_LIST_INDEX] = indexArray[VIDEO_LIST_INDEX];
 					if (handler != null)
-						handler(indexArray[VIDEO_LIST_INDEX], (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
+						handler(VIDEO_LIST_INDEX, indexArray[VIDEO_LIST_INDEX], (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
 					indexArray[VIDEO_LIST_INDEX]++;
 				}
 			}
