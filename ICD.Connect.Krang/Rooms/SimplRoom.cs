@@ -58,6 +58,8 @@ namespace ICD.Connect.Krang.Rooms
 			}
 		}
 
+		//todo: Add routing methods here?
+
 		#endregion
 
 		#region Settings

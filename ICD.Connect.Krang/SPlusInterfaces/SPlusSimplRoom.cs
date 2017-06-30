@@ -27,12 +27,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// <summary>
 		/// Raises the room info when the wrapped room changes.
 		/// </summary>
-		public event RoomInfoCallback OnRoomChanged;
+		public RoomInfoCallback OnRoomChanged { get; set; }
 
 		/// <summary>
 		/// Raises for each source that is routed to the room destinations.
 		/// </summary>
-		public event SourceInfoCallback OnSourceChanged;
+		public SourceInfoCallback OnSourceChanged { get; set; }
 
 		private ushort m_RoomId;
 
@@ -178,6 +178,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				return;
 
 			handler(m_RoomId, new SimplSharpString(room.Name ?? string.Empty));
+
+			RoutingGraphOnRouteChanged(this, new EventArgs());
 		}
 
 		/// <summary>
