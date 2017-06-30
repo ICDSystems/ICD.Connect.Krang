@@ -107,7 +107,7 @@
     <Compile Include="Settings\PluginFactory.cs" />
     <Compile Include="Settings\FileOperations.cs" />
     <Compile Include="Core\KrangCore.cs" />
-    <Compile Include="Settings\KrangCoreSettings.cs" />
+    <Compile Include="Core\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Settings\Migration\LegacySettingsMigration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
