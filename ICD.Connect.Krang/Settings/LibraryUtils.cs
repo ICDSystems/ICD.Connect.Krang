@@ -59,12 +59,23 @@ namespace ICD.Connect.Krang.Settings
 			UnzipLibAssemblies();
 
 			return GetAssemblyPaths().OrderBy<string, int>(GetDirectoryIndex)
-			                         .ThenByDescending<string, Version>(GetAssemblyVersionFromPath)
-			                         .Select<string, Assembly>(SafeLoadAssembly)
-			                         .Where(a => a != null)
-			                         .GroupBy(a => a.GetName())
-			                         .Select(g => g.FirstOrDefault())
-			                         .Where(IsKrangPlugin);
+									 .ThenByDescending<string, Version>(GetAssemblyVersionFromPath)
+									 .Distinct(new FileNameComparer())
+									 .Select<string, Assembly>(SafeLoadAssembly)
+									 .Where(a => a != null && IsKrangPlugin(a));
+		}
+
+		private class FileNameComparer : IEqualityComparer<string>
+		{
+			public bool Equals(string x, string y)
+			{
+				return GetHashCode(x) == GetHashCode(y);
+			}
+
+			public int GetHashCode(string obj)
+			{
+				return obj == null ? 0 : IcdPath.GetFileName(obj).GetHashCode();
+			}
 		}
 
 		/// <summary>
