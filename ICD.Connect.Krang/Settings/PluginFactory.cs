@@ -252,10 +252,10 @@ namespace ICD.Connect.Krang.Settings
 			{
 				AttributeUtils.CacheAssembly(assembly);
 				ServiceProvider.TryGetService<ILoggerService>()
-							   .AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.Location);
+							   .AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.GetName().Name);
 			}
 
-			foreach (AbstractXmlFactoryMethodAttribute attribute in AttributeUtils.GetMethodAttributes<AbstractXmlFactoryMethodAttribute>())
+			foreach (AbstractXmlFactoryMethodAttribute attribute in AttributeUtils.GetMethodAttributes<AbstractXmlFactoryMethodAttribute>().OrderBy(a => a.TypeName))
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
 							   .AddEntry(eSeverity.Informational, "Loaded settings {0}", attribute.TypeName);
