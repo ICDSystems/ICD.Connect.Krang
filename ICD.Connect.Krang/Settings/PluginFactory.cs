@@ -61,8 +61,8 @@ namespace ICD.Connect.Krang.Settings
 		{
 			string child;
 			return XmlUtils.TryGetChildElementAsString(xml, elementName, out child)
-				       ? GetSettingsFromXml<T>(child)
-				       : Enumerable.Empty<ISettings>();
+					   ? GetSettingsFromXml<T>(child)
+					   : Enumerable.Empty<ISettings>();
 		}
 
 		/// <summary>
@@ -86,7 +86,7 @@ namespace ICD.Connect.Krang.Settings
 				catch (Exception e)
 				{
 					ServiceProvider.TryGetService<ILoggerService>()
-					               .AddEntry(eSeverity.Error, e, "Unable to parse settings element - {0}", e.Message);
+								   .AddEntry(eSeverity.Error, e, "Unable to parse settings element - {0}", e.Message);
 					continue;
 				}
 
@@ -121,8 +121,8 @@ namespace ICD.Connect.Krang.Settings
 				return Enumerable.Empty<string>();
 
 			return s_AttributeNameMethodMap[typeof(TAttribute)].Keys
-			                                                   .Order()
-			                                                   .ToArray();
+															   .Order()
+															   .ToArray();
 		}
 
 		/// <summary>
@@ -247,10 +247,19 @@ namespace ICD.Connect.Krang.Settings
 		private static void BuildCache()
 		{
 			IEnumerable<Assembly> assemblies = LibraryUtils.GetPluginAssemblies();
-			AttributeUtils.CacheAssemblies(assemblies);
+
+			foreach (Assembly assembly in assemblies)
+			{
+				AttributeUtils.CacheAssembly(assembly);
+				ServiceProvider.TryGetService<ILoggerService>()
+							   .AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.Location);
+			}
 
 			foreach (AbstractXmlFactoryMethodAttribute attribute in AttributeUtils.GetMethodAttributes<AbstractXmlFactoryMethodAttribute>())
 			{
+				ServiceProvider.TryGetService<ILoggerService>()
+							   .AddEntry(eSeverity.Informational, "Loaded settings {0}", attribute.TypeName);
+
 				MethodInfo method = AttributeUtils.GetMethod(attribute);
 				Type attributeType = attribute.GetType();
 
