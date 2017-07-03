@@ -1,11 +1,10 @@
-﻿using System;
+﻿#if SIMPLSHARP
+using System;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Core;
-
-#if SIMPLSHARP
 
 namespace ICD.Connect.Krang.SPlusInterfaces
 {
