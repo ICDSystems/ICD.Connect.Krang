@@ -35,7 +35,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			}
 			catch (Exception e)
 			{
-				ErrorLog.Exception("Failed to create KrangBootstrap: ", e);
 				IcdErrorLog.Exception(e.GetBaseException(), "Failed to create KrangBootstrap - {0}", e.GetBaseException().Message);
 				throw;
 			}
@@ -49,7 +48,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			}
 			catch (Exception e)
 			{
-				ErrorLog.Exception("Exception starting Krang: ", e);
 				IcdErrorLog.Exception(e.GetBaseException(), "Exception starting Krang - {0}", e.GetBaseException().Message);
 			}
 		}

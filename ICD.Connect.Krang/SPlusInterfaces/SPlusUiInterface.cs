@@ -86,7 +86,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			}
 			catch (Exception e)
 			{
-				ErrorLog.Exception("Exception creating SPlusUiInterface:", e);
+				IcdErrorLog.Exception(e.GetBaseException(), "Failed to create Krang SPlusUiInterface - {0}", e.GetBaseException().Message);
 			}
 		}
 
