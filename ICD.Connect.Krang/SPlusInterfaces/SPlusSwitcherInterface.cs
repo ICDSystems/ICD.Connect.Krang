@@ -54,10 +54,22 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 
 		#endregion
 
+		private ushort m_SwitcherId;
+
 		[PublicAPI("SPlus")]
 		public event EventHandler OnSettingsApplied;
 
 		private SPlusSwitcherControl m_SwitcherControl;
+
+		public SPlusSwitcherInterface()
+		{
+			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
+		}
+
+		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
+		{
+			SetSwitcher(m_SwitcherId);
+		}
 
 		#region Methods
 
@@ -67,6 +79,7 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 		public void Dispose()
 		{
 			OnSettingsApplied = null;
+			SPlusKrangBootstrap.OnKrangLoaded -= SPlusKrangBootstrapOnKrangLoaded;
 
 			SetSwitcher(0);
 		}
@@ -78,6 +91,7 @@ namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
 		[PublicAPI("SPlus")]
 		public void SetSwitcher(ushort id)
 		{
+			m_SwitcherId = id;
 			Unsubscribe(m_SwitcherControl);
 			m_SwitcherControl = GetSwitcherControl(id);
 			Subscribe(m_SwitcherControl);

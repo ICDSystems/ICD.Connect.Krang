@@ -32,8 +32,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		public delegate void RoomListCallback(ushort index, ushort roomId, SimplSharpString roomName);
 
+		public delegate void RoomListSizeCallback(ushort size);
+
 		public delegate void SourceListCallback(
 			ushort listIndex, ushort index, ushort sourceId, SimplSharpString sourceName, ushort crosspointId, ushort crosspointType);
+
+		public delegate void SourceListSizeCallback(ushort listIndex, ushort size);
 
 		/// <summary>
 		/// Raises the room info when the wrapped room changes.
@@ -50,7 +54,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// </summary>
 		public RoomListCallback OnRoomListChanged { get; set; }
 
+		public RoomListSizeCallback OnRoomListSizeChanged { get; set; }
+
 		public SourceListCallback OnSourceListChanged { get; set; }
+
+		public SourceListSizeCallback OnSourceListSizeChanged { get; set; }
 
 		private ushort m_RoomId;
 
@@ -70,8 +78,16 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		public SPlusUiInterface()
 		{
-			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
-			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+			try
+			{
+				SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
+				if (SPlusKrangBootstrap.Krang.RoutingGraph != null)
+					SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+			}
+			catch (Exception e)
+			{
+				ErrorLog.Exception("Exception creating SPlusUiInterface:", e);
+			}
 		}
 
 		#region Methods
@@ -82,7 +98,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		public void Dispose()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded -= SPlusKrangBootstrapOnKrangLoaded;
-			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
+			if (SPlusKrangBootstrap.Krang.RoutingGraph != null)
+				SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
 		}
 
 		/// <summary>
@@ -270,6 +287,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
 		{
+			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
 			RaiseRoomList();
 		}
 
@@ -335,6 +353,10 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				i++;
 			}
 
+			var handlerListSize = OnRoomListSizeChanged;
+			if (handlerListSize != null)
+				handlerListSize((ushort)(i - 1));
+
 			m_RoomListDictionary = roomListDictionary;
 			m_RoomListDictionaryReverse = roomListDictionaryReverse;
 
@@ -345,9 +367,13 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private void RaiseSourceList()
 		{
 			var sourceListDictionary = new Dictionary<ushort, Dictionary<ushort,   SimplSource>>();
+			sourceListDictionary[AUDIO_LIST_INDEX] = new Dictionary<ushort, SimplSource>();
+			sourceListDictionary[VIDEO_LIST_INDEX] = new Dictionary<ushort, SimplSource>();
 			var sourceListDictionaryReverse = new Dictionary<ISource, ushort[]>();
 
-			ushort[] indexArray = new ushort[] {INDEX_START, INDEX_START};
+			//ushort[] indexArray = {INDEX_START, INDEX_START};
+			ushort audioListIndexCounter = INDEX_START;
+			ushort videoListIndexCounter = INDEX_START;
 
 			var sources = GetRoom().Sources.ToList();
 
@@ -355,23 +381,35 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 			foreach (var ss in sources.OfType<SimplSource>())
 			{
-				if (ss.SourceVisibility.HasFlag(eConnectionType.Audio))
+				sourceListDictionaryReverse[ss] = new ushort[2];
+				if (ss.SourceVisibility.HasFlag(SimplSource.eSourceVisibility.Audio))
 				{
-					sourceListDictionary[AUDIO_LIST_INDEX][indexArray[AUDIO_LIST_INDEX]] = ss;
-					sourceListDictionaryReverse[ss][AUDIO_LIST_INDEX] = indexArray[AUDIO_LIST_INDEX];
+					sourceListDictionary[AUDIO_LIST_INDEX][audioListIndexCounter] = ss;
+					sourceListDictionaryReverse[ss][AUDIO_LIST_INDEX] = audioListIndexCounter;
 					if (handler != null)
-						handler(AUDIO_LIST_INDEX, indexArray[AUDIO_LIST_INDEX], (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
-					indexArray[AUDIO_LIST_INDEX]++;
+						handler(AUDIO_LIST_INDEX, audioListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
+					audioListIndexCounter++;
 				}
-				if (ss.SourceVisibility.HasFlag(eConnectionType.Video))
+				if (ss.SourceVisibility.HasFlag(SimplSource.eSourceVisibility.Video))
 				{
-					sourceListDictionary[VIDEO_LIST_INDEX][indexArray[VIDEO_LIST_INDEX]] = ss;
-					sourceListDictionaryReverse[ss][VIDEO_LIST_INDEX] = indexArray[VIDEO_LIST_INDEX];
+					sourceListDictionary[VIDEO_LIST_INDEX][videoListIndexCounter] = ss;
+					sourceListDictionaryReverse[ss][VIDEO_LIST_INDEX] = videoListIndexCounter;
 					if (handler != null)
-						handler(VIDEO_LIST_INDEX, indexArray[VIDEO_LIST_INDEX], (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
-					indexArray[VIDEO_LIST_INDEX]++;
+						handler(VIDEO_LIST_INDEX, videoListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
+					videoListIndexCounter++;
 				}
+
+				var handlerListSize = OnSourceListSizeChanged;
+				if (handlerListSize != null)
+				{
+					handlerListSize(AUDIO_LIST_INDEX, (ushort)(audioListIndexCounter - 1));
+					handlerListSize(VIDEO_LIST_INDEX, (ushort)(videoListIndexCounter - 1));
+				}
+
 			}
+
+			m_SourceListDictionary = sourceListDictionary;
+			m_SourceListDictionaryReverse = sourceListDictionaryReverse;
 
 		}
 
@@ -396,7 +434,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private ISource GetSource(ushort id)
 		{
 			return SPlusKrangBootstrap.Krang.RoutingGraph.Sources.ContainsChild(id)
-				       ? SPlusKrangBootstrap.Krang.RoutingGraph.Sources[m_RoomId]
+				       ? SPlusKrangBootstrap.Krang.RoutingGraph.Sources[id]
 				       : null;
 		}
 

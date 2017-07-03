@@ -1,5 +1,7 @@
 ﻿using System;
+using Crestron.SimplSharp;
 using ICD.Common.Properties;
+using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Core;
 
@@ -16,17 +18,40 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private static readonly KrangBootstrap s_Bootstrap;
 
-		public static Core.KrangCore Krang { get { return s_Bootstrap.Krang; } }
+		public static KrangCore Krang
+		{
+			get
+			{
+				return s_Bootstrap == null ? null : s_Bootstrap.Krang;
+			}
+		}
 
 		static SPlusKrangBootstrap()
 		{
-			s_Bootstrap = new KrangBootstrap();
-			s_Bootstrap.Krang.OnSettingsApplied += KrangOnSettingsApplied;
+			try
+			{
+				s_Bootstrap = new KrangBootstrap();
+				s_Bootstrap.Krang.OnSettingsApplied += KrangOnSettingsApplied;
+			}
+			catch (Exception e)
+			{
+				ErrorLog.Exception("Failed to create KrangBootstrap: ", e);
+				IcdErrorLog.Exception(e.GetBaseException(), "Failed to create KrangBootstrap - {0}", e.GetBaseException().Message);
+				throw;
+			}
 		}
 
 		public static void Start()
 		{
-			s_Bootstrap.Start();
+			try
+			{
+				s_Bootstrap.Start();
+			}
+			catch (Exception e)
+			{
+				ErrorLog.Exception("Exception starting Krang: ", e);
+				IcdErrorLog.Exception(e.GetBaseException(), "Exception starting Krang - {0}", e.GetBaseException().Message);
+			}
 		}
 
 		private static void KrangOnSettingsApplied(object sender, EventArgs eventArgs)

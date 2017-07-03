@@ -39,7 +39,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		public SPlusSimplRoom()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
-			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+			if (SPlusKrangBootstrap.Krang.RoutingGraph != null)
+				SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
 		}
 
 		#region Methods
@@ -50,7 +51,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		public void Dispose()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded -= SPlusKrangBootstrapOnKrangLoaded;
-			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
+			if (SPlusKrangBootstrap.Krang.RoutingGraph != null)
+				SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
 		}
 
 		/// <summary>
@@ -141,6 +143,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
 		{
+			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
 			RaiseRoomInfo();
 		}
 
@@ -203,7 +206,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private ISource GetSource(ushort id)
 		{
 			return SPlusKrangBootstrap.Krang.RoutingGraph.Sources.ContainsChild(id)
-				       ? SPlusKrangBootstrap.Krang.RoutingGraph.Sources[m_RoomId]
+				       ? SPlusKrangBootstrap.Krang.RoutingGraph.Sources[id]
 				       : null;
 		}
 
