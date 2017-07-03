@@ -4,18 +4,14 @@ using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
-using ICD.Connect.Routing.Connections;
-using ICD.Connect.Routing.Endpoints.Destinations;
-using ICD.Connect.Routing.Endpoints.Groups;
-using ICD.Connect.Routing.Endpoints.Sources;
-using ICD.Connect.Routing.StaticRoutes;
+using ICD.Connect.Krang.Settings;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.UI;
 
-namespace ICD.Connect.Krang.Settings
+namespace ICD.Connect.Krang.Core
 {
 	/// <summary>
 	/// Settings for the Krang core.
@@ -105,52 +101,7 @@ namespace ICD.Connect.Krang.Settings
 						s.GetType().IsAssignableTo(typeof (AbstractRoomSettings))));
 			}
 		}
-
-		public SettingsCollection ConnectionSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof(ConnectionSettings))));
-			}
-		}
-
-		public SettingsCollection StaticRouteSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof(StaticRouteSettings))));
-			}
-		}
-
-		public SettingsCollection SourceSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof(AbstractSourceSettings))));
-			}
-		}
-
-		public SettingsCollection DestinationSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof(AbstractDestinationSettings))));
-			}
-		}
-
-		public SettingsCollection DestinationGroupSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof(AbstractDestinationGroupSettings))));
-			}
-		}
-
+		
 		public RoutingSettings RoutingSettings
 		{
 			get
@@ -188,7 +139,7 @@ namespace ICD.Connect.Krang.Settings
 		/// <summary>
 		/// Gets the type of the originator for this settings instance.
 		/// </summary>
-		public override Type OriginatorType { get { return typeof(Core.KrangCore); } }
+		public override Type OriginatorType { get { return typeof(KrangCore); } }
 
 		#endregion
 
@@ -291,8 +242,6 @@ namespace ICD.Connect.Krang.Settings
 			OriginatorSettings.AddRange(routing.DestinationGroupSettings);
 		}
 
-		#endregion
-
 		/// <summary>
 		/// Called when device settings are removed. We remove any settings that depend on the device.
 		/// </summary>
@@ -311,7 +260,7 @@ namespace ICD.Connect.Krang.Settings
 		/// <param name="settings"></param>
 		/// <param name="deviceIds"></param>
 		private static void RemoveSettingsWithBadDeviceDependency(ICollection<ISettings> settings,
-				IEnumerable<int> deviceIds)
+		                                                          IEnumerable<int> deviceIds)
 		{
 			IEnumerable<ISettings> remove = settings.ToArray().Where(s => HasBadDeviceDependency(s, deviceIds));
 			settings.RemoveAll(remove);
@@ -326,8 +275,10 @@ namespace ICD.Connect.Krang.Settings
 		private static bool HasBadDeviceDependency(ISettings settings, IEnumerable<int> deviceIds)
 		{
 			return settings.GetDeviceDependencies()
-					.ToHashSet()
-					.Subtract(deviceIds.ToHashSet()).Count > 0;
+			               .ToHashSet()
+			               .Subtract(deviceIds.ToHashSet()).Count > 0;
 		}
+
+		#endregion
 	}
 }

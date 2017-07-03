@@ -9,6 +9,7 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
+using ICD.Connect.Krang.Core;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Header;
 #if SIMPLSHARP

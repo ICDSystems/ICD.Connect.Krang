@@ -59,12 +59,23 @@ namespace ICD.Connect.Krang.Settings
 			UnzipLibAssemblies();
 
 			return GetAssemblyPaths().OrderBy<string, int>(GetDirectoryIndex)
-			                         .ThenByDescending<string, Version>(GetAssemblyVersionFromPath)
-			                         .Select<string, Assembly>(SafeLoadAssembly)
-			                         .Where(a => a != null)
-			                         .GroupBy(a => a.GetName())
-			                         .Select(g => g.FirstOrDefault())
-			                         .Where(IsKrangPlugin);
+									 .ThenByDescending<string, Version>(GetAssemblyVersionFromPath)
+									 .Distinct(new FileNameComparer())
+									 .Select<string, Assembly>(SafeLoadAssembly)
+									 .Where(a => a != null && IsKrangPlugin(a));
+		}
+
+		private class FileNameComparer : IEqualityComparer<string>
+		{
+			public bool Equals(string x, string y)
+			{
+				return GetHashCode(x) == GetHashCode(y);
+			}
+
+			public int GetHashCode(string obj)
+			{
+				return obj == null ? 0 : IcdPath.GetFileName(obj).GetHashCode();
+			}
 		}
 
 		/// <summary>
@@ -81,11 +92,13 @@ namespace ICD.Connect.Krang.Settings
 				try
 				{
 					IcdDirectory.Delete(outputDir, true);
+					ServiceProvider.TryGetService<ILoggerService>()
+								   .AddEntry(eSeverity.Informational, "Removed old plugin {0}", outputDir);
 				}
 				catch (Exception e)
 				{
 					ServiceProvider.TryGetService<ILoggerService>()
-					               .AddEntry(eSeverity.Warning, "Failed to delete old plugin at path {0} - {1}", outputDir, e.Message);
+								   .AddEntry(eSeverity.Warning, "Failed to remove old plugin {0} - {1}", outputDir, e.Message);
 					return false;
 				}
 			}
@@ -104,11 +117,14 @@ namespace ICD.Connect.Krang.Settings
 
 				// Delete the archive so we don't waste time extracting on next load
 				if (result)
+				{
 					IcdFile.Delete(path);
+					ServiceProvider.TryGetService<ILoggerService>()
+								   .AddEntry(eSeverity.Informational, "Extracted plugin {0}", path);
+				}
 				else
 				{
-					ServiceProvider.TryGetService<ILoggerService>()
-					               .AddEntry(eSeverity.Warning, "Failed to unzip {0}", path);
+					ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Warning, "Failed to extract plugin {0}", path);
 				}
 			}
 		}
@@ -133,7 +149,7 @@ namespace ICD.Connect.Krang.Settings
 		private static IEnumerable<string> GetAssemblyPaths()
 		{
 			return s_LibDirectories.SelectMany(d => PathUtils.RecurseFilePaths(d))
-			                       .Where(IsAssembly);
+								   .Where(IsAssembly);
 		}
 
 		/// <summary>
@@ -143,7 +159,7 @@ namespace ICD.Connect.Krang.Settings
 		private static IEnumerable<string> GetArchivePaths()
 		{
 			return s_LibDirectories.SelectMany(d => PathUtils.RecurseFilePaths(d))
-			                       .Where(IsArchive);
+								   .Where(IsArchive);
 		}
 
 		/// <summary>
@@ -198,7 +214,7 @@ namespace ICD.Connect.Krang.Settings
 			catch (Exception e)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Warning, e, "Failed to load assembly at path {0}: {1}", path, e.Message);
+							   .AddEntry(eSeverity.Warning, e, "Failed to load plugin {0} - {1}", path, e.Message);
 				return null;
 			}
 		}
