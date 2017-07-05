@@ -269,6 +269,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private void Subscribe(RoutingGraph routingGraph)
 		{
+			m_SubscribedRoutingGraph = routingGraph;
+
 			if (routingGraph == null)
 				return;
 
