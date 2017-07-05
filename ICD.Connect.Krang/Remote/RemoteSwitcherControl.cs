@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Services;
 using ICD.Common.Utils;
+using ICD.Connect.Krang.Core;
 using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
@@ -15,7 +16,7 @@ namespace ICD.Connect.Krang.Remote
 {
 	public sealed class RemoteSwitcherControl : AbstractRouteSwitcherControl<RemoteSwitcher>
 	{
-		private readonly Core.KrangCore m_Krang;
+		private readonly KrangCore m_Krang;
 
 		private readonly Dictionary<ConnectorInfo, int> m_RoutedOutputMap;
 
@@ -26,7 +27,7 @@ namespace ICD.Connect.Krang.Remote
 		public RemoteSwitcherControl(RemoteSwitcher parent)
 			: base(parent, 0)
 		{
-			m_Krang = ServiceProvider.GetService<ICore>() as Core.KrangCore;
+			m_Krang = ServiceProvider.GetService<ICore>() as KrangCore;
 			m_RoutedOutputMap = new Dictionary<ConnectorInfo, int>();
 		}
 

@@ -65,7 +65,7 @@ namespace ICD.Connect.Krang.Settings
 									 .Where(a => a != null && IsKrangPlugin(a));
 		}
 
-		private class FileNameComparer : IEqualityComparer<string>
+		private sealed class FileNameComparer : IEqualityComparer<string>
 		{
 			public bool Equals(string x, string y)
 			{
