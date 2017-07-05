@@ -99,8 +99,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// <param name="destination"></param>
 		private void Route(ISource source, IDestination destination)
 		{
+			if (m_SubscribedRoutingGraph == null)
+				return;
+
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
-			SPlusKrangBootstrap.Krang.RoutingGraph.Route(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
+			m_SubscribedRoutingGraph.Route(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
 		}
 
 		/// <summary>
@@ -119,8 +122,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// <param name="destination"></param>
 		private void Unroute(ISource source, IDestination destination)
 		{
+			if (m_SubscribedRoutingGraph == null)
+				return;
+
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
-			SPlusKrangBootstrap.Krang.RoutingGraph.Unroute(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
+			m_SubscribedRoutingGraph.Unroute(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
 		}
 
 		/// <summary>
