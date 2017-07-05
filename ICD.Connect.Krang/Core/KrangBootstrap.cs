@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using ICD.Common.Permissions;
 using ICD.Connect.API;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
@@ -110,6 +111,8 @@ namespace ICD.Connect.Krang.Core
 
 			ServiceProvider.AddService(new DirectMessageManager());
 			ServiceProvider.AddService(new BroadcastManager());
+
+			ServiceProvider.AddService(new PermissionsManager());
 		}
 
 		private static string CleanErrorLog(params string[] args)
