@@ -62,7 +62,8 @@ namespace ICD.Connect.Krang.Settings
 									 .ThenByDescending<string, Version>(GetAssemblyVersionFromPath)
 									 .Distinct(new FileNameComparer())
 									 .Select<string, Assembly>(SafeLoadAssembly)
-									 .Where(a => a != null && IsKrangPlugin(a));
+									 .Where(a => a != null && IsKrangPlugin(a))
+									 .OrderBy(a => a.FullName);
 		}
 
 		private sealed class FileNameComparer : IEqualityComparer<string>
