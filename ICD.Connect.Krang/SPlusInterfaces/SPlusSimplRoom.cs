@@ -6,6 +6,7 @@ using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.Krang.Routing;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Rooms;
 using ICD.Connect.Rooms.Extensions;
@@ -13,7 +14,6 @@ using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
-
 
 namespace ICD.Connect.Krang.SPlusInterfaces
 {
@@ -35,12 +35,14 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		public SourceInfoCallback OnSourceChanged { get; set; }
 
 		private ushort m_RoomId;
+		private RoutingGraph m_SubscribedRoutingGraph;
 
 		public SPlusSimplRoom()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
-			if (SPlusKrangBootstrap.Krang.RoutingGraph != null)
-				SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+			SPlusKrangBootstrap.OnKrangCleared += SPlusKrangBootstrapOnKrangCleared;
+
+			Subscribe(SPlusKrangBootstrap.Krang.RoutingGraph);
 		}
 
 		#region Methods
@@ -51,8 +53,9 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		public void Dispose()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded -= SPlusKrangBootstrapOnKrangLoaded;
-			if (SPlusKrangBootstrap.Krang.RoutingGraph != null)
-				SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
+			SPlusKrangBootstrap.OnKrangCleared -= SPlusKrangBootstrapOnKrangCleared;
+
+			Unsubscribe(SPlusKrangBootstrap.Krang.RoutingGraph);
 		}
 
 		/// <summary>
@@ -141,35 +144,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		#region Private Methods
 
-		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
-		{
-			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
-			RaiseRoomInfo();
-		}
-
-		private void RoutingGraphOnRouteChanged(object sender, EventArgs eventArgs)
-		{
-			SourceInfoCallback handler = OnSourceChanged;
-			if (handler == null)
-				return;
-
-			foreach (ISource source in GetActiveRoomSources())
-			{
-				IRoom room = GetRoom();
-
-				ushort id = source == null ? (ushort)0 : (ushort)source.Id;
-				string name = source == null
-					              ? string.Empty
-					              : room == null
-						                ? source.Name
-						                : source.GetNameOrDeviceName(room);
-				ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
-				ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
-
-				handler(id, new SimplSharpString(name), crosspointId, crosspointType);
-			}
-		}
-
 		private void RaiseRoomInfo()
 		{
 			RoomInfoCallback handler = OnRoomChanged;
@@ -205,9 +179,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[CanBeNull]
 		private ISource GetSource(ushort id)
 		{
-			return SPlusKrangBootstrap.Krang.RoutingGraph.Sources.ContainsChild(id)
-				       ? SPlusKrangBootstrap.Krang.RoutingGraph.Sources[id]
-				       : null;
+			if (m_SubscribedRoutingGraph == null)
+				return null;
+
+			ISource source;
+			m_SubscribedRoutingGraph.Sources.TryGetChild(id, out source);
+			return source;
 		}
 
 		/// <summary>
@@ -229,10 +206,13 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			if (destination == null)
 				throw new ArgumentNullException("destination");
 
-			return SPlusKrangBootstrap.Krang.RoutingGraph.GetActiveSourceEndpoints(destination.Endpoint,
-			                                                                       destination.ConnectionType, false)
-			                          .Select(e => GetSourceFromEndpoint(e))
-			                          .Where(s => s != null);
+			if (m_SubscribedRoutingGraph == null)
+				return Enumerable.Empty<ISource>();
+
+			return m_SubscribedRoutingGraph.GetActiveSourceEndpoints(destination.Endpoint,
+			                                                         destination.ConnectionType, false)
+			                               .Select(e => GetSourceFromEndpoint(e))
+			                               .Where(s => s != null);
 		}
 
 		/// <summary>
@@ -243,10 +223,13 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[CanBeNull]
 		private ISource GetSourceFromEndpoint(EndpointInfo endpoint)
 		{
+			if (m_SubscribedRoutingGraph == null)
+				return null;
+
 			IRoom room = GetRoom();
 			return room == null
 				       ? null
-				       : SPlusKrangBootstrap.Krang.RoutingGraph.Sources.FirstOrDefault(s => s.Endpoint == endpoint);
+				       : m_SubscribedRoutingGraph.Sources.FirstOrDefault(s => s.Endpoint == endpoint);
 		}
 
 		/// <summary>
@@ -257,6 +240,64 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		{
 			IRoom room = GetRoom();
 			return room == null ? Enumerable.Empty<IDestination>() : room.Destinations;
+		}
+
+		#endregion
+
+		#region KrangBootstrap Callbacks
+
+		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
+		{
+			Subscribe(SPlusKrangBootstrap.Krang.RoutingGraph);
+			RaiseRoomInfo();
+		}
+
+		private void SPlusKrangBootstrapOnKrangCleared(object sender, EventArgs e)
+		{
+			Unsubscribe(m_SubscribedRoutingGraph);
+		}
+
+		#endregion
+
+		#region RoutingGraph Callbacks
+
+		private void Subscribe(RoutingGraph routingGraph)
+		{
+			if (routingGraph == null)
+				return;
+
+			routingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+		}
+
+		private void Unsubscribe(RoutingGraph routingGraph)
+		{
+			if (routingGraph == null)
+				return;
+
+			routingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
+		}
+
+		private void RoutingGraphOnRouteChanged(object sender, EventArgs eventArgs)
+		{
+			SourceInfoCallback handler = OnSourceChanged;
+			if (handler == null)
+				return;
+
+			foreach (ISource source in GetActiveRoomSources())
+			{
+				IRoom room = GetRoom();
+
+				ushort id = source == null ? (ushort)0 : (ushort)source.Id;
+				string name = source == null
+					              ? string.Empty
+					              : room == null
+						                ? source.Name
+						                : source.GetNameOrDeviceName(room);
+				ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
+				ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
+
+				handler(id, new SimplSharpString(name), crosspointId, crosspointType);
+			}
 		}
 
 		#endregion

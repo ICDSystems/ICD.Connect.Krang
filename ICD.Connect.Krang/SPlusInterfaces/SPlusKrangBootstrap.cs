@@ -1,6 +1,5 @@
 ﻿#if SIMPLSHARP
 using System;
-using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
@@ -12,8 +11,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 	public static class SPlusKrangBootstrap
 	{
 		public static event EventHandler OnKrangLoaded;
-
-		public delegate void KrangLoadedCallback();
+		public static event EventHandler OnKrangCleared;
 
 		private static readonly KrangBootstrap s_Bootstrap;
 
@@ -31,6 +29,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			{
 				s_Bootstrap = new KrangBootstrap();
 				s_Bootstrap.Krang.OnSettingsApplied += KrangOnSettingsApplied;
+				s_Bootstrap.Krang.OnSettingsCleared += KrangOnSettingsCleared;
 			}
 			catch (Exception e)
 			{
@@ -54,6 +53,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private static void KrangOnSettingsApplied(object sender, EventArgs eventArgs)
 		{
 			OnKrangLoaded.Raise(null);
+		}
+
+		private static void KrangOnSettingsCleared(object sender, EventArgs eventArgs)
+		{
+			OnKrangCleared.Raise(null);
 		}
 	}
 }
