@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
@@ -209,6 +210,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.ClearSettingsFinal();
 			SetOriginators(Enumerable.Empty<IOriginator>());
+			ResetDefaultPermissions();
 		}
 
 		/// <summary>
@@ -231,6 +233,17 @@ namespace ICD.Connect.Krang.Core
 				m_DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
 				m_DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
 				m_DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+			}
+
+			ResetDefaultPermissions();
+		}
+
+		private void ResetDefaultPermissions()
+		{
+			var permissionsManager = ServiceProvider.TryGetService<PermissionsManager>();
+			if (permissionsManager != null)
+			{
+				permissionsManager.SetDefaultPermissions(Permissions);
 			}
 		}
 
