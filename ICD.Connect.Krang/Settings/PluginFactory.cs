@@ -258,7 +258,7 @@ namespace ICD.Connect.Krang.Settings
 			foreach (AbstractXmlFactoryMethodAttribute attribute in AttributeUtils.GetMethodAttributes<AbstractXmlFactoryMethodAttribute>().OrderBy(a => a.TypeName))
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-							   .AddEntry(eSeverity.Informational, "Loaded settings {0}", attribute.TypeName);
+							   .AddEntry(eSeverity.Informational, "Loaded type {0}", attribute.TypeName);
 
 				MethodInfo method = AttributeUtils.GetMethod(attribute);
 				Type attributeType = attribute.GetType();

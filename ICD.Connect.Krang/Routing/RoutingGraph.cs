@@ -1099,7 +1099,29 @@ namespace ICD.Connect.Krang.Routing
 				new ConsoleCommand("PrintTable", "Prints a table of the routed devices and their input/output information.",
 				                   () => PrintTable());
 			yield return new ConsoleCommand("PrintConnections", "Prints the list of all connections.", () => PrintConnections());
+			yield return new ConsoleCommand("PrintSources", "Prints the list of Sources", () => PrintSources());
+			yield return new ConsoleCommand("PrintDestinations", "Prints the list of Destinations", () => PrintDestinations());
 			yield return new ConsoleCommand("PrintUsages", "Prints a table of the connection usages.", () => PrintUsages());
+		}
+
+		private string PrintSources()
+		{
+			TableBuilder builder = new TableBuilder("Id", "Source");
+
+			foreach (var source in m_Sources.GetChildren().OrderBy(c => c.Id))
+				builder.AddRow(source.Id, source);
+
+			return builder.ToString();
+		}
+
+		private string PrintDestinations()
+		{
+			TableBuilder builder = new TableBuilder("Id", "Destination");
+
+			foreach (var destination in m_Destinations.GetChildren().OrderBy(c => c.Id))
+				builder.AddRow(destination.Id, destination);
+
+			return builder.ToString();
 		}
 
 		/// <summary>
@@ -1116,7 +1138,7 @@ namespace ICD.Connect.Krang.Routing
 			TableBuilder builder = new TableBuilder("Source", "Output", "Destination", "Input", "Type");
 
 			foreach (var con in m_Connections.GetConnections().OrderBy(c => c.Source.Device).ThenBy(c => c.Source.Address))
-				builder.AddRow(con.Source.Device, con.Source.Address, con.Destination.Device, con.Destination.Address, con.ConnectionType);
+				builder.AddRow(con.Source, con.Source.Address, con.Destination, con.Destination.Address, con.ConnectionType);
 			
 			return builder.ToString();
 		}
