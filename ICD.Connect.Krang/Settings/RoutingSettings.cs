@@ -61,9 +61,10 @@ namespace ICD.Connect.Krang.Settings
 		/// Writes the routing settings to xml.
 		/// </summary>
 		/// <param name="writer"></param>
-		/// <param name="element"></param>
 		protected override void WriteElements(IcdXmlTextWriter writer)
 		{
+			base.WriteElements(writer);
+
 			m_ConnectionSettings.ToXml(writer, CONNECTIONS_ELEMENT);
 			m_StaticRouteSettings.ToXml(writer, STATIC_ROUTES_ELEMENT);
 			m_SourceSettings.ToXml(writer, SOURCES_ELEMENT);
@@ -89,6 +90,8 @@ namespace ICD.Connect.Krang.Settings
 			m_SourceSettings.SetRange(sources);
 			m_DestinationSettings.SetRange(destinations);
 			m_DestinationGroupSettings.SetRange(destinationGroups);
+
+			ParseXml(this, xml);
 		}
 
 		public void Clear()
@@ -102,12 +105,11 @@ namespace ICD.Connect.Krang.Settings
 
 		public override IEnumerable<int> GetDeviceDependencies()
 		{
-			return
-					m_ConnectionSettings.Union(m_StaticRouteSettings)
-							.Union(m_SourceSettings)
-							.Union(m_DestinationSettings)
-							.Union(m_DestinationGroupSettings)
-							.Select(s => s.Id);
+			return m_ConnectionSettings.Union(m_StaticRouteSettings)
+			                           .Union(m_SourceSettings)
+			                           .Union(m_DestinationSettings)
+			                           .Union(m_DestinationGroupSettings)
+			                           .Select(s => s.Id);
 		}
 
 		#endregion
