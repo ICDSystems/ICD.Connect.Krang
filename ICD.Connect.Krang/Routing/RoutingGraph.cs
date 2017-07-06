@@ -377,7 +377,7 @@ namespace ICD.Connect.Krang.Routing
 		private IEnumerable<Connection[]> FindActivePathsSingleFlag(EndpointInfo source, eConnectionType type,
 		                                                            bool signalDetected)
 		{
-			return FindActivePathsSingleFlag(source, type, signalDetected, new List<Connection>());
+			return FindActivePathsSingleFlag(source, type, signalDetected, new List<Connection>()).ToArray();
 		}
 
 		/// <summary>
@@ -398,7 +398,8 @@ namespace ICD.Connect.Krang.Routing
 			Connection output = Connections.GetOutputConnection(source, type);
 			if (output == null)
 			{
-				yield return visited.ToArray();
+				if (visited.Count > 0)
+					yield return visited.ToArray();
 				yield break;
 			}
 
@@ -408,7 +409,8 @@ namespace ICD.Connect.Krang.Routing
 			{
 				if (destination == null || !destination.GetSignalDetectedState(output.Destination.Address, type))
 				{
-					yield return visited.ToArray();
+					if (visited.Count > 0)
+						yield return visited.ToArray();
 					yield break;
 				}
 			}
@@ -419,7 +421,8 @@ namespace ICD.Connect.Krang.Routing
 			IRouteMidpointControl midpoint = destination as IRouteMidpointControl;
 			if (midpoint == null)
 			{
-				yield return visited.ToArray();
+				if (visited.Count > 0)
+					yield return visited.ToArray();
 				yield break;
 			}
 
