@@ -32,6 +32,15 @@ namespace ICD.Connect.Krang.Settings
 		public SettingsCollection DestinationSettings { get { return m_DestinationSettings; } }
 		public SettingsCollection DestinationGroupSettings { get { return m_DestinationGroupSettings; } }
 
+		protected override string Element { get { return ELEMENT_NAME; } }
+
+		public override string FactoryName { get { return FACTORY_NAME; } }
+
+		/// <summary>
+		/// Gets the type of the originator for this settings instance.
+		/// </summary>
+		public override Type OriginatorType { get { return typeof(RoutingGraph); } }
+
 		#endregion
 
 		/// <summary>
@@ -53,17 +62,13 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="writer"></param>
 		/// <param name="element"></param>
-		public void ToXml(IcdXmlTextWriter writer, string element)
+		protected override void WriteElements(IcdXmlTextWriter writer)
 		{
-			writer.WriteStartElement(element);
-			{
-				m_ConnectionSettings.ToXml(writer, CONNECTIONS_ELEMENT);
-				m_StaticRouteSettings.ToXml(writer, STATIC_ROUTES_ELEMENT);
-				m_SourceSettings.ToXml(writer, SOURCES_ELEMENT);
-				m_DestinationSettings.ToXml(writer, DESTINATIONS_ELEMENT);
-				m_DestinationGroupSettings.ToXml(writer, DESTINATION_GROUPS_ELEMENT);
-			}
-			writer.WriteEndElement();
+			m_ConnectionSettings.ToXml(writer, CONNECTIONS_ELEMENT);
+			m_StaticRouteSettings.ToXml(writer, STATIC_ROUTES_ELEMENT);
+			m_SourceSettings.ToXml(writer, SOURCES_ELEMENT);
+			m_DestinationSettings.ToXml(writer, DESTINATIONS_ELEMENT);
+			m_DestinationGroupSettings.ToXml(writer, DESTINATION_GROUPS_ELEMENT);
 		}
 
 		public void ParseXml(string xml)
@@ -95,17 +100,6 @@ namespace ICD.Connect.Krang.Settings
 			m_DestinationGroupSettings.Clear();
 		}
 
-		#endregion
-
-		protected override string Element { get { return ELEMENT_NAME; } }
-
-		public override string FactoryName { get { return FACTORY_NAME; } }
-
-		/// <summary>
-		/// Gets the type of the originator for this settings instance.
-		/// </summary>
-		public override Type OriginatorType { get { return typeof(RoutingGraph); } }
-
 		public override IEnumerable<int> GetDeviceDependencies()
 		{
 			return
@@ -115,5 +109,7 @@ namespace ICD.Connect.Krang.Settings
 							.Union(m_DestinationGroupSettings)
 							.Select(s => s.Id);
 		}
+
+		#endregion
 	}
 }

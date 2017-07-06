@@ -180,7 +180,7 @@ namespace ICD.Connect.Krang.Core
 			PortSettings.ToXml(writer, PORTS_ELEMENT);
 			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
 			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
-			RoutingSettings.ToXml(writer, ROUTING_ELEMENT);
+			RoutingSettings.ToXml(writer);
 		}
 
 		#region Protected Methods
