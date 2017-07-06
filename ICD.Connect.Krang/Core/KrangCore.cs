@@ -196,6 +196,7 @@ namespace ICD.Connect.Krang.Core
 			var routingGraph = RoutingGraph;
 			var routingSettings = routingGraph == null ? new RoutingSettings() : routingGraph.CopySettings();
 			settings.OriginatorSettings.Add(routingSettings);
+
 			settings.OriginatorSettings.AddRange(routingSettings.ConnectionSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.StaticRouteSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.SourceSettings);
