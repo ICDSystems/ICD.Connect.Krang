@@ -102,11 +102,11 @@ namespace ICD.Connect.Krang.Core
 			}
 		}
 		
-		public RoutingSettings RoutingSettings
+		public RoutingGraphSettings RoutingGraphSettings
 		{
 			get
 			{
-				return m_OriginatorSettings.OfType<RoutingSettings>().SingleOrDefault();
+				return m_OriginatorSettings.OfType<RoutingGraphSettings>().SingleOrDefault();
 			}
 		}
 
@@ -180,7 +180,7 @@ namespace ICD.Connect.Krang.Core
 			PortSettings.ToXml(writer, PORTS_ELEMENT);
 			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
 			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
-			RoutingSettings.ToXml(writer);
+			RoutingGraphSettings.ToXml(writer);
 		}
 
 		#region Protected Methods
@@ -229,7 +229,7 @@ namespace ICD.Connect.Krang.Core
 
 		private void UpdateRoutingFromXml(string xml)
 		{
-			var routing = new RoutingSettings();
+			var routing = new RoutingGraphSettings();
 			routing.ParseXml(xml);
 
 			OriginatorSettings.Add(routing);

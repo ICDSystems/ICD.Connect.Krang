@@ -35,7 +35,7 @@ namespace ICD.Connect.Krang.Routing
 	/// Maps devices to each other via connections.
 	/// </summary>
 	[PublicAPI]
-	public sealed class RoutingGraph : AbstractOriginator<RoutingSettings>, IConsoleNode, IRoutingGraph
+	public sealed class RoutingGraph : AbstractOriginator<RoutingGraphSettings>, IConsoleNode, IRoutingGraph
 	{
 		private readonly IcdHashSet<IRouteSwitcherControl> m_SubscribedSwitchers;
 
@@ -973,7 +973,7 @@ namespace ICD.Connect.Krang.Routing
 
 		#region Settings
 
-		protected override void ApplySettingsFinal(RoutingSettings settings, IDeviceFactory factory)
+		protected override void ApplySettingsFinal(RoutingGraphSettings settings, IDeviceFactory factory)
 		{
 			m_Connections.OnConnectionsChanged -= ConnectionsOnConnectionsChanged;
 
@@ -999,27 +999,27 @@ namespace ICD.Connect.Krang.Routing
 			m_Connections.OnConnectionsChanged += ConnectionsOnConnectionsChanged;
 		}
 
-		private IEnumerable<StaticRoute> GetStaticRoutes(RoutingSettings settings, IDeviceFactory factory)
+		private IEnumerable<StaticRoute> GetStaticRoutes(RoutingGraphSettings settings, IDeviceFactory factory)
 		{
 			return GetOriginatorsSkipExceptions<StaticRoute>(settings.StaticRouteSettings, factory);
 		}
 
-		private IEnumerable<ISource> GetSources(RoutingSettings settings, IDeviceFactory factory)
+		private IEnumerable<ISource> GetSources(RoutingGraphSettings settings, IDeviceFactory factory)
 		{
 			return GetOriginatorsSkipExceptions<ISource>(settings.SourceSettings, factory);
 		}
 
-		private IEnumerable<IDestination> GetDestinations(RoutingSettings settings, IDeviceFactory factory)
+		private IEnumerable<IDestination> GetDestinations(RoutingGraphSettings settings, IDeviceFactory factory)
 		{
 			return GetOriginatorsSkipExceptions<IDestination>(settings.DestinationSettings, factory);
 		}
 
-		private IEnumerable<IDestinationGroup> GetDestinationGroups(RoutingSettings settings, IDeviceFactory factory)
+		private IEnumerable<IDestinationGroup> GetDestinationGroups(RoutingGraphSettings settings, IDeviceFactory factory)
 		{
 			return GetOriginatorsSkipExceptions<IDestinationGroup>(settings.DestinationGroupSettings, factory);
 		}
 
-		private IEnumerable<Connection> GetConnections(RoutingSettings settings, IDeviceFactory factory)
+		private IEnumerable<Connection> GetConnections(RoutingGraphSettings settings, IDeviceFactory factory)
 		{
 			return GetOriginatorsSkipExceptions<Connection>(settings.ConnectionSettings, factory);
 		}
@@ -1056,7 +1056,7 @@ namespace ICD.Connect.Krang.Routing
 				yield return destination.Controls[c.Destination.Control] as IRouteSwitcherControl;
 		}
 
-		protected override void CopySettingsFinal(RoutingSettings settings)
+		protected override void CopySettingsFinal(RoutingGraphSettings settings)
 		{
 			base.CopySettingsFinal(settings);
 

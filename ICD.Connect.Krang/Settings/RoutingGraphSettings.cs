@@ -8,7 +8,7 @@ using ICD.Connect.Settings.Attributes.Factories;
 
 namespace ICD.Connect.Krang.Settings
 {
-	public sealed class RoutingSettings : AbstractSettings
+	public sealed class RoutingGraphSettings : AbstractSettings
 	{
 		private const string ELEMENT_NAME = "Routing";
 		private const string FACTORY_NAME = "RoutingGraph";
@@ -46,7 +46,7 @@ namespace ICD.Connect.Krang.Settings
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public RoutingSettings()
+		public RoutingGraphSettings()
 		{
 			m_ConnectionSettings = new SettingsCollection();
 			m_StaticRouteSettings = new SettingsCollection();

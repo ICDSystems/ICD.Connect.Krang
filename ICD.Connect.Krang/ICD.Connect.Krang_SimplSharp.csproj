@@ -111,7 +111,7 @@
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Settings\Migration\LegacySettingsMigration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings\RoutingSettings.cs" />
+    <Compile Include="Settings\RoutingGraphSettings.cs" />
     <Compile Include="SPlusInterfaces\SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusInterfaces\SPlusOnKrangLoadedEventRelay.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplRoom.cs" />
