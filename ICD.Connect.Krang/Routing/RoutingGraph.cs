@@ -395,8 +395,8 @@ namespace ICD.Connect.Krang.Routing
 				throw new ArgumentException("Type enum requires exactly 1 flag.", "type");
 
 			// If there is no output connection from this source then we are done.
-			Connection output = Connections.GetOutputConnection(source, type);
-			if (output == null)
+			Connection outputConnection = Connections.GetOutputConnection(source, type);
+			if (outputConnection == null)
 			{
 				if (visited.Count > 0)
 					yield return visited.ToArray();
@@ -404,10 +404,10 @@ namespace ICD.Connect.Krang.Routing
 			}
 
 			// If we care about signal detection state, don't follow this path if the source isn't detected by the destination.
-			IRouteDestinationControl destination = this.GetDestinationControl(output);
+			IRouteDestinationControl destination = this.GetDestinationControl(outputConnection);
 			if (signalDetected)
 			{
-				if (destination == null || !destination.GetSignalDetectedState(output.Destination.Address, type))
+				if (destination == null || !destination.GetSignalDetectedState(outputConnection.Destination.Address, type))
 				{
 					if (visited.Count > 0)
 						yield return visited.ToArray();
@@ -415,7 +415,7 @@ namespace ICD.Connect.Krang.Routing
 				}
 			}
 
-			visited.Add(output);
+			visited.Add(outputConnection);
 
 			// Get the output addresses from the destination if it is a midpoint device.
 			IRouteMidpointControl midpoint = destination as IRouteMidpointControl;
@@ -426,12 +426,21 @@ namespace ICD.Connect.Krang.Routing
 				yield break;
 			}
 
-			IEnumerable<int> outputs = midpoint.GetOutputs(output.Destination.Address, type).Select(c => c.Address);
+			int[] outputs = midpoint.GetOutputs(outputConnection.Destination.Address, type)
+			                        .Select(c => c.Address)
+			                        .ToArray();
+
+			if (outputs.Length == 0)
+			{
+				if (visited.Count > 0)
+					yield return visited.ToArray();
+				yield break;
+			}
 
 			// Recurse for each output.
 			foreach (int outputAddress in outputs)
 			{
-				EndpointInfo newSource = destination.GetInputEndpointInfo(outputAddress);
+				EndpointInfo newSource = midpoint.GetOutputEndpointInfo(outputAddress);
 				foreach (
 					Connection[] path in FindActivePathsSingleFlag(newSource, type, signalDetected, new List<Connection>(visited)))
 					yield return path;
