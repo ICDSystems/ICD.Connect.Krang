@@ -776,6 +776,8 @@ namespace ICD.Connect.Krang.Routing
 			if (a.Destination.Device != b.Source.Device || a.Destination.Control != b.Source.Control)
 				throw new InvalidOperationException("Connections are not consecutive");
 
+			type = EnumUtils.GetFlagsIntersection(a.ConnectionType, b.ConnectionType, type);
+
 			ConnectionUsageInfo currentUsage = ConnectionUsages.GetConnectionUsageInfo(b);
 			if (!currentUsage.CanRoute(roomId, type))
 				return false;
