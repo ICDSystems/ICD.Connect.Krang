@@ -9,7 +9,6 @@ using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
-
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
 #else
