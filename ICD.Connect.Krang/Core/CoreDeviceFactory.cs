@@ -13,6 +13,8 @@ namespace ICD.Connect.Krang.Core
 	/// </summary>
 	public sealed class CoreDeviceFactory : IDeviceFactory
 	{
+		public event OriginatorLoadedCallback OnOriginatorLoaded;
+
 		private readonly Dictionary<int, IOriginator> m_OriginatorCache;
 		private readonly ICoreSettings m_CoreSettings;
 
@@ -28,12 +30,20 @@ namespace ICD.Connect.Krang.Core
 
 		#region Methods
 
+		public IEnumerable<T> GetOriginators<T>()
+			where T : class, IOriginator
+		{
+			return m_CoreSettings.OriginatorSettings
+			                     .Where(s => s.OriginatorType.IsAssignableTo(typeof(T)))
+			                     .Select(s => GetOriginatorById<T>(s.Id));
+		}
+
 		[NotNull]
 		public T GetOriginatorById<T>(int id)
 			where T : class, IOriginator
 		{
 			return LazyLoadOriginator<T>(id);
-		} 
+		}
 
 		[NotNull]
 		public IOriginator GetOriginatorById(int id)
@@ -64,7 +74,13 @@ namespace ICD.Connect.Krang.Core
 				                                                  m_OriginatorCache[id].GetType().Name, id, typeof(T).Name));
 
 			if (!m_OriginatorCache.ContainsKey(id))
+			{
 				m_OriginatorCache[id] = InstantiateOriginatorWithId<T>(id);
+
+				OriginatorLoadedCallback handler = OnOriginatorLoaded;
+				if (handler != null)
+					handler(m_OriginatorCache[id]);
+			}
 
 			return (T)m_OriginatorCache[id];
 		}
