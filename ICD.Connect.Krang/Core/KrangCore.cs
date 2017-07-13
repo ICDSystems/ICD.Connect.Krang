@@ -130,6 +130,15 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
+		/// Adds the given originator to the cor.
+		/// </summary>
+		/// <param name="originator"></param>
+		private void AddOriginator(IOriginator originator)
+		{
+			m_Originators.AddChild(originator);
+		}
+
+		/// <summary>
 		/// Unsubscribes, disposes and clears the devices.
 		/// </summary>
 		private void DisposeOriginators()
@@ -221,22 +230,33 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="factory"></param>
 		protected override void ApplySettingsFinal(KrangCoreSettings settings, IDeviceFactory factory)
 		{
-			base.ApplySettingsFinal(settings, factory);
-			SetOriginators(factory.GetOriginators());
-			
-			if (settings.Broadcast)
+			factory.OnOriginatorLoaded += AddOriginator;
+
+			try
 			{
-				m_BroadcastHandler = new DiscoveryBroadcastHandler();
+				base.ApplySettingsFinal(settings, factory);
 
-				m_DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
-				m_DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
-				m_DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
-				m_DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
-				m_DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
-				m_DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+				factory.LoadOriginators<IRoutingGraph>();
+				factory.LoadOriginators();
+
+				if (settings.Broadcast)
+				{
+					m_BroadcastHandler = new DiscoveryBroadcastHandler();
+
+					m_DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
+					m_DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
+					m_DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
+					m_DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
+					m_DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
+					m_DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+				}
+
+				ResetDefaultPermissions();
 			}
-
-			ResetDefaultPermissions();
+			finally
+			{
+				factory.OnOriginatorLoaded -= AddOriginator;
+			}
 		}
 
 		private void ResetDefaultPermissions()
