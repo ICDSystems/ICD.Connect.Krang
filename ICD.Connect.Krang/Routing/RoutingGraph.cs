@@ -741,15 +741,22 @@ namespace ICD.Connect.Krang.Routing
 					Connection previous = path[index - 1];
 					Connection current = path[index];
 
+					IRouteMidpointControl midpoint = this.GetSourceControl(current) as IRouteMidpointControl;
+					if (midpoint == null)
+						continue;
+
+					IRouteSwitcherControl switcher = midpoint as IRouteSwitcherControl;
+					if (switcher == null)
+						continue;
+
 					if (!Unroute(previous, current, type, roomId))
 						break;
 
 					unrouted = true;
 
 					// Stop unrouting if the input is routed to other outputs - we reached a fork
-					IRouteMidpointControl midpoint = this.GetSourceControl(current) as IRouteMidpointControl;
 					int input = previous.Destination.Address;
-					if (midpoint != null && midpoint.GetOutputs(input, type).Any())
+					if (midpoint.GetOutputs(input, type).Any())
 						break;
 				}
 			}
