@@ -1,4 +1,5 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Connect.Routing;
+#if SIMPLSHARP
 using System;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
@@ -29,8 +30,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				return;
 
 			m_SourceId = sourceId;
-			if (SPlusKrangBootstrap.Krang.RoutingGraph.Sources.ContainsChild(sourceId))
-				m_Source = SPlusKrangBootstrap.Krang.RoutingGraph.Sources[sourceId] as SimplSource;
+
+			IRoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+
+			if (graph != null && graph.Sources.ContainsChild(sourceId))
+				m_Source = graph.Sources[sourceId] as SimplSource;
 			else
 				m_Source = null;
 

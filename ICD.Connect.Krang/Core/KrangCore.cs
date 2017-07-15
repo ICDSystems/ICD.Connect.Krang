@@ -84,7 +84,11 @@ namespace ICD.Connect.Krang.Core
 
 		public bool Route(ISource source, IDestination destination, eConnectionType connectionType, int roomId)
 		{
-			return RoutingGraph.Route(new RouteOperation
+			RoutingGraph graph = RoutingGraph;
+			if (graph == null)
+				throw new InvalidOperationException("No routing graph in core");
+
+			return graph.Route(new RouteOperation
 			{
 				Id = Guid.NewGuid(),
 				Source = source.Endpoint,
@@ -96,8 +100,12 @@ namespace ICD.Connect.Krang.Core
 
 		public bool Route(ISource source, IDestinationGroup destinationGroup, eConnectionType connectionType, int roomId)
 		{
+			RoutingGraph graph = RoutingGraph;
+			if (graph == null)
+				throw new InvalidOperationException("No routing graph in core");
+
 			List<bool> results = new List<bool>();
-			foreach(var destination in destinationGroup.Destinations.Where(RoutingGraph.Destinations.ContainsChild).Select(d => RoutingGraph.Destinations.GetChild(d)))
+			foreach(var destination in destinationGroup.Destinations.Where(graph.Destinations.ContainsChild).Select(d => graph.Destinations.GetChild(d)))
 			{
 				IDestination destination1 = destination;
 #if SIMPLSHARP
@@ -325,12 +333,16 @@ namespace ICD.Connect.Krang.Core
 
 		public string RouteConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
 		{
+			RoutingGraph graph = RoutingGraph;
+			if (graph == null)
+				throw new InvalidOperationException("Core contains no RoutingGraph");
+
 			string message;
-			if (!RoutingGraph.Sources.ContainsChild(source) || !RoutingGraph.Destinations.ContainsChild(destination))
+			if (!graph.Sources.ContainsChild(source) || !graph.Destinations.ContainsChild(destination))
 				message = "Krang does not contains a source or destination with that id";
 			else
 			{
-				message = Route(RoutingGraph.Sources.GetChild(source), RoutingGraph.Destinations.GetChild(destination),
+				message = Route(graph.Sources.GetChild(source), graph.Destinations.GetChild(destination),
 				                connectionType, roomId)
 					          ? "Route successful"
 					          : "Route failed";
@@ -340,12 +352,16 @@ namespace ICD.Connect.Krang.Core
 
 		public string RouteGroupConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
 		{
+			RoutingGraph graph = RoutingGraph;
+			if (graph == null)
+				throw new InvalidOperationException("Core contains no RoutingGraph");
+
 			string message;
-			if (!RoutingGraph.Sources.ContainsChild(source) || !RoutingGraph.DestinationGroups.ContainsChild(destination))
+			if (!graph.Sources.ContainsChild(source) || !graph.DestinationGroups.ContainsChild(destination))
 				message = "Krang does not contains a source or destination group with that id";
 			else
 			{
-				message = Route(RoutingGraph.Sources.GetChild(source), RoutingGraph.DestinationGroups.GetChild(destination),
+				message = Route(graph.Sources.GetChild(source), graph.DestinationGroups.GetChild(destination),
 				                connectionType, roomId)
 					          ? "Route successful"
 					          : "Route failed";

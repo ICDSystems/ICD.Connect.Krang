@@ -1,4 +1,6 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Connect.Krang.Routing;
+using ICD.Connect.Routing;
+#if SIMPLSHARP
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -211,7 +213,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private void Route(ISource source, IDestination destination)
 		{
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
-			SPlusKrangBootstrap.Krang.RoutingGraph.Route(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
+
+			IRoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+			if (graph == null)
+				throw new InvalidOperationException("No routing graph in core");
+			
+			graph.Route(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
 		}
 
 		/// <summary>
@@ -225,13 +232,16 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			//route
 			eConnectionType routeConnectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType,
 			                                                                     destination.ConnectionType, connectionType);
-			SPlusKrangBootstrap.Krang.RoutingGraph.Route(source.Endpoint, destination.Endpoint, routeConnectionType, m_RoomId);
+
+			IRoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+			if (graph == null)
+				throw new InvalidOperationException("No routing graph in core");
+			
+			graph.Route(source.Endpoint, destination.Endpoint, routeConnectionType, m_RoomId);
 
 			//unroute
 			eConnectionType unrouteConnectionType = destination.ConnectionType & ~connectionType;
-			SPlusKrangBootstrap.Krang.RoutingGraph.Unroute(source.Endpoint, destination.Endpoint, unrouteConnectionType, m_RoomId);
-
-
+			graph.Unroute(source.Endpoint, destination.Endpoint, unrouteConnectionType, m_RoomId);
 		}
 
 		/// <summary>
@@ -261,7 +271,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private void Unroute(ISource source, IDestination destination)
 		{
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
-			SPlusKrangBootstrap.Krang.RoutingGraph.Unroute(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
+			
+			IRoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+			if (graph == null)
+				throw new InvalidOperationException("No routing graph in core");
+
+			graph.Unroute(source.Endpoint, destination.Endpoint, connectionType, m_RoomId);
 		}
 
 		/// <summary>
@@ -287,7 +302,10 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
 		{
-			SPlusKrangBootstrap.Krang.RoutingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+			RoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+			if (graph != null)
+				graph.OnRouteChanged += RoutingGraphOnRouteChanged;
+
 			RaiseRoomList();
 		}
 
@@ -375,7 +393,9 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			ushort audioListIndexCounter = INDEX_START;
 			ushort videoListIndexCounter = INDEX_START;
 
-			var sources = GetRoom().Sources.ToList();
+			IRoom room = GetRoom();
+
+			var sources = room == null ? new List<ISource>() : room.Sources.ToList();
 
 			var handler = OnSourceListChanged;
 
@@ -433,8 +453,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[CanBeNull]
 		private ISource GetSource(ushort id)
 		{
-			return SPlusKrangBootstrap.Krang.RoutingGraph.Sources.ContainsChild(id)
-				       ? SPlusKrangBootstrap.Krang.RoutingGraph.Sources[id]
+			RoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+			if (graph == null)
+				return null;
+
+			return graph.Sources.ContainsChild(id)
+				       ? graph.Sources[id]
 				       : null;
 		}
 
@@ -457,10 +481,14 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			if (destination == null)
 				throw new ArgumentNullException("destination");
 
-			return SPlusKrangBootstrap.Krang.RoutingGraph.GetActiveSourceEndpoints(destination.Endpoint,
-			                                                                       destination.ConnectionType, false)
-			                          .Select(e => GetSourceFromEndpoint(e))
-			                          .Where(s => s != null);
+			RoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+			if (graph == null)
+				return Enumerable.Empty<ISource>();
+
+			return graph.GetActiveSourceEndpoints(destination.Endpoint,
+			                                      destination.ConnectionType, false)
+			            .Select(e => GetSourceFromEndpoint(e))
+			            .Where(s => s != null);
 		}
 
 		/// <summary>
@@ -472,9 +500,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private ISource GetSourceFromEndpoint(EndpointInfo endpoint)
 		{
 			IRoom room = GetRoom();
-			return room == null
-				       ? null
-				       : SPlusKrangBootstrap.Krang.RoutingGraph.Sources.FirstOrDefault(s => s.Endpoint == endpoint);
+			if (room == null)
+				return null;
+
+			RoutingGraph graph = SPlusKrangBootstrap.Krang.RoutingGraph;
+			return graph == null ? null : graph.Sources.FirstOrDefault(s => s.Endpoint == endpoint);
 		}
 
 		/// <summary>

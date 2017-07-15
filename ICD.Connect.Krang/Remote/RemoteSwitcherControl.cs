@@ -5,6 +5,7 @@ using ICD.Common.Services;
 using ICD.Common.Utils;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Krang.Remote.Direct;
+using ICD.Connect.Krang.Routing;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
@@ -43,7 +44,11 @@ namespace ICD.Connect.Krang.Remote
 
 		public override IEnumerable<ConnectorInfo> GetOutputs()
 		{
-			return m_Krang.RoutingGraph.Connections
+			IRoutingGraph graph = m_Krang.RoutingGraph;
+			if (graph == null)
+				return Enumerable.Empty<ConnectorInfo>();
+
+			return graph.Connections
 			              .Where(c => c.Source.Device == Parent.Id && c.Source.Control == Id)
 			              .Select(c => new ConnectorInfo(c.Source.Address, c.ConnectionType));
 		}
@@ -69,7 +74,11 @@ namespace ICD.Connect.Krang.Remote
 
 		public override IEnumerable<ConnectorInfo> GetInputs()
 		{
-			return m_Krang.RoutingGraph.Connections
+			IRoutingGraph graph = m_Krang.RoutingGraph;
+			if (graph == null)
+				return Enumerable.Empty<ConnectorInfo>();
+
+			return graph.Connections
 			              .Where(c => c.Destination.Device == Parent.Id && c.Destination.Control == Id)
 			              .Select(c => new ConnectorInfo(c.Destination.Address, c.ConnectionType));
 		}
@@ -86,7 +95,11 @@ namespace ICD.Connect.Krang.Remote
 			{
 				DirectMessageManager dmManager = ServiceProvider.GetService<DirectMessageManager>();
 				info.RouteRequestFrom = dmManager.GetHostInfo();
-				m_Krang.RoutingGraph.PendingRouteStarted(info);
+
+				RoutingGraph graph = m_Krang.RoutingGraph;
+				if (graph != null)
+					graph.PendingRouteStarted(info);
+
 				dmManager.Send(Parent.HostInfo, new RouteDevicesMessage(info),
 				               RouteFinished(info));
 			}
@@ -101,7 +114,12 @@ namespace ICD.Connect.Krang.Remote
 
 		private MessageResponseCallback<GenericMessage<bool>> RouteFinished(RouteOperation info)
 		{
-			return message => m_Krang.RoutingGraph.PendingRouteFinished(info, message.Value);
+			return message =>
+			       {
+				       RoutingGraph graph = m_Krang.RoutingGraph;
+				       if (graph != null)
+					       graph.PendingRouteFinished(info, message.Value);
+			       };
 		}
 
 		// change to clearroute
