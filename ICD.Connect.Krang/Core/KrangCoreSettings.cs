@@ -5,6 +5,7 @@ using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Settings;
+using ICD.Connect.Krang_SimplSharp.Partitioning;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
 using ICD.Connect.Settings.Core;
@@ -30,6 +31,7 @@ namespace ICD.Connect.Krang.Core
 		public const string DEVICES_ELEMENT = "Devices";
 		public const string ROOMS_ELEMENT = "Rooms";
 		private const string ROUTING_ELEMENT = "Routing";
+		private const string PARTITIONING_ELEMENT = "Partitioning";
 		private const string BROADCAST_ELEMENT = "Broadcast";
 
 		private readonly SettingsCollection m_OriginatorSettings;
@@ -110,6 +112,14 @@ namespace ICD.Connect.Krang.Core
 			}
 		}
 
+		public PartitionManagerSettings PartitionManagerSettings
+		{
+			get
+			{
+				return m_OriginatorSettings.OfType<PartitionManagerSettings>().SingleOrDefault();
+			}
+		}
+
 		/// <summary>
 		/// Gets the header info.
 		/// </summary>
@@ -181,6 +191,7 @@ namespace ICD.Connect.Krang.Core
 			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
 			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
 			RoutingGraphSettings.ToXml(writer);
+			PartitionManagerSettings.ToXml(writer);
 		}
 
 		#region Protected Methods
@@ -214,8 +225,12 @@ namespace ICD.Connect.Krang.Core
 			OriginatorSettings.AddRange(rooms);
 
 			string child;
+
 			if (XmlUtils.TryGetChildElementAsString(xml, ROUTING_ELEMENT, out child))
 				UpdateRoutingFromXml(child);
+
+			if (XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child))
+				UpdatePartitioningFromXml(child);
 		}
 
 		private void UpdateHeaderFromXml(string xml)
@@ -240,6 +255,17 @@ namespace ICD.Connect.Krang.Core
 			OriginatorSettings.AddRange(routing.SourceSettings);
 			OriginatorSettings.AddRange(routing.DestinationSettings);
 			OriginatorSettings.AddRange(routing.DestinationGroupSettings);
+		}
+
+		private void UpdatePartitioningFromXml(string xml)
+		{
+			var partitioning = new PartitionManagerSettings();
+			partitioning.ParseXml(xml);
+
+			OriginatorSettings.Add(partitioning);
+
+			//add partitioning's child originators so they can be accessed by CoreDeviceFactory
+			OriginatorSettings.AddRange(partitioning.PartitionSettings);
 		}
 
 		/// <summary>

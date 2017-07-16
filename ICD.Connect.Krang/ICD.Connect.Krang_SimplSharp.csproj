@@ -72,6 +72,9 @@
     <Compile Include="Core\CoreDeviceFactory.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
+    <Compile Include="Partitioning\CorePartitionCollection.cs" />
+    <Compile Include="Partitioning\PartitionManager.cs" />
+    <Compile Include="Partitioning\PartitionManagerSettings.cs" />
     <Compile Include="Remote\Direct\CostUpdateHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdateMessage.cs" />
     <Compile Include="Remote\Direct\DisconnectHandler.cs" />
@@ -144,6 +147,10 @@
     <ProjectReference Include="..\..\ICD.Connect.Panels\ICD.Connect.Panels\ICD.Connect.Panels_SimplSharp.csproj">
       <Project>{A441FE98-6A8E-4EF3-98F0-D17041D2E118}</Project>
       <Name>ICD.Connect.Panels_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Partitions\ICD.Connect.Partitions\ICD.Connect.Partitions_SimplSharp.csproj">
+      <Project>{03DF02BC-0FB1-4CBD-A471-B044C9E4BAAD}</Project>
+      <Name>ICD.Connect.Partitions_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Network\ICD.Connect.Protocol.Network_SimplSharp.csproj">
       <Project>{5ED52F05-EA6C-4FC5-8AA0-9B9727F6AECD}</Project>

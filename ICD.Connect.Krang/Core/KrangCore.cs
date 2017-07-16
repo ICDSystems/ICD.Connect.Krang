@@ -13,6 +13,7 @@ using ICD.Connect.Krang.Remote.Broadcast;
 using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Krang.Settings;
+using ICD.Connect.Krang_SimplSharp.Partitioning;
 using ICD.Connect.Panels;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
@@ -56,6 +57,12 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		[CanBeNull]
 		public RoutingGraph RoutingGraph { get { return m_Originators.OfType<RoutingGraph>().SingleOrDefault(); } }
+
+		/// <summary>
+		/// Gets the partition manager for the program.
+		/// </summary>
+		[CanBeNull]
+		public PartitionManager PartitionManager { get { return m_Originators.OfType<PartitionManager>().SingleOrDefault(); } }
 
 		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
 
@@ -219,6 +226,12 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(routingSettings.SourceSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationGroupSettings);
+
+			var partitionManager = PartitionManager;
+			var partitionSettings = partitionManager == null ? new PartitionManagerSettings() : partitionManager.CopySettings();
+			settings.OriginatorSettings.Add(partitionSettings);
+
+			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
 		}
 
 		/// <summary>
@@ -314,6 +327,9 @@ namespace ICD.Connect.Krang.Core
 
 			if (RoutingGraph != null)
 				yield return RoutingGraph;
+
+			if (PartitionManager != null)
+				yield return PartitionManager;
 		}
 
 		/// <summary>
