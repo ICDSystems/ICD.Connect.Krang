@@ -42,7 +42,7 @@ namespace ICD.Connect.Krang.Settings
 			}
 			catch (Exception e)
 			{
-				IcdErrorLog.Exception(e.GetBaseException(), "Failed to cache plugins");
+				IcdErrorLog.Exception(e.GetBaseException(), "Failed to cache plugins - {0}", e.GetBaseException().Message);
 			}
 		}
 
