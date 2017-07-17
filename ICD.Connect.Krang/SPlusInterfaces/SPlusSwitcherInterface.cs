@@ -5,13 +5,12 @@ using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.Krang.SPlusInterfaces;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.SPlus;
 using ICD.Connect.Settings;
 
-namespace ICD.SimplSharp.KrangLib.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusInterfaces
 {
 	[PublicAPI("SPlus")]
 	public sealed class SPlusSwitcherInterface : IDisposable

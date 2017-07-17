@@ -6,7 +6,7 @@ using ICD.Connect.Krang.Settings;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
 
-namespace ICD.Connect.Krang_SimplSharp.Partitioning
+namespace ICD.Connect.Krang.Partitioning
 {
 	public sealed class PartitionManagerSettings : AbstractSettings
 	{

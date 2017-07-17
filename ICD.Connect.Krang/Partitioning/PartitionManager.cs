@@ -11,7 +11,7 @@ using ICD.Connect.Partitions;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang_SimplSharp.Partitioning
+namespace ICD.Connect.Krang.Partitioning
 {
 	public sealed class PartitionManager : AbstractOriginator<PartitionManagerSettings>, IConsoleNode, IPartitionManager
 	{
