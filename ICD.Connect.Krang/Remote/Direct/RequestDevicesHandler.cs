@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Services;
+using ICD.Connect.Devices;
 using ICD.Connect.Devices.Controls;
-using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Controls;
@@ -30,7 +30,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (var source in sources)
 			{
 				IRouteSourceControl control =
-					core.GetDevices().GetChild(source.Endpoint.Device).Controls.GetControl<IRouteSourceControl>(source.Endpoint.Control);
+					core.Originators.GetChild<IDeviceBase>(source.Endpoint.Device).Controls.GetControl<IRouteSourceControl>(source.Endpoint.Control);
 
 				if (!sourceConnections.ContainsKey(source.Id))
 					sourceConnections.Add(source.Id, control.GetOutputs());
@@ -40,7 +40,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			{
 				DeviceControlInfo info = new DeviceControlInfo(destination.Endpoint.Device, destination.Endpoint.Control);
 				IRouteDestinationControl control =
-					core.GetDevices().GetChild(destination.Endpoint.Device).Controls.GetControl<IRouteDestinationControl>(destination.Endpoint.Control);
+					core.Originators.GetChild<IDeviceBase>(destination.Endpoint.Device).Controls.GetControl<IRouteDestinationControl>(destination.Endpoint.Control);
 
 				if (!destinationConnections.ContainsKey(destination.Id))
 					destinationConnections.Add(destination.Id, control.GetInputs());

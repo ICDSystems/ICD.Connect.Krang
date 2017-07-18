@@ -6,7 +6,6 @@ using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Timers;
-using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.Connections;
@@ -66,7 +65,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			InitializeCostTables();
 
 			// validate that message is from a direct neighbor
-			var switcher = m_Core.GetDevices().GetChildren<RemoteSwitcher>().FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);
+			var switcher = m_Core.Originators.GetChildren<RemoteSwitcher>().FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);
 			if (switcher == null)
 				return null;
 
@@ -198,7 +197,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Warning, "All sources and destinations from {0} have timed out, resetting remote switcher to discovery mode",
 							table[id].RouteTo);
 					var switcher =
-							m_Core.GetDevices().GetChildren<RemoteSwitcher>().FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == table[id].RouteTo);
+							m_Core.Originators.GetChildren<RemoteSwitcher>().FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == table[id].RouteTo);
 					if (switcher != null)
 						switcher.HostInfo = default(HostInfo);
 				}
@@ -238,10 +237,10 @@ namespace ICD.Connect.Krang.Remote.Direct
 			                                 .ToList();
 
 			// remove device if no connections left to it
-			if (!connectionsLeft.Any(c => c.Source.Device == source.Endpoint.Device) && m_Core.GetDevices().ContainsChild(source.Endpoint.Device))
+			if (!connectionsLeft.Any(c => c.Source.Device == source.Endpoint.Device) && m_Core.Originators.ContainsChild(source.Endpoint.Device))
 			{
-				var device = m_Core.GetDevices().GetChild(source.Endpoint.Device);
-				m_Core.GetDevices().RemoveChild(device);
+				var device = m_Core.Originators.GetChild(source.Endpoint.Device);
+				m_Core.Originators.RemoveChild(device);
 			}
 
 			m_Core.GetRoutingGraph().Connections.SetConnections(connectionsLeft);
@@ -260,10 +259,10 @@ namespace ICD.Connect.Krang.Remote.Direct
 			
 			// remove device if no connections left to it
 			if (!connectionsLeft.Any(c => c.Destination.Device == destination.Endpoint.Device) &&
-				m_Core.GetDevices().ContainsChild(destination.Endpoint.Device))
+				m_Core.Originators.ContainsChild(destination.Endpoint.Device))
 			{
-				var device = m_Core.GetDevices().GetChild(destination.Endpoint.Device);
-				m_Core.GetDevices().RemoveChild(device);
+				var device = m_Core.Originators.GetChild(destination.Endpoint.Device);
+				m_Core.Originators.RemoveChild(device);
 			}
 
 			m_Core.GetRoutingGraph().Connections.SetConnections(connectionsLeft);
@@ -290,7 +289,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (var entry in changes)
 			{
 				var source = m_Core.GetRoutingGraph().Sources.GetChild(entry.Key);
-				var switcher = m_Core.GetDevices().GetChildren<RemoteSwitcher>()
+				var switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
 				                     .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry.Value.RouteTo);
 				if (switcher == null)
 					continue;
@@ -317,7 +316,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			{
 				var destination = m_Core.GetRoutingGraph().Destinations.GetChild(entry.Key);
 				var switcher =
-						m_Core.GetDevices().GetChildren<RemoteSwitcher>().SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry.Value.RouteTo);
+						m_Core.Originators.GetChildren<RemoteSwitcher>().SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry.Value.RouteTo);
 				if (switcher == null)
 					continue;
 
@@ -414,7 +413,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 
 		private IEnumerable<HostInfo> GetHosts()
 		{
-			return m_Core.GetDevices().GetChildren<RemoteSwitcher>().Where(rs => rs.HasHostInfo).Select(rs => rs.HostInfo);
+			return m_Core.Originators.GetChildren<RemoteSwitcher>().Where(rs => rs.HasHostInfo).Select(rs => rs.HostInfo);
 		}
 
 		protected override void Dispose(bool disposing)

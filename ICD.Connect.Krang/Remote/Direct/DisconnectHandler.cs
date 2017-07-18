@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
-using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Core;
@@ -17,7 +16,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 				return null;
 
 			RemoteSwitcher switcher =
-				core.GetDevices().GetChildren<RemoteSwitcher>()
+				core.Originators.GetChildren<RemoteSwitcher>()
 				    .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);
 			if (switcher == null)
 				return null;

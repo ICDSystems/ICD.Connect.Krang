@@ -4,7 +4,6 @@ using ICD.Common.Services;
 using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Connect.Devices;
-using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
@@ -29,7 +28,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 
 		public override AbstractMessage HandleMessage(ShareDevicesMessage message)
 		{
-			RemoteSwitcher switcher = m_Core.GetDevices().GetChildren<RemoteSwitcher>()
+			RemoteSwitcher switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
 			                                .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);
 			if (switcher == null)
 				return null;
@@ -60,8 +59,8 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (ISource source in message.Sources.Distinct())
 			{
 				// Get the device or create it if it doesn't exist
-				IDevice sourceDevice = m_Core.GetDevices().ContainsChild(source.Endpoint.Device)
-										   ? m_Core.GetDevices().GetChild(source.Endpoint.Device)
+				IDevice sourceDevice = m_Core.Originators.ContainsChild(source.Endpoint.Device)
+										   ? m_Core.Originators.GetChild<IDevice>(source.Endpoint.Device)
 					                       : null;
 
 				if (sourceDevice == null)
@@ -75,7 +74,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					newSourceDevice.AddSourceControl(source.Endpoint.Control);
 
 					sourceDevice = newSourceDevice;
-					m_Core.GetDevices().AddChild(sourceDevice);
+					m_Core.Originators.AddChild(sourceDevice);
 				}
 
 				// Add connections to the remote switcher
@@ -131,8 +130,8 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (IDestination destination in message.Destinations.Distinct())
 			{
 				// Get the device or create it if it doesn't exist
-				IDevice destinationDevice = m_Core.GetDevices().ContainsChild(destination.Endpoint.Device)
-												? m_Core.GetDevices().GetChild(destination.Endpoint.Device)
+				IDevice destinationDevice = m_Core.Originators.ContainsChild(destination.Endpoint.Device)
+												? m_Core.Originators.GetChild<IDevice>(destination.Endpoint.Device)
 					                            : null;
 
 				if (destinationDevice == null)
@@ -146,7 +145,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					newDestinationDevice.AddDestinationControl(destination.Endpoint.Control);
 
 					destinationDevice = newDestinationDevice;
-					m_Core.GetDevices().AddChild(destinationDevice);
+					m_Core.Originators.AddChild(destinationDevice);
 				}
 
 				// Add connections to the remote switcher

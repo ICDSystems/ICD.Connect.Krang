@@ -41,7 +41,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		private void UpdateData(object sender, EventArgs e)
 		{
 			int[] remoteSwitchers =
-				m_Core.GetDevices().OfType<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
+				m_Core.Originators.OfType<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
 			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetConnections().ToList();
 
 			Dictionary<int, int> devices = new Dictionary<int, int>();
@@ -53,8 +53,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 				int id1 = id;
 				int deviceId = tielines.Select(c => c.Source.Device == id1 ? c.Destination.Device : c.Source.Device)
 				                       .Where(c =>
-											  !(m_Core.GetDevices().GetChild(c) is MockSourceDevice) &&
-											  !(m_Core.GetDevices().GetChild(c) is MockDestinationDevice))
+											  !(m_Core.Originators.GetChild(c) is MockSourceDevice) &&
+											  !(m_Core.Originators.GetChild(c) is MockDestinationDevice))
 				                       .Unanimous(-1);
 
 				tielines = tielines.Where(c => c.Source.Device == deviceId || c.Destination.Device == deviceId).ToList();
@@ -74,16 +74,16 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 				return;
 			foreach (KeyValuePair<int, int> pair in e.Data.Data.DeviceIds)
 			{
-				if (!m_Core.GetDevices().ContainsChild(pair.Key) || m_Core.GetDevices().GetChild(pair.Key) is RemoteSwitcher)
+				if (!m_Core.Originators.ContainsChild(pair.Key) || m_Core.Originators.GetChild(pair.Key) is RemoteSwitcher)
 					continue;
-				if (!m_Core.GetDevices().ContainsChild(pair.Value))
+				if (!m_Core.Originators.ContainsChild(pair.Value))
 				{
 					RemoteSwitcher switcher = new RemoteSwitcher {Id = pair.Value, HostInfo = e.Data.Source};
-					m_Core.GetDevices().AddChild(switcher);
+					m_Core.Originators.AddChild(switcher);
 				}
 				else
 				{
-					RemoteSwitcher switcher = m_Core.GetDevices().GetChild(pair.Value) as RemoteSwitcher;
+					RemoteSwitcher switcher = m_Core.Originators.GetChild(pair.Value) as RemoteSwitcher;
 					if (switcher != null)
 						switcher.HostInfo = e.Data.Source;
 				}
