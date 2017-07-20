@@ -58,7 +58,7 @@ namespace ICD.Connect.Krang.Remote
 		#region IRouteDestinationDevice Methods
 
 		public override event EventHandler<SourceDetectionStateChangeEventArgs> OnSourceDetectionStateChange;
-		public override event EventHandler OnActiveInputsChanged;
+		public override event EventHandler<ActiveInputStateChangeEventArgs> OnActiveInputsChanged;
 
 		public override bool GetSignalDetectedState(int input, eConnectionType type)
 		{
