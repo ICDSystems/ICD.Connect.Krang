@@ -182,8 +182,6 @@ namespace ICD.Connect.Krang.Core
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.",
 			                                () => FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings()));
 			yield return new ConsoleCommand("RebuildUis", "Rebuilds the UI instances", () => BuildUserInterfaces());
-			yield return
-				new ParamsConsoleCommand("Err", "Prints the error log with crestron $#!% removed", args => CleanErrorLog(args));
 		}
 
 		#endregion
