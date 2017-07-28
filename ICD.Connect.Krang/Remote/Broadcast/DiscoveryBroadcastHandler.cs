@@ -4,7 +4,6 @@ using System.Linq;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
@@ -41,7 +40,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		private void UpdateData(object sender, EventArgs e)
 		{
 			int[] remoteSwitchers =
-				m_Core.Originators.OfType<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
+				m_Core.Originators.GetChildren<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
 			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetConnections().ToList();
 
 			Dictionary<int, int> devices = new Dictionary<int, int>();

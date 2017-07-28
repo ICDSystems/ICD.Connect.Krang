@@ -56,13 +56,13 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the routing graph for the program.
 		/// </summary>
 		[CanBeNull]
-		public RoutingGraph RoutingGraph { get { return m_Originators.OfType<RoutingGraph>().SingleOrDefault(); } }
+		public RoutingGraph RoutingGraph { get { return m_Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
 
 		/// <summary>
 		/// Gets the partition manager for the program.
 		/// </summary>
 		[CanBeNull]
-		public PartitionManager PartitionManager { get { return m_Originators.OfType<PartitionManager>().SingleOrDefault(); } }
+		public PartitionManager PartitionManager { get { return m_Originators.GetChildren<PartitionManager>().SingleOrDefault(); } }
 
 		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
 
@@ -211,11 +211,11 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.OriginatorSettings.AddRange(m_Originators.OfType<IPort>().Select(p => p.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.OfType<IDevice>().Select(d => d.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.OfType<IPanelDevice>().Select(p => p.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.OfType<IRoom>().Select(r => r.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.OfType<IUserInterfaceFactory>().Select(u => u.CopySettings()));
+			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IPort>().Select(p => p.CopySettings()));
+			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IDevice>().Select(d => d.CopySettings()));
+			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IPanelDevice>().Select(p => p.CopySettings()));
+			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IRoom>().Select(r => r.CopySettings()));
+			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IUserInterfaceFactory>().Select(u => u.CopySettings()));
 
 			var routingGraph = RoutingGraph;
 			var routingSettings = routingGraph == null ? new RoutingGraphSettings() : routingGraph.CopySettings();
@@ -299,10 +299,10 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="addRow"></param>
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("UI Factory count", m_Originators.OfType<IUserInterfaceFactory>().Count());
-			addRow("Panel count", m_Originators.OfType<IPanelDevice>().Count());
-			addRow("Device count", m_Originators.OfType<IDevice>().Count());
-			addRow("Port count", m_Originators.OfType<IPort>().Count());
+			addRow("UI Factory count", m_Originators.GetChildren<IUserInterfaceFactory>().Count());
+			addRow("Panel count", m_Originators.GetChildren<IPanelDevice>().Count());
+			addRow("Device count", m_Originators.GetChildren<IDevice>().Count());
+			addRow("Port count", m_Originators.GetChildren<IPort>().Count());
 
 			if (RoutingGraph != null)
 			{
@@ -310,7 +310,7 @@ namespace ICD.Connect.Krang.Core
 				addRow("Static Routes count", RoutingGraph.StaticRoutes.Count);
 			}
 
-			addRow("Room count", m_Originators.OfType<IRoom>().Count());
+			addRow("Room count", m_Originators.GetChildren<IRoom>().Count());
 		}
 
 		/// <summary>
@@ -319,11 +319,11 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
-			yield return ConsoleNodeGroup.KeyNodeMap("UiFactories", m_Originators.OfType<IUserInterfaceFactory>().OfType<IConsoleNode>(), p => (uint)((IUserInterfaceFactory)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Panels", m_Originators.OfType<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Devices", m_Originators.OfType<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Ports", m_Originators.OfType<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", m_Originators.OfType<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("UiFactories", m_Originators.GetChildren<IUserInterfaceFactory>().OfType<IConsoleNode>(), p => (uint)((IUserInterfaceFactory)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Panels", m_Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Devices", m_Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Ports", m_Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", m_Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
 
 			if (RoutingGraph != null)
 				yield return RoutingGraph;
