@@ -27,11 +27,13 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// <summary>
 		/// Raises the room info when the wrapped room changes.
 		/// </summary>
+		[PublicAPI]
 		public RoomInfoCallback OnRoomChanged { get; set; }
 
 		/// <summary>
 		/// Raises for each source that is routed to the room destinations.
 		/// </summary>
+		[PublicAPI]
 		public SourceInfoCallback OnSourceChanged { get; set; }
 
 		private ushort m_RoomId;
