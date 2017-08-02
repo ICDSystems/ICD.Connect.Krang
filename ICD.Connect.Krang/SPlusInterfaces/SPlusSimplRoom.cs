@@ -174,9 +174,9 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[CanBeNull]
 		private IRoom GetRoom()
 		{
-			return SPlusKrangBootstrap.Krang.GetRooms().ContainsChild(m_RoomId)
-				       ? SPlusKrangBootstrap.Krang.GetRooms()[m_RoomId]
-				       : null;
+			IOriginator output;
+			SPlusKrangBootstrap.Krang.Originators.TryGetChild(m_RoomId, out output);
+			return output as IRoom;
 		}
 
 		/// <summary>

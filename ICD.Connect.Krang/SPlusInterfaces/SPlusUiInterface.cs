@@ -368,7 +368,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			var roomListDictionaryReverse = new Dictionary<IRoom, ushort>();
 			var handler = OnRoomListChanged;
 			ushort i = INDEX_START;
-			foreach (var room in SPlusKrangBootstrap.Krang.GetRooms())
+			foreach (var room in SPlusKrangBootstrap.Krang.Originators.GetChildren<IRoom>())
 			{
 				roomListDictionary[i] = room;
 				roomListDictionaryReverse[room] = i;
