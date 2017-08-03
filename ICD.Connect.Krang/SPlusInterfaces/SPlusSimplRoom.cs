@@ -1,4 +1,5 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Connect.Settings;
+#if SIMPLSHARP
 using System;
 using System.Collections.Generic;
 using System.Linq;
