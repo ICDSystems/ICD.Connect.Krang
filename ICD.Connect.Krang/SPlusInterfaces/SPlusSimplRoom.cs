@@ -1,4 +1,5 @@
 ﻿#if SIMPLSHARP
+using ICD.Connect.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -247,7 +248,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private IEnumerable<IDestination> GetRoomDestinations()
 		{
 			IRoom room = GetRoom();
-			return room == null ? Enumerable.Empty<IDestination>() : room.Destinations;
+			return room == null ? Enumerable.Empty<IDestination>() : room.Destinations.GetInstancesRecursive();
 		}
 
 		#endregion
