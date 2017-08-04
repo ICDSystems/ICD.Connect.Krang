@@ -91,7 +91,7 @@ namespace ICD.Connect.Krang.Partitioning
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.PartitionSettings.SetRange(Partitions.Select(r => r.CopySettings()));
+			settings.PartitionSettings.SetRange(Partitions.Where(c => c.Serialize).Select(r => r.CopySettings()));
 		}
 
 		#endregion

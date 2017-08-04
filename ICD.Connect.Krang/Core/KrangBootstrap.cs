@@ -44,7 +44,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			AddServices();
 
-			m_Core = new KrangCore();
+			m_Core = new KrangCore { Serialize = true };
 			m_Core.OnSettingsApplied += RoomOnSettingsApplied;
 
 			ApiConsole.RegisterChild(this);
