@@ -211,14 +211,16 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IPort>().Select(p => p.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IDevice>().Select(d => d.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IPanelDevice>().Select(p => p.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IRoom>().Select(r => r.CopySettings()));
-			settings.OriginatorSettings.AddRange(m_Originators.GetChildren<IUserInterfaceFactory>().Select(u => u.CopySettings()));
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IPort>());
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IDevice>());
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IPanelDevice>());
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IRoom>());
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IUserInterfaceFactory>());
 
 			var routingGraph = RoutingGraph;
-			var routingSettings = routingGraph == null ? new RoutingGraphSettings() : routingGraph.CopySettings();
+			var routingSettings = routingGraph == null || !routingGraph.Serialize
+				                      ? new RoutingGraphSettings()
+				                      : routingGraph.CopySettings();
 			settings.OriginatorSettings.Add(routingSettings);
 
 			settings.OriginatorSettings.AddRange(routingSettings.ConnectionSettings);
@@ -228,10 +230,19 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationGroupSettings);
 
 			var partitionManager = PartitionManager;
-			var partitionSettings = partitionManager == null ? new PartitionManagerSettings() : partitionManager.CopySettings();
+			var partitionSettings = partitionManager == null || !partitionManager.Serialize
+				                        ? new PartitionManagerSettings()
+				                        : partitionManager.CopySettings();
 			settings.OriginatorSettings.Add(partitionSettings);
 
 			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
+		}
+
+		private IEnumerable<ISettings> GetSerializableOriginators<T>()
+		{
+			return m_Originators.GetChildren<IPort>()
+			                    .Where(c => c.Serialize)
+			                    .Select(p => p.CopySettings());
 		}
 
 		/// <summary>

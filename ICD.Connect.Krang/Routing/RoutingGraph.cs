@@ -1081,11 +1081,11 @@ namespace ICD.Connect.Krang.Routing
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.ConnectionSettings.SetRange(Connections.Select(r => r.CopySettings()).Cast<ISettings>());
-			settings.StaticRouteSettings.SetRange(StaticRoutes.Select(r => r.CopySettings()).Cast<ISettings>());
-			settings.SourceSettings.SetRange(Sources.Select(r => r.CopySettings()));
-			settings.DestinationSettings.SetRange(Destinations.Select(r => r.CopySettings()));
-			settings.DestinationGroupSettings.SetRange(DestinationGroups.Select(r => r.CopySettings()));
+			settings.ConnectionSettings.SetRange(Connections.Where(c => c.Serialize).Select(r => r.CopySettings()).Cast<ISettings>());
+			settings.StaticRouteSettings.SetRange(StaticRoutes.Where(c => c.Serialize).Select(r => r.CopySettings()).Cast<ISettings>());
+			settings.SourceSettings.SetRange(Sources.Where(c => c.Serialize).Select(r => r.CopySettings()));
+			settings.DestinationSettings.SetRange(Destinations.Where(c => c.Serialize).Select(r => r.CopySettings()));
+			settings.DestinationGroupSettings.SetRange(DestinationGroups.Where(c => c.Serialize).Select(r => r.CopySettings()));
 		}
 
 		#endregion
