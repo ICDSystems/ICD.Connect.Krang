@@ -165,6 +165,33 @@ namespace ICD.Connect.Krang.Routing.Connections
 		}
 
 		/// <summary>
+		/// Gets the output connections for the given source device matching any of the given type flags.
+		/// </summary>
+		/// <param name="sourceDeviceId"></param>
+		/// <param name="sourceControlId"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public IEnumerable<Connection> GetOutputConnectionsAny(int sourceDeviceId, int sourceControlId, eConnectionType type)
+		{
+			DeviceControlInfo info = new DeviceControlInfo(sourceDeviceId, sourceControlId);
+
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				if (!m_OutputConnectionLookup.ContainsKey(info))
+					return Enumerable.Empty<Connection>();
+
+				return m_OutputConnectionLookup[info].Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type))
+													 .ToArray();
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
+		}
+
+		/// <summary>
 		/// Gets the connection with the given id.
 		/// </summary>
 		/// <param name="id"></param>
@@ -362,6 +389,44 @@ namespace ICD.Connect.Krang.Routing.Connections
 				return GetOutputConnections(sourceControl.Parent.Id, sourceControl.Id, type)
 					.Where(c => c.Destination.Device == destinationControl.Parent.Id &&
 					            c.Destination.Control == destinationControl.Id)
+					.Select(c => c.Source.Address)
+					.Order()
+					.ToArray();
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
+		}
+
+		/// <summary>
+		/// Gets the outputs that match any of the given type flags.
+		/// </summary>
+		/// <param name="sourceControl"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public IEnumerable<int> GetOutputsAny(IRouteSourceControl sourceControl, eConnectionType type)
+		{
+			if (sourceControl == null)
+				throw new ArgumentNullException("sourceControl");
+
+			return GetOutputsAny(sourceControl.Parent.Id, sourceControl.Id, type);
+		}
+
+		/// <summary>
+		/// Gets the mapped output addresses for the given source control matching any of the given type flags.
+		/// </summary>
+		/// <param name="sourceDeviceId"></param>
+		/// <param name="sourceControlId"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public IEnumerable<int> GetOutputsAny(int sourceDeviceId, int sourceControlId, eConnectionType type)
+		{
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				return GetOutputConnectionsAny(sourceDeviceId, sourceControlId, type)
 					.Select(c => c.Source.Address)
 					.Order()
 					.ToArray();
