@@ -683,7 +683,7 @@ namespace ICD.Connect.Krang.Routing
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return Connections.GetInputs(destinationControl, type)
+			return Connections.GetInputsAny(destinationControl, type)
 			                  .Select(input => Unroute(sourceControl, sourceAddress, destinationControl, input, type, roomId))
 			                  .All(result => result);
 		}
@@ -705,7 +705,7 @@ namespace ICD.Connect.Krang.Routing
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return Connections.GetOutputs(sourceControl, type)
+			return Connections.GetOutputsAny(sourceControl, type)
 			                  .Select(output => Unroute(sourceControl, output, destinationControl, type, roomId))
 			                  .All(result => result);
 		}
