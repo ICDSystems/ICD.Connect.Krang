@@ -127,15 +127,16 @@ namespace ICD.Connect.Krang.Partitioning
 
 		private string PrintPartitions()
 		{
-			TableBuilder builder = new TableBuilder("Id", "Partition", "Device", "Rooms");
+			TableBuilder builder = new TableBuilder("Id", "Partition", "Device", "Control", "Rooms");
 
 			foreach (IPartition partition in m_Partitions.GetChildren().OrderBy(c => c.Id))
 			{
 				int id = partition.Id;
-				int? device = partition.PartitionDevice;
+				int device = partition.PartitionControl.DeviceId;
+				int control = partition.PartitionControl.ControlId;
 				string rooms = StringUtils.ArrayFormat(partition.GetRooms().Order());
 
-				builder.AddRow(id, partition, device, rooms);
+				builder.AddRow(id, partition, device, control, rooms);
 			}
 
 			return builder.ToString();
