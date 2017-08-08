@@ -613,6 +613,23 @@ namespace ICD.Connect.Krang.Routing
 		/// Searches for switchers currently routing the source and unroutes them.
 		/// </summary>
 		/// <param name="sourceControl"></param>
+		/// <param name="type"></param>
+		/// <param name="roomId"></param>
+		/// <returns></returns>
+		public bool Unroute(IRouteSourceControl sourceControl, eConnectionType type, int roomId)
+		{
+			if (sourceControl == null)
+				throw new ArgumentNullException("sourceControl");
+
+			return Connections.GetOutputsAny(sourceControl, type)
+			                  .Select(output => Unroute(sourceControl, output, type, roomId))
+			                  .All(result => result);
+		}
+
+		/// <summary>
+		/// Searches for switchers currently routing the source and unroutes them.
+		/// </summary>
+		/// <param name="sourceControl"></param>
 		/// <param name="sourceAddress"></param>
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>

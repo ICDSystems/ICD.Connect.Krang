@@ -109,6 +109,34 @@ namespace ICD.Connect.Krang.Routing.Connections
 		}
 
 		/// <summary>
+		/// Gets the input connections for the device matching any of the given type flags.
+		/// </summary>
+		/// <param name="destinationDeviceId"></param>
+		/// <param name="destinationControlId"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public IEnumerable<Connection> GetInputConnectionsAny(int destinationDeviceId, int destinationControlId,
+		                                                      eConnectionType type)
+		{
+			DeviceControlInfo info = new DeviceControlInfo(destinationDeviceId, destinationControlId);
+
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				if (!m_InputConnectionLookup.ContainsKey(info))
+					return Enumerable.Empty<Connection>();
+
+				return m_InputConnectionLookup[info].Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type))
+				                                    .ToArray();
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
+		}
+
+		/// <summary>
 		/// Gets the connection for the given endpoint.
 		/// </summary>
 		/// <param name="endpoint"></param>
@@ -318,6 +346,43 @@ namespace ICD.Connect.Krang.Routing.Connections
 			try
 			{
 				return GetInputConnections(destinationControl.Parent.Id, destinationControl.Id, type)
+					.Select(c => c.Destination.Address)
+					.Order()
+					.ToArray();
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
+		}
+
+		/// <summary>
+		/// Gets the outputs that match any of the given type flags.
+		/// </summary>
+		/// <param name="destinationControl"></param>
+		/// <param name="type"></param>
+		public IEnumerable<int> GetInputsAny(IRouteDestinationControl destinationControl, eConnectionType type)
+		{
+			if (destinationControl == null)
+				throw new ArgumentNullException("destinationControl");
+
+			return GetInputsAny(destinationControl.Parent.Id, destinationControl.Id, type);
+		}
+
+		/// <summary>
+		/// Gets the mapped input addresses for the given destination control matching any of the given type flags.
+		/// </summary>
+		/// <param name="destinationDeviceId"></param>
+		/// <param name="destinationControlId"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public IEnumerable<int> GetInputsAny(int destinationDeviceId, int destinationControlId, eConnectionType type)
+		{
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				return GetInputConnectionsAny(destinationDeviceId, destinationControlId, type)
 					.Select(c => c.Destination.Address)
 					.Order()
 					.ToArray();
