@@ -613,6 +613,23 @@ namespace ICD.Connect.Krang.Routing
 		/// Searches for switchers currently routing the source and unroutes them.
 		/// </summary>
 		/// <param name="sourceControl"></param>
+		/// <param name="type"></param>
+		/// <param name="roomId"></param>
+		/// <returns></returns>
+		public bool Unroute(IRouteSourceControl sourceControl, eConnectionType type, int roomId)
+		{
+			if (sourceControl == null)
+				throw new ArgumentNullException("sourceControl");
+
+			return Connections.GetOutputsAny(sourceControl, type)
+			                  .Select(output => Unroute(sourceControl, output, type, roomId))
+			                  .All(result => result);
+		}
+
+		/// <summary>
+		/// Searches for switchers currently routing the source and unroutes them.
+		/// </summary>
+		/// <param name="sourceControl"></param>
 		/// <param name="sourceAddress"></param>
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
@@ -666,7 +683,7 @@ namespace ICD.Connect.Krang.Routing
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return Connections.GetInputs(destinationControl, type)
+			return Connections.GetInputsAny(destinationControl, type)
 			                  .Select(input => Unroute(sourceControl, sourceAddress, destinationControl, input, type, roomId))
 			                  .All(result => result);
 		}
@@ -688,7 +705,7 @@ namespace ICD.Connect.Krang.Routing
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return Connections.GetOutputs(sourceControl, type)
+			return Connections.GetOutputsAny(sourceControl, type)
 			                  .Select(output => Unroute(sourceControl, output, destinationControl, type, roomId))
 			                  .All(result => result);
 		}

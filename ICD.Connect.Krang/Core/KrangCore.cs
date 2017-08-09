@@ -239,8 +239,9 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		private IEnumerable<ISettings> GetSerializableOriginators<T>()
+			where T : IOriginator
 		{
-			return m_Originators.GetChildren<IPort>()
+			return m_Originators.GetChildren<T>()
 			                    .Where(c => c.Serialize)
 			                    .Select(p => p.CopySettings());
 		}
