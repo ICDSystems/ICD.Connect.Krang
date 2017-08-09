@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.Core
 		public const string FACTORY_NAME = "Krang";
 
 		private const string HEADER_ELEMENT = "Header";
-		private const string UI_FACTORIES_ELEMENT = "UiFactories";
+		private const string THEMES_ELEMENT = "Themes";
 		public const string PANELS_ELEMENT = "Panels";
 		public const string PORTS_ELEMENT = "Ports";
 		public const string DEVICES_ELEMENT = "Devices";
@@ -46,9 +46,9 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
-		/// Gets the UI factory settings.
+		/// Gets the theme settings.
 		/// </summary>
-		public SettingsCollection UiFactorySettings
+		public SettingsCollection ThemeSettings
 		{
 			get
 			{
@@ -186,7 +186,7 @@ namespace ICD.Connect.Krang.Core
 
 			new ConfigurationHeader(true).ToXml(writer);
 
-			UiFactorySettings.ToXml(writer, UI_FACTORIES_ELEMENT);
+			ThemeSettings.ToXml(writer, THEMES_ELEMENT);
 			PanelSettings.ToXml(writer, PANELS_ELEMENT);
 			PortSettings.ToXml(writer, PORTS_ELEMENT);
 			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
@@ -208,8 +208,8 @@ namespace ICD.Connect.Krang.Core
 			Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
 			UpdateHeaderFromXml(xml);
 
-			IEnumerable<ISettings> uiFactories =
-					PluginFactory.GetSettingsFromXml<XmlUserInterfaceFactorySettingsFactoryMethod>(xml, UI_FACTORIES_ELEMENT);
+			IEnumerable<ISettings> themes =
+					PluginFactory.GetSettingsFromXml<XmlThemeSettingsFactoryMethod>(xml, THEMES_ELEMENT);
 			IEnumerable<ISettings> panels =
 					PluginFactory.GetSettingsFromXml<XmlPanelSettingsFactoryMethodAttribute>(xml, PANELS_ELEMENT);
 			IEnumerable<ISettings> ports =
@@ -219,7 +219,7 @@ namespace ICD.Connect.Krang.Core
 			IEnumerable<ISettings> rooms =
 					PluginFactory.GetSettingsFromXml<XmlRoomSettingsFactoryMethodAttribute>(xml, ROOMS_ELEMENT);
 
-			OriginatorSettings.AddRange(uiFactories);
+			OriginatorSettings.AddRange(themes);
 			OriginatorSettings.AddRange(panels);
 			OriginatorSettings.AddRange(ports);
 			OriginatorSettings.AddRange(devices);
