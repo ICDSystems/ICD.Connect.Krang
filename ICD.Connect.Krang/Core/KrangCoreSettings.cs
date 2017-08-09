@@ -12,7 +12,6 @@ using ICD.Connect.Settings.Attributes.Factories;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Themes;
-using ICD.Connect.UI;
 
 namespace ICD.Connect.Krang.Core
 {

@@ -14,7 +14,6 @@ using ICD.Connect.Krang.Settings;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Themes;
-using ICD.Connect.UI;
 
 namespace ICD.Connect.Krang.Core
 {

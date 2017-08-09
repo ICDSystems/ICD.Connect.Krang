@@ -27,7 +27,6 @@ using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Themes;
-using ICD.Connect.UI;
 
 namespace ICD.Connect.Krang.Core
 {
