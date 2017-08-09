@@ -152,10 +152,6 @@
       <Project>{5B84EB3C-1C3A-4C4D-98C2-69F67CF51D5A}</Project>
       <Name>ICD.Connect.Settings_SimplSharp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.UI\ICD.Connect.UI\ICD.Connect.UI_SimplSharp.csproj">
-      <Project>{89BF27D5-374B-4863-AD92-D217924D6D8F}</Project>
-      <Name>ICD.Connect.UI_SimplSharp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_SimplSharp.csproj">
       <Project>{CC672DB0-ED3A-4579-809F-4261B345BA1D}</Project>
       <Name>ICD.Connect.Krang_SimplSharp</Name>
