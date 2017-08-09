@@ -6,6 +6,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Partitioning;
 using ICD.Connect.Krang.Settings;
+using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Rooms;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
@@ -53,7 +54,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (AbstractThemeSettings))));
+						s.GetType().IsAssignableTo(typeof (IThemeSettings))));
 			}
 		}
 
@@ -65,7 +66,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (AbstractDeviceSettings))));
+						s.GetType().IsAssignableTo(typeof (IDeviceSettings))));
 			}
 		}
 
@@ -77,7 +78,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (AbstractPortSettings))));
+						s.GetType().IsAssignableTo(typeof (IPortSettings))));
 			}
 		}
 
@@ -89,7 +90,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (AbstractPanelDeviceSettings))));
+						s.GetType().IsAssignableTo(typeof (IPanelDeviceSettings))));
 			}
 		}
 
@@ -101,7 +102,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (AbstractRoomSettings))));
+						s.GetType().IsAssignableTo(typeof (IRoomSettings))));
 			}
 		}
 		
