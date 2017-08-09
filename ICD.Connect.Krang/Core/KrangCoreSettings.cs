@@ -7,7 +7,6 @@ using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Partitioning;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Rooms;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
 using ICD.Connect.Settings.Core;
