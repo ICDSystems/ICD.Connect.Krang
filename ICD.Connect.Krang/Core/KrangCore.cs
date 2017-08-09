@@ -26,6 +26,7 @@ using ICD.Connect.Routing.Endpoints.Groups;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
+using ICD.Connect.Themes;
 using ICD.Connect.UI;
 
 namespace ICD.Connect.Krang.Core
@@ -215,7 +216,7 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IDevice>());
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IPanelDevice>());
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IRoom>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IUserInterfaceFactory>());
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators<ITheme>());
 
 			var routingGraph = RoutingGraph;
 			var routingSettings = routingGraph == null || !routingGraph.Serialize
@@ -311,7 +312,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="addRow"></param>
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("UI Factory count", m_Originators.GetChildren<IUserInterfaceFactory>().Count());
+			addRow("UI Factory count", m_Originators.GetChildren<ITheme>().Count());
 			addRow("Panel count", m_Originators.GetChildren<IPanelDevice>().Count());
 			addRow("Device count", m_Originators.GetChildren<IDevice>().Count());
 			addRow("Port count", m_Originators.GetChildren<IPort>().Count());
@@ -331,7 +332,7 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
-			yield return ConsoleNodeGroup.KeyNodeMap("UiFactories", m_Originators.GetChildren<IUserInterfaceFactory>().OfType<IConsoleNode>(), p => (uint)((IUserInterfaceFactory)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("UiFactories", m_Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Panels", m_Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Devices", m_Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Ports", m_Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);

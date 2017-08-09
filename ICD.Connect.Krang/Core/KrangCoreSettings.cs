@@ -11,6 +11,7 @@ using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
+using ICD.Connect.Themes;
 using ICD.Connect.UI;
 
 namespace ICD.Connect.Krang.Core
@@ -53,7 +54,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (AbstractUserInterfaceFactorySettings))));
+						s.GetType().IsAssignableTo(typeof (AbstractThemeSettings))));
 			}
 		}
 

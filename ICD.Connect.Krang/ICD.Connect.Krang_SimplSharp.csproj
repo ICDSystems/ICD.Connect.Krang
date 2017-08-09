@@ -180,6 +180,10 @@
       <Project>{5B84EB3C-1C3A-4C4D-98C2-69F67CF51D5A}</Project>
       <Name>ICD.Connect.Settings_SimplSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_SimplSharp.csproj">
+      <Project>{7D599445-C1F9-4BBD-ACC4-DC80E3311376}</Project>
+      <Name>ICD.Connect.Themes_SimplSharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.UI\ICD.Connect.UI\ICD.Connect.UI_SimplSharp.csproj">
       <Project>{89BF27D5-374B-4863-AD92-D217924D6D8F}</Project>
       <Name>ICD.Connect.UI_SimplSharp</Name>

@@ -13,6 +13,7 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
+using ICD.Connect.Themes;
 using ICD.Connect.UI;
 
 namespace ICD.Connect.Krang.Core
@@ -143,7 +144,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private void BuildUserInterfaces()
 		{
-			foreach (IUserInterfaceFactory factory in m_Core.Originators.GetChildren<IUserInterfaceFactory>())
+			foreach (ITheme factory in m_Core.Originators.GetChildren<ITheme>())
 				factory.BuildUserInterfaces();
 		}
 
