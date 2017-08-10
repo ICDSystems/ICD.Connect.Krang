@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <None Remove="ICD.Connect.Krang_SimplSharp.suo" />
+    <None Remove="ICD.Connect.projectinfo" />
     <None Remove="ICD.SimplSharp.projectinfo" />
   </ItemGroup>
 
@@ -31,7 +32,7 @@
     <ProjectReference Include="..\..\ICD.Connect.Partitions\ICD.Connect.Partitions\ICD.Connect.Partitions_NetStandard.csproj" />
     <ProjectReference Include="..\..\ICD.Connect.Rooms\ICD.Connect.Rooms\ICD.Connect.Rooms_NetStandard.csproj" />
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.Mock\ICD.Connect.Routing.Mock_NetStandard.csproj" />
-    <ProjectReference Include="..\..\ICD.Connect.UI\ICD.Connect.UI\ICD.Connect.UI_NetStandard.csproj" />
+    <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_NetStandard.csproj" />
   </ItemGroup>
 
 </Project>
