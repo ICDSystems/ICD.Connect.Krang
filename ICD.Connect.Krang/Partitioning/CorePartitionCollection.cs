@@ -1,4 +1,4 @@
-using ICD.Connect.Partitions;
+using ICD.Connect.Partitioning.Partitions;
 using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.Partitioning

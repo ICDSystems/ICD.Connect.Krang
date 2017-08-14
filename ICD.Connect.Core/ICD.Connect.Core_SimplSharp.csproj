@@ -124,6 +124,10 @@
       <Project>{A441FE98-6A8E-4EF3-98F0-D17041D2E118}</Project>
       <Name>ICD.Connect.Panels_SimplSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Partitioning\ICD.Connect.Partitioning\ICD.Connect.Partitioning_SimplSharp.csproj">
+      <Project>{42FB8CF0-6AE6-4C70-AFDD-DF95F07E077F}</Project>
+      <Name>ICD.Connect.Partitioning_SimplSharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Network\ICD.Connect.Protocol.Network_SimplSharp.csproj">
       <Project>{5ED52F05-EA6C-4FC5-8AA0-9B9727F6AECD}</Project>
       <Name>ICD.Connect.Protocol.Network_SimplSharp</Name>
@@ -131,10 +135,6 @@
     <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol\ICD.Connect.Protocol_SimplSharp.csproj">
       <Project>{2E4E01B8-D4EA-4FB1-9FCE-0A0DC8D83C8A}</Project>
       <Name>ICD.Connect.Protocol_SimplSharp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Rooms\ICD.Connect.Rooms\ICD.Connect.Rooms_SimplSharp.csproj">
-      <Project>{42FB8CF0-6AE6-4C70-AFDD-DF95F07E077F}</Project>
-      <Name>ICD.Connect.Rooms_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.Mock\ICD.Connect.Routing.Mock_SimplSharp.csproj">
       <Project>{97A3B247-7928-461D-A083-077B4C875FFB}</Project>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.Rooms;
+using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Rooms
