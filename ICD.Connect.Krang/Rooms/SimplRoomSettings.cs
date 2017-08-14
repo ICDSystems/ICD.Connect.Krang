@@ -5,7 +5,7 @@ using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
-using ICD.Connect.Rooms;
+using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Attributes.Factories;
 
 namespace ICD.Connect.Krang.Rooms

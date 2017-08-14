@@ -7,7 +7,8 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
-using ICD.Connect.Partitions;
+using ICD.Connect.Partitioning;
+using ICD.Connect.Partitioning.Partitions;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 

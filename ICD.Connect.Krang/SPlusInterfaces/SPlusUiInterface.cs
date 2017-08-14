@@ -1,6 +1,4 @@
-﻿using ICD.Connect.Krang.Routing;
-using ICD.Connect.Routing;
-#if SIMPLSHARP
+﻿#if SIMPLSHARP
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +6,11 @@ using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.Krang.Routing;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
-using ICD.Connect.Rooms;
-using ICD.Connect.Rooms.Extensions;
+using ICD.Connect.Partitioning.Extensions;
+using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;

@@ -1,5 +1,4 @@
 ﻿#if SIMPLSHARP
-using ICD.Connect.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +8,13 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
-using ICD.Connect.Rooms;
-using ICD.Connect.Rooms.Extensions;
+using ICD.Connect.Partitioning.Extensions;
+using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.SPlusInterfaces
 {
