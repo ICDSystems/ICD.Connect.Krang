@@ -115,11 +115,7 @@ namespace ICD.Connect.Krang.Core
 			foreach(var destination in destinationGroup.Destinations.Where(graph.Destinations.ContainsChild).Select(d => graph.Destinations.GetChild(d)))
 			{
 				IDestination destination1 = destination;
-#if SIMPLSHARP
-				CrestronUtils.SafeInvoke(() => Route(source, destination1, connectionType, roomId));
-#else
-			    Route(source, destination1, connectionType, roomId);
-#endif
+				ThreadingUtils.SafeInvoke(() => Route(source, destination1, connectionType, roomId));
 			}
 			return results.Unanimous(false);
 		}
