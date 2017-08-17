@@ -179,7 +179,7 @@ namespace ICD.Connect.Krang.Routing
 			{
 				foreach (ConnectorInfo info in sourceAsSwitcher.GetInputs(inputConnection.Source.Address, type))
 				{
-					foreach (EndpointInfo result in GetActiveSourceEndpoints(sourceAsSwitcher.GetInputEndpointInfo(info.Address), info.ConnectionType, signalDetected))
+					foreach (EndpointInfo result in GetActiveSourceEndpoints(sourceAsSwitcher.GetInputEndpointInfo(info.Address), type, signalDetected))
 						yield return result;
 				}
 				yield break;
