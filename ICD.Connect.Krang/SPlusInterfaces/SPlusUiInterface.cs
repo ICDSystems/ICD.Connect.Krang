@@ -8,7 +8,6 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
-using ICD.Connect.Partitioning.Extensions;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
@@ -330,7 +329,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					              ? string.Empty
 					              : room == null
 						                ? source.Name
-						                : source.GetNameOrDeviceName(room);
+						                : source.GetNameOrDeviceName();
 				ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
 				ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
 
