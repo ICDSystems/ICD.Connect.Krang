@@ -85,6 +85,9 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		public SPlusUiInterface()
 		{
+			m_SourceListDictionary = new Dictionary<ushort, Dictionary<ushort, SimplSource>>();
+			m_SourceListDictionaryReverse = new Dictionary<ISource, ushort[]>();
+
 			try
 			{
 				SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
@@ -156,14 +159,15 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				Route(source);
 		}
 
+		[PublicAPI("S+")]
 		public void SetSourceIndex(ushort sourceList, ushort sourceIndex)
 		{
 			SimplSource source;
 
 			Dictionary<ushort, SimplSource> listDict;
-
 			if (!m_SourceListDictionary.TryGetValue(sourceList, out listDict))
 				return;
+
 			if (!listDict.TryGetValue(sourceIndex, out source))
 				return;
 
@@ -190,6 +194,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			Dictionary<ushort, SimplSource> sourceListLayerOne;
 			if (!m_SourceListDictionary.TryGetValue(sourceList, out sourceListLayerOne))
 				return;
+
 			SimplSource source;
 			if (!sourceListLayerOne.TryGetValue(sourceIndex, out source))
 				return;
