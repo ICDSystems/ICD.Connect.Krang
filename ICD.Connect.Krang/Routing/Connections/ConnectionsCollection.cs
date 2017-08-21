@@ -538,18 +538,7 @@ namespace ICD.Connect.Krang.Routing.Connections
 
 		public IEnumerator<Connection> GetEnumerator()
 		{
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				return m_Connections.OrderValuesByKey()
-				                    .ToList()
-				                    .GetEnumerator();
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
+			return GetConnections().GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

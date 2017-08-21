@@ -9,7 +9,6 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
-using ICD.Connect.Devices;
 using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Krang.Routing.Connections;
 using ICD.Connect.Krang.Routing.ConnectionUsage;
@@ -1029,10 +1028,7 @@ namespace ICD.Connect.Krang.Routing
 			Destinations.SetChildren(destinations);
 			DestinationGroups.SetChildren(destinationGroups);
 
-			UnsubscribeSwitchers();
-			m_SubscribedSwitchers.AddRange(Connections.GetConnections().SelectMany(c => GetFactorySwitcherControls(c, factory)));
-			foreach (var switcher in m_SubscribedSwitchers)
-				Subscribe(switcher);
+			SubscribeSwitchers();
 
 			m_Connections.OnConnectionsChanged += ConnectionsOnConnectionsChanged;
 		}
@@ -1081,17 +1077,6 @@ namespace ICD.Connect.Krang.Routing
 
 				yield return output;
 			}
-		}
-
-		private IEnumerable<IRouteSwitcherControl> GetFactorySwitcherControls(Connection c, IDeviceFactory factory)
-		{
-			var source = factory.GetOriginatorById<IDevice>(c.Source.Device);
-			if (source.Controls.Contains(c.Source.Control) && source.Controls[c.Source.Control] is IRouteSwitcherControl)
-				yield return source.Controls[c.Source.Control] as IRouteSwitcherControl;
-
-			var destination = factory.GetOriginatorById<IDevice>(c.Destination.Device);
-			if (destination.Controls.Contains(c.Destination.Control) && destination.Controls[c.Destination.Control] is IRouteSwitcherControl)
-				yield return destination.Controls[c.Destination.Control] as IRouteSwitcherControl;
 		}
 
 		protected override void CopySettingsFinal(RoutingGraphSettings settings)
