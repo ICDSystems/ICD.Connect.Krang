@@ -13,7 +13,6 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
-using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core
 {
@@ -45,7 +44,6 @@ namespace ICD.Connect.Krang.Core
 			AddServices();
 
 			m_Core = new KrangCore { Serialize = true };
-			m_Core.OnSettingsApplied += RoomOnSettingsApplied;
 
 			ApiConsole.RegisterChild(this);
 
@@ -128,25 +126,6 @@ namespace ICD.Connect.Krang.Core
 			return cleaned;
 		}
 
-		/// <summary>
-		/// Called when settings are applied to the room.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="eventArgs"></param>
-		private void RoomOnSettingsApplied(object sender, EventArgs eventArgs)
-		{
-			BuildUserInterfaces();
-		}
-
-		/// <summary>
-		/// Instantiates the user interfaces.
-		/// </summary>
-		private void BuildUserInterfaces()
-		{
-			foreach (ITheme factory in m_Core.Originators.GetChildren<ITheme>())
-				factory.BuildUserInterfaces();
-		}
-
 		#endregion
 
 		#region Console
@@ -181,7 +160,6 @@ namespace ICD.Connect.Krang.Core
 			                                () => FileOperations.SaveSettings(m_Core.CopySettings()));
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.",
 			                                () => FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings()));
-			yield return new ConsoleCommand("RebuildUis", "Rebuilds the UI instances", () => BuildUserInterfaces());
 		}
 
 		#endregion
