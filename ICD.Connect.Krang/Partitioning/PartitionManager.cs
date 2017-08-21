@@ -7,7 +7,10 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Devices.Controls;
+using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Partitioning;
+using ICD.Connect.Partitioning.Controls;
 using ICD.Connect.Partitioning.Partitions;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
@@ -41,6 +44,28 @@ namespace ICD.Connect.Krang.Partitioning
 
 			ServiceProvider.AddService<IPartitionManager>(this);
 		}
+
+		#region Controls
+
+		/// <summary>
+		/// Gets the control for the given partition.
+		/// Returns null if the partition has no control specified.
+		/// </summary>
+		/// <param name="partition"></param>
+		/// <returns></returns>
+		public IPartitionDeviceControl GetControl(IPartition partition)
+		{
+			if (partition == null)
+				throw new ArgumentNullException("partition");
+
+			if (partition.PartitionControl == default(DeviceControlInfo))
+				return null;
+
+			return ServiceProvider.GetService<ICore>()
+			                      .GetControl<IPartitionDeviceControl>(partition.PartitionControl);
+		}
+
+		#endregion
 
 		#region Settings
 
