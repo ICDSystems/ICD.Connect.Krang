@@ -983,7 +983,7 @@ namespace ICD.Connect.Krang.Routing
 			if (switcher == null)
 				return;
 
-			switcher.OnRouteChange += SwitcherOnRouteChange;
+			switcher.OnRouteChange -= SwitcherOnRouteChange;
 		}
 
 		/// <summary>
