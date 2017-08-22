@@ -72,9 +72,9 @@
     <Compile Include="Core\CoreDeviceFactory.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
-    <Compile Include="Partitioning\CorePartitionCollection.cs" />
     <Compile Include="Partitioning\PartitionManager.cs" />
     <Compile Include="Partitioning\PartitionManagerSettings.cs" />
+    <Compile Include="Partitioning\Partitions\PartitionsCollection.cs" />
     <Compile Include="Remote\Direct\CostUpdateHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdateMessage.cs" />
     <Compile Include="Remote\Direct\DisconnectHandler.cs" />

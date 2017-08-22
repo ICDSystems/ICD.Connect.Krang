@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.EventArguments;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices.Controls;
 using ICD.Connect.Devices.Extensions;
+using ICD.Connect.Krang.Partitioning.Partitions;
 using ICD.Connect.Partitioning;
 using ICD.Connect.Partitioning.Controls;
 using ICD.Connect.Partitioning.Partitions;
@@ -19,11 +22,14 @@ namespace ICD.Connect.Krang.Partitioning
 {
 	public sealed class PartitionManager : AbstractOriginator<PartitionManagerSettings>, IConsoleNode, IPartitionManager
 	{
-		private readonly CorePartitionCollection m_Partitions;
+		private readonly PartitionsCollection m_Partitions;
+		private readonly IcdHashSet<IPartitionDeviceControl> m_SubscribedPartitions;
 
-		public CorePartitionCollection Partitions { get { return m_Partitions; } }
+		#region Properties
 
-		IOriginatorCollection<IPartition> IPartitionManager.Partitions { get { return Partitions; } }
+		public PartitionsCollection Partitions { get { return m_Partitions; } }
+
+		IPartitionsCollection IPartitionManager.Partitions { get { return Partitions; } }
 
 		/// <summary>
 		/// Gets the name of the node.
@@ -35,12 +41,15 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		public string ConsoleHelp { get { return "Tracks the opening and closing of partition walls."; } }
 
+		#endregion
+
 		/// <summary>
 		/// Constructor.
 		/// </summary>
 		public PartitionManager()
 		{
-			m_Partitions = new CorePartitionCollection();
+			m_Partitions = new PartitionsCollection(this);
+			m_SubscribedPartitions = new IcdHashSet<IPartitionDeviceControl>();
 
 			ServiceProvider.AddService<IPartitionManager>(this);
 		}
@@ -67,6 +76,77 @@ namespace ICD.Connect.Krang.Partitioning
 
 		#endregion
 
+		#region Partition Callbacks
+
+		/// <summary>
+		/// Called when the partitions collection changes.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
+		private void PartitionsOnChildrenChanged(object sender, EventArgs eventArgs)
+		{
+			SubscribePartitions();
+		}
+
+		/// <summary>
+		/// Subscribes to the partition controls.
+		/// </summary>
+		private void SubscribePartitions()
+		{
+			UnsubscribePartitions();
+
+			m_SubscribedPartitions.AddRange(Partitions.Where(p => p.HasPartitionControl()).Select(p => GetControl(p)));
+
+			foreach (IPartitionDeviceControl partition in m_SubscribedPartitions)
+				Subscribe(partition);
+		}
+
+		/// <summary>
+		/// Unsubscribes from the previously subscribed partitions.
+		/// </summary>
+		private void UnsubscribePartitions()
+		{
+			foreach (IPartitionDeviceControl partition in m_SubscribedPartitions)
+				Unsubscribe(partition);
+			m_SubscribedPartitions.Clear();
+		}
+
+		/// <summary>
+		/// Subscribe to the partition events.
+		/// </summary>
+		/// <param name="partition"></param>
+		private void Subscribe(IPartitionDeviceControl partition)
+		{
+			if (partition == null)
+				return;
+
+			partition.OnOpenStatusChanged += PartitionOnOpenStatusChanged;
+		}
+
+		/// <summary>
+		/// Unsubscribe from the partition events.
+		/// </summary>
+		/// <param name="partition"></param>
+		private void Unsubscribe(IPartitionDeviceControl partition)
+		{
+			if (partition == null)
+				return;
+
+			partition.OnOpenStatusChanged -= PartitionOnOpenStatusChanged;
+		}
+
+		/// <summary>
+		/// Called when a partitions open state changes.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="args"></param>
+		private void PartitionOnOpenStatusChanged(object sender, BoolEventArgs args)
+		{
+			throw new NotImplementedException();
+		}
+
+		#endregion
+
 		#region Settings
 
 		/// <summary>
@@ -81,10 +161,16 @@ namespace ICD.Connect.Krang.Partitioning
 
 		protected override void ApplySettingsFinal(PartitionManagerSettings settings, IDeviceFactory factory)
 		{
+			m_Partitions.OnPartitionsChanged -= PartitionsOnChildrenChanged;
+
 			base.ApplySettingsFinal(settings, factory);
 
 			IEnumerable<IPartition> partitions = GetPartitions(settings, factory);
-			Partitions.SetChildren(partitions);
+			Partitions.SetPartitions(partitions);
+
+			SubscribePartitions();
+
+			m_Partitions.OnPartitionsChanged += PartitionsOnChildrenChanged;
 		}
 
 		private IEnumerable<IPartition> GetPartitions(PartitionManagerSettings settings, IDeviceFactory factory)
@@ -155,7 +241,7 @@ namespace ICD.Connect.Krang.Partitioning
 		{
 			TableBuilder builder = new TableBuilder("Id", "Partition", "Device", "Control", "Rooms");
 
-			foreach (IPartition partition in m_Partitions.GetChildren().OrderBy(c => c.Id))
+			foreach (IPartition partition in m_Partitions.OrderBy(c => c.Id))
 			{
 				int id = partition.Id;
 				int device = partition.PartitionControl.DeviceId;
