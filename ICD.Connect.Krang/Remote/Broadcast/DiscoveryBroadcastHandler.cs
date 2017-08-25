@@ -48,8 +48,11 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 
 			foreach (int id in remoteSwitchers)
 			{
-				List<Connection> tielines = connections.Where(c => c.Source.Device == id || c.Destination.Device == id).ToList();
+				// Workaround for compiler warning
 				int id1 = id;
+
+				List<Connection> tielines = connections.Where(c => c.Source.Device == id1 || c.Destination.Device == id1).ToList();
+				
 				int deviceId = tielines.Select(c => c.Source.Device == id1 ? c.Destination.Device : c.Source.Device)
 				                       .Where(c =>
 											  !(m_Core.Originators.GetChild(c) is MockSourceDevice) &&
@@ -90,7 +93,10 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
 				foreach (Connection tieline in e.Data.Data.Tielines[pair.Key])
 				{
-					if (connections.All(c => c.Id != tieline.Id))
+					// Workaround for compiler warning
+					Connection tieline1 = tieline;
+
+					if (connections.All(c => c.Id != tieline1.Id))
 						connections.Add(tieline);
 				}
 				m_Core.GetRoutingGraph().Connections.SetConnections(connections);

@@ -289,8 +289,12 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (var entry in changes)
 			{
 				var source = m_Core.GetRoutingGraph().Sources.GetChild(entry.Key);
+
+				// Workaround for compiler warning
+				KeyValuePair<int, Row> entry1 = entry;
+
 				var switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
-				                     .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry.Value.RouteTo);
+				                     .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry1.Value.RouteTo);
 				if (switcher == null)
 					continue;
 
@@ -315,8 +319,12 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (var entry in changes)
 			{
 				var destination = m_Core.GetRoutingGraph().Destinations.GetChild(entry.Key);
+
+				// Workaround for compiler warning
+				KeyValuePair<int, Row> entry1 = entry;
+
 				var switcher =
-						m_Core.Originators.GetChildren<RemoteSwitcher>().SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry.Value.RouteTo);
+						m_Core.Originators.GetChildren<RemoteSwitcher>().SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry1.Value.RouteTo);
 				if (switcher == null)
 					continue;
 

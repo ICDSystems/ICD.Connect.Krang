@@ -81,10 +81,14 @@ namespace ICD.Connect.Krang.Remote.Direct
 				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
 				foreach (ConnectorInfo connector in message.SourceConnections[source.Id])
 				{
-					if (!connections.Any(c => c.Source.Device == source.Endpoint.Device &&
-					                          c.Source.Control == source.Endpoint.Control &&
-					                          c.Source.Address == connector.Address &&
-					                          c.ConnectionType == connector.ConnectionType))
+					// Workaround for compiler warning
+					ISource source1 = source;
+					ConnectorInfo connector1 = connector;
+
+					if (!connections.Any(c => c.Source.Device == source1.Endpoint.Device &&
+					                          c.Source.Control == source1.Endpoint.Control &&
+					                          c.Source.Address == connector1.Address &&
+					                          c.ConnectionType == connector1.ConnectionType))
 					{
 						connections.Add(new Connection(
 							                MathUtils.Clamp(connections.Max(c => c.Id) + 1, ushort.MaxValue / 2, ushort.MaxValue),
@@ -152,10 +156,14 @@ namespace ICD.Connect.Krang.Remote.Direct
 				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
 				foreach (ConnectorInfo connector in message.DestinationConnections[destination.Id])
 				{
-					if (!connections.Any(c => c.Destination.Device == destination.Endpoint.Device &&
-					                          c.Destination.Control == destination.Endpoint.Control &&
-					                          c.Destination.Address == connector.Address &&
-					                          c.ConnectionType == connector.ConnectionType))
+					// Workaround for compiler warning
+					IDestination destination1 = destination;
+					ConnectorInfo connector1 = connector;
+
+					if (!connections.Any(c => c.Destination.Device == destination1.Endpoint.Device &&
+					                          c.Destination.Control == destination1.Endpoint.Control &&
+					                          c.Destination.Address == connector1.Address &&
+					                          c.ConnectionType == connector1.ConnectionType))
 					{
 						connections.Add(new Connection(
 							                MathUtils.Clamp(connections.Max(c => c.Id) + 1, ushort.MaxValue / 2, ushort.MaxValue),
