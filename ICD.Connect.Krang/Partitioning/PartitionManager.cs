@@ -98,6 +98,29 @@ namespace ICD.Connect.Krang.Partitioning
 		#region Combine
 
 		/// <summary>
+		/// Returns true if the given partition is currently part of a combine room.
+		/// </summary>
+		/// <param name="partition"></param>
+		/// <returns></returns>
+		public bool CombinesRoom(IPartition partition)
+		{
+			if (partition == null)
+				throw new ArgumentNullException("partition");
+
+			return CombinesRoom(partition.Id);
+		}
+
+		/// <summary>
+		/// Returns true if the given partition is currently part of a combine room.
+		/// </summary>
+		/// <param name="partitionId"></param>
+		/// <returns></returns>
+		public bool CombinesRoom(int partitionId)
+		{
+			return GetRooms().Any(r => r.Partitions.ContainsRecursive(partitionId));
+		}
+
+		/// <summary>
 		/// Gets the combine room containing the given partition.
 		/// </summary>
 		/// <param name="partition"></param>
