@@ -294,10 +294,15 @@ namespace ICD.Connect.Krang.Partitioning
 
 			ClosePartitions(room.Partitions.GetInstances());
 
+			IRoom[] childRooms = room.GetRoomsRecursive().ToArray();
+
 			Core.Originators.RemoveChild(room);
 			IDisposable disposable = room as IDisposable;
 			if (disposable != null)
 				disposable.Dispose();
+
+			foreach (IRoom childRoom in childRooms)
+				childRoom.LeaveCombineState();
 		}
 
 		/// <summary>
@@ -321,6 +326,10 @@ namespace ICD.Connect.Krang.Partitioning
 			Core.Originators.AddChildAssignId(room);
 
 			OpenPartitions(room.Partitions.GetInstances());
+
+			IRoom[] childRooms = room.GetRoomsRecursive().ToArray();
+			foreach (IRoom childRoom in childRooms)
+				childRoom.EnterCombineState();
 
 			Logger.AddEntry(eSeverity.Informational, "{0} created new combine room {1}", this, room);
 		}
