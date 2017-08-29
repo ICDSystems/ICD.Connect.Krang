@@ -20,6 +20,9 @@ namespace ICD.Connect.Krang.Core
 	{
 		private readonly KrangCore m_Core;
 
+		private DirectMessageManager m_DirectMessageManager;
+		private BroadcastManager m_BroadcastManager;
+
 		#region Properties
 
 		/// <summary>
@@ -73,6 +76,9 @@ namespace ICD.Connect.Krang.Core
 			try
 			{
 				Clear();
+
+				m_DirectMessageManager.Dispose();
+				m_BroadcastManager.Dispose();
 			}
 			catch (Exception e)
 			{
@@ -107,8 +113,11 @@ namespace ICD.Connect.Krang.Core
 #endif
 			ServiceProvider.AddService<ILoggerService>(logger);
 
-			ServiceProvider.AddService(new DirectMessageManager());
-			ServiceProvider.AddService(new BroadcastManager());
+			m_DirectMessageManager = new DirectMessageManager();
+			ServiceProvider.AddService(m_DirectMessageManager);
+
+			m_BroadcastManager = new BroadcastManager();
+			ServiceProvider.AddService(m_BroadcastManager);
 
 			ServiceProvider.AddService(new PermissionsManager());
 		}
