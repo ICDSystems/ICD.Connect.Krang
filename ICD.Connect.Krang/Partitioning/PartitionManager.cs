@@ -655,6 +655,22 @@ namespace ICD.Connect.Krang.Partitioning
 		public IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
 			yield return new ConsoleCommand("PrintPartitions", "Prints the list of all partitions.", () => PrintPartitions());
+			yield return new ConsoleCommand("PrintRooms", "Prints the list of rooms and their children.", () => PrintRooms());
+		}
+
+		private string PrintRooms()
+		{
+			TableBuilder builder = new TableBuilder("Id", "Room", "Children", "Combine Pritority", "Combine State");
+
+			foreach (IRoom room in GetRooms().OrderBy(r => r.Id))
+			{
+				int id = room.Id;
+				string children = StringUtils.ArrayFormat(room.GetRooms().Select(r => r.Id).Order());
+
+				builder.AddRow(id, room, children, room.CombinePriority, room.CombineState);
+			}
+
+			return builder.ToString();
 		}
 
 		private string PrintPartitions()
