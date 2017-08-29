@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Properties;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
@@ -81,6 +82,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partition"></param>
 		/// <returns></returns>
+		[CanBeNull]
 		public IPartitionDeviceControl GetControl(IPartition partition)
 		{
 			if (partition == null)
@@ -292,6 +294,8 @@ namespace ICD.Connect.Krang.Partitioning
 
 			Logger.AddEntry(eSeverity.Informational, "{0} destroying combined room {1}", this, room);
 
+			ClosePartitions(room.Partitions.GetInstances());
+
 			Core.Originators.RemoveChild(room);
 			IDisposable disposable = room as IDisposable;
 			if (disposable != null)
@@ -317,6 +321,8 @@ namespace ICD.Connect.Krang.Partitioning
 			room.Partitions.AddRange(partitions.Select(p => p.Id));
 
 			Core.Originators.AddChildAssignId(room);
+
+			OpenPartitions(room.Partitions.GetInstances());
 
 			Logger.AddEntry(eSeverity.Informational, "{0} created new combine room {1}", this, room);
 		}
@@ -423,6 +429,60 @@ namespace ICD.Connect.Krang.Partitioning
 		private static IEnumerable<IRoom> GetRooms()
 		{
 			return Core.Originators.GetChildren<IRoom>();
+		}
+
+		/// <summary>
+		/// Gets the control for each partition and sets it closed.
+		/// </summary>
+		/// <param name="partitions"></param>
+		private void ClosePartitions(IEnumerable<IPartition> partitions)
+		{
+			if (partitions == null)
+				throw new ArgumentNullException("partitions");
+
+			foreach (IPartition partition in partitions)
+				ClosePartition(partition);
+		}
+
+		/// <summary>
+		/// Gets the control for the partition and sets it closed.
+		/// </summary>
+		/// <param name="partition"></param>
+		private void ClosePartition(IPartition partition)
+		{
+			if (partition == null)
+				throw new ArgumentNullException("partition");
+
+			IPartitionDeviceControl control = GetControl(partition);
+			if (control != null)
+				control.Close();
+		}
+
+		/// <summary>
+		/// Gets the control for each partition and sets it open.
+		/// </summary>
+		/// <param name="partitions"></param>
+		private void OpenPartitions(IEnumerable<IPartition> partitions)
+		{
+			if (partitions == null)
+				throw new ArgumentNullException("partitions");
+
+			foreach (IPartition partition in partitions)
+				OpenPartition(partition);
+		}
+
+		/// <summary>
+		/// Gets the control for the partition and sets it open.
+		/// </summary>
+		/// <param name="partition"></param>
+		private void OpenPartition(IPartition partition)
+		{
+			if (partition == null)
+				throw new ArgumentNullException("partition");
+
+			IPartitionDeviceControl control = GetControl(partition);
+			if (control != null)
+				control.Open();
 		}
 
 		#endregion
