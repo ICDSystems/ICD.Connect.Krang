@@ -9,8 +9,11 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
+using ICD.Connect.Devices;
 using ICD.Connect.Krang.Core;
+using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Protocol;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Header;
 #if SIMPLSHARP

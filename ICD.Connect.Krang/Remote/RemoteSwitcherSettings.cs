@@ -1,8 +1,8 @@
 ﻿using System;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Xml;
+using ICD.Connect.Devices;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
 
 namespace ICD.Connect.Krang.Remote
