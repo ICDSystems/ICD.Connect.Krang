@@ -211,9 +211,11 @@ namespace ICD.Connect.Krang.Partitioning
 			IRoom[] rooms = GetAdjacentCombineRooms(partition).ToArray();
 
 			// Get the complete set of partitions through the new combine space
+			// ToArray() because room partitions are cleared on dispose.
 			IEnumerable<IPartition> partitions = rooms.SelectMany(r => r.Partitions.GetInstancesRecursive())
 													  .Append(partition)
-													  .Distinct();
+													  .Distinct()
+													  .ToArray();
 
 			DestroyCombineRooms(rooms);
 			CreateCombineRoom(partitions, constructor);
