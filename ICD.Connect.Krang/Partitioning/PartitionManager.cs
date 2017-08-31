@@ -294,7 +294,7 @@ namespace ICD.Connect.Krang.Partitioning
 
 			ClosePartitions(room.Partitions.GetInstances());
 
-			IRoom[] childRooms = room.GetRoomsRecursive().ToArray();
+			IRoom[] childRooms = room.GetRoomsRecursive().Except(room).ToArray();
 
 			Core.Originators.RemoveChild(room);
 			IDisposable disposable = room as IDisposable;
@@ -327,7 +327,7 @@ namespace ICD.Connect.Krang.Partitioning
 
 			OpenPartitions(room.Partitions.GetInstances());
 
-			IRoom[] childRooms = room.GetRoomsRecursive().ToArray();
+			IRoom[] childRooms = room.GetRoomsRecursive().Except(room).ToArray();
 			foreach (IRoom childRoom in childRooms)
 				childRoom.EnterCombineState();
 
