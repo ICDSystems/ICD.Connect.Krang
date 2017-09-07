@@ -144,6 +144,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
+		[CanBeNull]
 		private SPlusSwitcherControl GetSwitcherControl(ushort id)
 		{
 			IOriginator device;
