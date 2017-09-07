@@ -117,6 +117,7 @@
     <Compile Include="Settings\RoutingGraphSettings.cs" />
     <Compile Include="SPlusInterfaces\SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusInterfaces\SPlusOnKrangLoadedEventRelay.cs" />
+    <Compile Include="SPlusInterfaces\SPlusPanelInterface.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplRoom.cs" />
     <Compile Include="SPlusInterfaces\SPlusSimplSource.cs" />
     <Compile Include="SPlusInterfaces\SPlusSwitcherInterface.cs" />

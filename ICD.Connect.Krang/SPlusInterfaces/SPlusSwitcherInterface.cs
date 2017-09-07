@@ -60,6 +60,9 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private SPlusSwitcherControl m_SwitcherControl;
 
+		/// <summary>
+		/// Constructor.
+		/// </summary>
 		public SPlusSwitcherInterface()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
