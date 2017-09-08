@@ -507,6 +507,8 @@ namespace ICD.Connect.Krang.Routing
 			if (op == null)
 				throw new ArgumentNullException("op");
 
+			Logger.AddEntry(eSeverity.Informational, "Establishing route {0}", op);
+
 			// Find the first available path
 			List<Connection> path =
 				FindPaths(op.Source, op.Destination, op.ConnectionType, op.RoomId).FirstOrDefault();
