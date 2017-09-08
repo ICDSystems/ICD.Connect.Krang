@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SIMPLSHARP
+using System;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Connect.Panels;
@@ -199,3 +200,4 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		#endregion
 	}
 }
+#endif
