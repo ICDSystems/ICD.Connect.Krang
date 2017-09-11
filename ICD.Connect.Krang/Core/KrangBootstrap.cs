@@ -42,6 +42,9 @@ namespace ICD.Connect.Krang.Core
 
 		#endregion
 
+		/// <summary>
+		/// Constructor.
+		/// </summary>
 		public KrangBootstrap()
 		{
 			AddServices();
@@ -49,10 +52,6 @@ namespace ICD.Connect.Krang.Core
 			m_Core = new KrangCore { Serialize = true };
 
 			ApiConsole.RegisterChild(this);
-
-			IcdConsole.AddNewConsoleCommand(parameters => IcdConsole.ConsoleCommandResponse(CleanErrorLog(parameters)), "icderr",
-			                                "Prints the error log without the added Crestron info",
-			                                IcdConsole.eAccessLevel.Operator);
 		}
 
 		#region Methods
@@ -120,19 +119,6 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService(m_BroadcastManager);
 
 			ServiceProvider.AddService(new PermissionsManager());
-		}
-
-		private static string CleanErrorLog(params string[] args)
-		{
-			string errLog = string.Empty;
-			IcdConsole.SendControlSystemCommand("err " + string.Join(" ", args), ref errLog);
-			string cleaned = Regex.Replace(errLog,
-			                               @"(^|\n)(?:\d+\. )?(Error|Notice|Info|Warning|Ok): (?:\w*)\.exe (?:\[(App \d+)\])? *# (.+?)  # ?",
-			                               "$1$4 - $3 $2:: ");
-			cleaned = Regex.Replace(cleaned,
-			                        @"(?<!(^|\n)\d*)(?:\d+\. )?(Error|Notice|Info|Warning|Ok): SimplSharpPro\.exe ?(?:\[App (\d+)\] )?# (.+?)  # ?",
-			                        "");
-			return cleaned;
 		}
 
 		#endregion
