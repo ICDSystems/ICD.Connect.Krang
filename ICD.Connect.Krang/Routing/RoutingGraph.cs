@@ -512,8 +512,14 @@ namespace ICD.Connect.Krang.Routing
 			// Find the first available path
 			List<Connection> path =
 				FindPaths(op.Source, op.Destination, op.ConnectionType, op.RoomId).FirstOrDefault();
+
 			if (path == null)
+			{
+				Logger.AddEntry(eSeverity.Error, "No path found for route {0}", op);
 				return false;
+			}
+
+			Logger.AddEntry(eSeverity.Error, "{0} establishing path {1}", op, StringUtils.ArrayFormat(path));
 
 			int pendingRoutes;
 			try
@@ -547,6 +553,7 @@ namespace ICD.Connect.Krang.Routing
 
 			if (pendingRoutes > 0)
 				return true;
+
 			OnRouteFinished.Raise(this, new RouteFinishedEventArgs(op, true));
 			return true;
 		}
