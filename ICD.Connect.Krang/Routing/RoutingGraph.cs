@@ -276,14 +276,17 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="destination"></param>
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
-		private IEnumerable<List<Connection>> FindPaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
+		private IEnumerable<ConnectionPath> FindPaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
 		                                                int roomId)
 		{
+			if (EnumUtils.HasMultipleFlags(type))
+				throw new ArgumentException("ConnectionType has multiple flags", "type");
+
 			Queue<EndpointInfo> queue = new Queue<EndpointInfo>();
 			queue.Enqueue(source);
 
-			Dictionary<IRouteDestinationControl, List<Connection>> paths =
-				new Dictionary<IRouteDestinationControl, List<Connection>>();
+			Dictionary<IRouteDestinationControl, ConnectionPath> paths =
+				new Dictionary<IRouteDestinationControl, ConnectionPath>();
 
 			while (queue.Any())
 			{
@@ -311,9 +314,9 @@ namespace ICD.Connect.Krang.Routing
 						continue;
 
 					IRouteDestinationControl cast = this.GetSourceControl(connection) as IRouteDestinationControl;
-					List<Connection> path = cast != null && paths.ContainsKey(cast)
-						                        ? new List<Connection>(paths[cast])
-						                        : new List<Connection>();
+					ConnectionPath path = cast != null && paths.ContainsKey(cast)
+												? new ConnectionPath(paths[cast])
+												: new ConnectionPath();
 
 					path.Add(connection);
 
@@ -510,7 +513,7 @@ namespace ICD.Connect.Krang.Routing
 			Logger.AddEntry(eSeverity.Informational, "Establishing route {0}", op);
 
 			// Find the first available path
-			List<Connection> path =
+			ConnectionPath path =
 				FindPaths(op.Source, op.Destination, op.ConnectionType, op.RoomId).FirstOrDefault();
 
 			if (path == null)
@@ -525,17 +528,16 @@ namespace ICD.Connect.Krang.Routing
 			try
 			{
 				m_PendingRoutesSection.Enter();
+
 				// Configure the switchers
-				for (int i = 0; i < path.Count; i++)
+				foreach (Connection[] pair in path.GetAdjacentPairs())
 				{
-					Connection connection = path[i];
+					Connection connection = pair[0];
+					Connection nextConnection = pair[1];
+
 					ConnectionUsages.ClaimConnection(connection, op);
 
-					if (i == path.Count - 1)
-						break;
-					Connection nextConnection = path[i + 1];
-
-					IRouteSwitcherControl switcher = this.GetDestinationControl(path[i]) as IRouteSwitcherControl;
+					IRouteSwitcherControl switcher = this.GetDestinationControl(connection) as IRouteSwitcherControl;
 					if (switcher == null)
 						continue;
 
@@ -544,6 +546,7 @@ namespace ICD.Connect.Krang.Routing
 
 					switcher.Route(op);
 				}
+
 				pendingRoutes = m_PendingRoutes.ContainsKey(op.Id) ? m_PendingRoutes[op.Id] : 0;
 			}
 			finally
