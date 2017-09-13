@@ -318,7 +318,8 @@ namespace ICD.Connect.Krang.Routing
 												? new ConnectionPath(paths[cast])
 												: new ConnectionPath();
 
-					path.Add(connection);
+					if (!path.Add(connection))
+						throw new InvalidProgramException("Not a contiguous path");
 
 					if (connection.Destination == destination)
 						yield return path;
