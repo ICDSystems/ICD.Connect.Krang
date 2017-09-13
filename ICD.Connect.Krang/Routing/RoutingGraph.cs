@@ -341,7 +341,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
 		/// <returns></returns>
-		public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
+		private IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
 		                                                 bool signalDetected)
 		{
 			foreach (Connection[] path in FindActivePaths(source, type, signalDetected))
@@ -362,7 +362,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
 		/// <returns></returns>
-		public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected)
+		private IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected)
 		{
 			return EnumUtils.HasMultipleFlags(type)
 				       ? EnumUtils.GetFlagsExceptNone(type).SelectMany(f => FindActivePaths(source, f, signalDetected))
@@ -490,7 +490,6 @@ namespace ICD.Connect.Krang.Routing
 		{
 			RouteOperation operation = new RouteOperation
 			{
-				Id = Guid.NewGuid(),
 				Source = source,
 				Destination = destination,
 				ConnectionType = type,
@@ -602,6 +601,7 @@ namespace ICD.Connect.Krang.Routing
 			try
 			{
 				m_PendingRoutesSection.Enter();
+
 				if (m_PendingRoutes.ContainsKey(op.Id) && m_PendingRoutes[op.Id] > 0)
 				{
 					if (!success || m_PendingRoutes[op.Id] == 1)

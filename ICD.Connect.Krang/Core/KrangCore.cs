@@ -94,14 +94,15 @@ namespace ICD.Connect.Krang.Core
 			if (graph == null)
 				throw new InvalidOperationException("No routing graph in core");
 
-			graph.Route(new RouteOperation
+			RouteOperation operation = new RouteOperation
 			{
-				Id = Guid.NewGuid(),
 				Source = source.Endpoint,
 				Destination = destination.Endpoint,
-				RoomId = roomId,
-				ConnectionType = connectionType
-			});
+				ConnectionType = connectionType,
+				RoomId = roomId
+			};
+
+			graph.Route(operation);
 		}
 
 		public void Route(ISource source, IDestinationGroup destinationGroup, eConnectionType connectionType, int roomId)
