@@ -16,6 +16,9 @@ namespace ICD.Connect.Krang.Remote.Direct
 		private readonly List<RouteDevicesMessage> m_PendingMessages;
 		private readonly SafeCriticalSection m_PendingMessagesSection;
 
+		/// <summary>
+		/// Constructor.
+		/// </summary>
 		public RouteDevicesHandler()
 		{
 			m_Core = ServiceProvider.GetService<ICore>();
@@ -35,14 +38,23 @@ namespace ICD.Connect.Krang.Remote.Direct
 
 		private void RoutingGraphOnOnRouteFinished(object sender, RouteFinishedEventArgs args)
 		{
-			m_PendingMessagesSection.Enter();
-			RouteDevicesMessage message = m_PendingMessages.SingleOrDefault(m => m.Operation.Id == args.Route.Id);
-			if (message != null)
-				m_PendingMessages.Remove(message);
-			m_PendingMessagesSection.Leave();
+			RouteDevicesMessage message;
 
-			if (message == null)
-				return;
+			m_PendingMessagesSection.Enter();
+
+			try
+			{
+				message = m_PendingMessages.SingleOrDefault(m => m.Operation.Id == args.Route.Id);
+				if (message == null)
+					return;
+
+				m_PendingMessages.Remove(message);
+			}
+			finally
+			{
+				m_PendingMessagesSection.Leave();
+			}
+
 			ServiceProvider.GetService<DirectMessageManager>()
 			               .Respond(message.ClientId, message.MessageId, new GenericMessage<bool> {Value = args.Success});
 		}
