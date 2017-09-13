@@ -511,17 +511,35 @@ namespace ICD.Connect.Krang.Routing
 
 			Logger.AddEntry(eSeverity.Informational, "Establishing route {0}", op);
 
-			// Find the first available path
-			ConnectionPath path =
-				FindPaths(op.Source, op.Destination, op.ConnectionType, op.RoomId).FirstOrDefault();
+			foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(op.ConnectionType))
+			{
+				ConnectionPath path = FindPaths(op.Source, op.Destination, op.ConnectionType, op.RoomId).FirstOrDefault();
+				RouteOperation operation = new RouteOperation(op) {ConnectionType = type};
+
+				if (path == null)
+				{
+					Logger.AddEntry(eSeverity.Error, "No path found for route {0}", operation);
+					continue;
+				}
+
+				RoutePath(operation, path);
+			}
+		}
+
+		/// <summary>
+		/// Applies the given path to the switchers.
+		/// </summary>
+		/// <param name="op"></param>
+		/// <param name="path"></param>
+		private void RoutePath(RouteOperation op, ConnectionPath path)
+		{
+			if (op == null)
+				throw new ArgumentNullException("op");
 
 			if (path == null)
-			{
-				Logger.AddEntry(eSeverity.Error, "No path found for route {0}", op);
-				return;
-			}
+				throw new ArgumentNullException("path");
 
-			Logger.AddEntry(eSeverity.Error, "{0} establishing path {1}", op, StringUtils.ArrayFormat(path));
+			Logger.AddEntry(eSeverity.Informational, "{0} establishing path {1}", op, StringUtils.ArrayFormat(path));
 
 			int pendingRoutes;
 
@@ -535,16 +553,20 @@ namespace ICD.Connect.Krang.Routing
 					Connection connection = pair[0];
 					Connection nextConnection = pair[1];
 
-					ConnectionUsages.ClaimConnection(connection, op);
+					RouteOperation switchOperation = new RouteOperation(op)
+					{
+						LocalInput = connection.Destination.Address,
+						LocalOutput = nextConnection.Source.Address,
+					};
+
+					// Claim the connection leading up to the switcher
+					ConnectionUsages.ClaimConnection(connection, switchOperation);
 
 					IRouteSwitcherControl switcher = this.GetDestinationControl(connection) as IRouteSwitcherControl;
 					if (switcher == null)
 						continue;
 
-					op.LocalInput = connection.Destination.Address;
-					op.LocalOutput = nextConnection.Source.Address;
-
-					switcher.Route(op);
+					switcher.Route(switchOperation);
 				}
 
 				pendingRoutes = m_PendingRoutes.ContainsKey(op.Id) ? m_PendingRoutes[op.Id] : 0;
