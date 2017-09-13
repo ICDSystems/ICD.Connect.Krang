@@ -463,7 +463,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		/// <returns>False if route could not be established</returns>
-		public bool Route(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
+		public void Route(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
 		                  int destinationAddress, eConnectionType type, int roomId)
 		{
 			if (sourceControl == null)
@@ -475,7 +475,7 @@ namespace ICD.Connect.Krang.Routing
 			EndpointInfo source = sourceControl.GetOutputEndpointInfo(sourceAddress);
 			EndpointInfo destination = destinationControl.GetInputEndpointInfo(destinationAddress);
 
-			return Route(source, destination, type, roomId);
+			Route(source, destination, type, roomId);
 		}
 
 		/// <summary>
@@ -486,7 +486,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		/// <returns>False if route could not be established</returns>
-		public bool Route(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+		public void Route(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
 		{
 			RouteOperation operation = new RouteOperation
 			{
@@ -497,7 +497,7 @@ namespace ICD.Connect.Krang.Routing
 				RoomId = roomId
 			};
 
-			return Route(operation);
+			Route(operation);
 		}
 
 		/// <summary>
@@ -505,7 +505,7 @@ namespace ICD.Connect.Krang.Routing
 		/// </summary>
 		/// <param name="op"></param>>
 		/// <returns>False if route could not be established</returns>
-		public bool Route(RouteOperation op)
+		public void Route(RouteOperation op)
 		{
 			if (op == null)
 				throw new ArgumentNullException("op");
@@ -519,12 +519,13 @@ namespace ICD.Connect.Krang.Routing
 			if (path == null)
 			{
 				Logger.AddEntry(eSeverity.Error, "No path found for route {0}", op);
-				return false;
+				return;
 			}
 
 			Logger.AddEntry(eSeverity.Error, "{0} establishing path {1}", op, StringUtils.ArrayFormat(path));
 
 			int pendingRoutes;
+
 			try
 			{
 				m_PendingRoutesSection.Enter();
@@ -555,10 +556,9 @@ namespace ICD.Connect.Krang.Routing
 			}
 
 			if (pendingRoutes > 0)
-				return true;
+				return;
 
 			OnRouteFinished.Raise(this, new RouteFinishedEventArgs(op, true));
-			return true;
 		}
 
 		/// <summary>
@@ -627,14 +627,13 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		/// <returns></returns>
-		public bool Unroute(IRouteSourceControl sourceControl, eConnectionType type, int roomId)
+		public void Unroute(IRouteSourceControl sourceControl, eConnectionType type, int roomId)
 		{
 			if (sourceControl == null)
 				throw new ArgumentNullException("sourceControl");
 
-			return Connections.GetOutputsAny(sourceControl, type)
-			                  .Select(output => Unroute(sourceControl, output, type, roomId))
-			                  .All(result => result);
+			Connections.GetOutputsAny(sourceControl, type)
+			           .ForEach(output => Unroute(sourceControl, output, type, roomId));
 		}
 
 		/// <summary>
@@ -644,12 +643,12 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="sourceAddress"></param>
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
-		public bool Unroute(IRouteSourceControl sourceControl, int sourceAddress, eConnectionType type, int roomId)
+		public void Unroute(IRouteSourceControl sourceControl, int sourceAddress, eConnectionType type, int roomId)
 		{
 			if (sourceControl == null)
 				throw new ArgumentNullException("sourceControl");
 
-			return Unroute(sourceControl.GetOutputEndpointInfo(sourceAddress), type, roomId);
+			Unroute(sourceControl.GetOutputEndpointInfo(sourceAddress), type, roomId);
 		}
 
 		/// <summary>
@@ -662,7 +661,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		/// <returns>False if the devices could not be unrouted.</returns>
-		public bool Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
+		public void Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
 		                    int destinationAddress, eConnectionType type, int roomId)
 		{
 			if (sourceControl == null)
@@ -671,9 +670,9 @@ namespace ICD.Connect.Krang.Routing
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return Unroute(sourceControl.GetOutputEndpointInfo(sourceAddress),
-			               destinationControl.GetInputEndpointInfo(destinationAddress),
-			               type, roomId);
+			Unroute(sourceControl.GetOutputEndpointInfo(sourceAddress),
+			        destinationControl.GetInputEndpointInfo(destinationAddress),
+			        type, roomId);
 		}
 
 		/// <summary>
@@ -685,7 +684,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		/// <returns>False if the devices could not be unrouted.</returns>
-		public bool Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
+		public void Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
 		                    eConnectionType type, int roomId)
 		{
 			if (sourceControl == null)
@@ -694,9 +693,8 @@ namespace ICD.Connect.Krang.Routing
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return Connections.GetInputsAny(destinationControl, type)
-			                  .Select(input => Unroute(sourceControl, sourceAddress, destinationControl, input, type, roomId))
-			                  .All(result => result);
+			Connections.GetInputsAny(destinationControl, type)
+			           .ForEach(input => Unroute(sourceControl, sourceAddress, destinationControl, input, type, roomId));
 		}
 
 		/// <summary>
@@ -707,7 +705,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		/// <returns>False if the devices could not be unrouted.</returns>
-		public bool Unroute(IRouteSourceControl sourceControl, IRouteDestinationControl destinationControl,
+		public void Unroute(IRouteSourceControl sourceControl, IRouteDestinationControl destinationControl,
 		                    eConnectionType type, int roomId)
 		{
 			if (sourceControl == null)
@@ -716,9 +714,8 @@ namespace ICD.Connect.Krang.Routing
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return Connections.GetOutputsAny(sourceControl, type)
-			                  .Select(output => Unroute(sourceControl, output, destinationControl, type, roomId))
-			                  .All(result => result);
+			Connections.GetOutputsAny(sourceControl, type)
+			           .ForEach(output => Unroute(sourceControl, output, destinationControl, type, roomId));
 		}
 
 		/// <summary>
@@ -727,10 +724,8 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="source"></param>
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
-		private bool Unroute(EndpointInfo source, eConnectionType type, int roomId)
+		private void Unroute(EndpointInfo source, eConnectionType type, int roomId)
 		{
-			bool unrouted = false;
-
 			foreach (Connection[] path in FindActivePaths(source, type, false))
 			{
 				// Loop backwards looking for switchers closest to the destination
@@ -741,12 +736,8 @@ namespace ICD.Connect.Krang.Routing
 
 					if (!Unroute(previous, current, type, roomId))
 						break;
-
-					unrouted = true;
 				}
 			}
-
-			return unrouted;
 		}
 
 		/// <summary>
@@ -757,10 +748,8 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		/// <returns>False if the devices could not be unrouted.</returns>
-		public bool Unroute(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+		public void Unroute(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
 		{
-			bool unrouted = false;
-
 			foreach (Connection[] path in FindActivePaths(source, destination, type, false))
 			{
 				// Loop backwards looking for switchers closest to the destination
@@ -780,16 +769,12 @@ namespace ICD.Connect.Krang.Routing
 					if (!Unroute(previous, current, type, roomId))
 						break;
 
-					unrouted = true;
-
 					// Stop unrouting if the input is routed to other outputs - we reached a fork
 					int input = previous.Destination.Address;
 					if (midpoint.GetOutputs(input, type).Any())
 						break;
 				}
 			}
-
-			return unrouted;
 		}
 
 		/// <summary>

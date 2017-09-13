@@ -5,7 +5,6 @@ using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Services;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
@@ -89,13 +88,13 @@ namespace ICD.Connect.Krang.Core
 
 		#region Methods
 
-		public bool Route(ISource source, IDestination destination, eConnectionType connectionType, int roomId)
+		public void Route(ISource source, IDestination destination, eConnectionType connectionType, int roomId)
 		{
 			RoutingGraph graph = RoutingGraph;
 			if (graph == null)
 				throw new InvalidOperationException("No routing graph in core");
 
-			return graph.Route(new RouteOperation
+			graph.Route(new RouteOperation
 			{
 				Id = Guid.NewGuid(),
 				Source = source.Endpoint,
@@ -105,19 +104,17 @@ namespace ICD.Connect.Krang.Core
 			});
 		}
 
-		public bool Route(ISource source, IDestinationGroup destinationGroup, eConnectionType connectionType, int roomId)
+		public void Route(ISource source, IDestinationGroup destinationGroup, eConnectionType connectionType, int roomId)
 		{
 			RoutingGraph graph = RoutingGraph;
 			if (graph == null)
 				throw new InvalidOperationException("No routing graph in core");
 
-			List<bool> results = new List<bool>();
 			foreach(var destination in destinationGroup.Destinations.Where(graph.Destinations.ContainsChild).Select(d => graph.Destinations.GetChild(d)))
 			{
 				IDestination destination1 = destination;
 				ThreadingUtils.SafeInvoke(() => Route(source, destination1, connectionType, roomId));
 			}
-			return results.Unanimous(false);
 		}
 
 		#endregion
@@ -292,9 +289,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			var permissionsManager = ServiceProvider.TryGetService<PermissionsManager>();
 			if (permissionsManager != null)
-			{
 				permissionsManager.SetDefaultPermissions(Permissions);
-			}
 		}
 
 		#endregion
@@ -361,17 +356,12 @@ namespace ICD.Connect.Krang.Core
 			if (graph == null)
 				throw new InvalidOperationException("Core contains no RoutingGraph");
 
-			string message;
 			if (!graph.Sources.ContainsChild(source) || !graph.Destinations.ContainsChild(destination))
-				message = "Krang does not contains a source or destination with that id";
-			else
-			{
-				message = Route(graph.Sources.GetChild(source), graph.Destinations.GetChild(destination),
-				                connectionType, roomId)
-					          ? "Route successful"
-					          : "Route failed";
-			}
-			return message;
+				return "Krang does not contains a source or destination with that id";
+
+			Route(graph.Sources.GetChild(source), graph.Destinations.GetChild(destination), connectionType, roomId);
+
+			return "Sucessfully executed route command";
 		}
 
 		public string RouteGroupConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
@@ -380,17 +370,12 @@ namespace ICD.Connect.Krang.Core
 			if (graph == null)
 				throw new InvalidOperationException("Core contains no RoutingGraph");
 
-			string message;
 			if (!graph.Sources.ContainsChild(source) || !graph.DestinationGroups.ContainsChild(destination))
-				message = "Krang does not contains a source or destination group with that id";
-			else
-			{
-				message = Route(graph.Sources.GetChild(source), graph.DestinationGroups.GetChild(destination),
-				                connectionType, roomId)
-					          ? "Route successful"
-					          : "Route failed";
-			}
-			return message;
+				return "Krang does not contains a source or destination group with that id";
+
+			Route(graph.Sources.GetChild(source), graph.DestinationGroups.GetChild(destination), connectionType, roomId);
+
+			return "Sucessfully executed route command";
 		}
 
 		public static string PrintKrang()
