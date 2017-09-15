@@ -109,7 +109,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			if (m_SwitcherControl == null)
 				return;
 
-			m_SwitcherControl.UpdateSourceDetection(input, eConnectionType.Video & eConnectionType.Audio);
+			m_SwitcherControl.UpdateSourceDetection(input, eConnectionType.Video | eConnectionType.Audio);
 		}
 
 		/// <summary>
@@ -122,7 +122,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			if (m_SwitcherControl == null)
 				return;
 
-			m_SwitcherControl.UpdateSwitcherOutput(output, eConnectionType.Video & eConnectionType.Audio);
+			m_SwitcherControl.UpdateSwitcherOutput(output, eConnectionType.Video | eConnectionType.Audio);
 		}
 
 		/// <summary>
@@ -232,21 +232,21 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				yield break;
 
 			ushort input = GetInputForOutputCallback((ushort)output);
-			yield return new ConnectorInfo(input, eConnectionType.Audio & eConnectionType.Video);
+			yield return new ConnectorInfo(input, eConnectionType.Audio | eConnectionType.Video);
 		}
 
 		private IEnumerable<ConnectorInfo> SwitcherControlGetOutputsCallback()
 		{
 			int outputCount = GetOutputCountCallback == null ? 0 : GetOutputCountCallback();
 			for (int index=0; index < outputCount; index++)
-				yield return new ConnectorInfo(index + 1, eConnectionType.Video & eConnectionType.Audio);
+				yield return new ConnectorInfo(index + 1, eConnectionType.Video | eConnectionType.Audio);
 		}
 
 		private IEnumerable<ConnectorInfo> SwitcherControlGetInputsCallback()
 		{
 			int inputCount = GetInputCountCallback == null ? 0 : GetInputCountCallback();
 			for (int index = 0; index < inputCount; index++)
-				yield return new ConnectorInfo(index + 1, eConnectionType.Video & eConnectionType.Audio);
+				yield return new ConnectorInfo(index + 1, eConnectionType.Video | eConnectionType.Audio);
 		}
 
 		private bool SwitcherControlGetSignalDetectedStateCallback(int input, eConnectionType type)
