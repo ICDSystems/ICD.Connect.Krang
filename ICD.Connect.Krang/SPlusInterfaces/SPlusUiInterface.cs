@@ -248,10 +248,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				throw new InvalidOperationException("No routing graph in core");
 			
 			graph.Route(source.Endpoint, destination.Endpoint, routeConnectionType, m_RoomId);
-
-			//unroute
-			eConnectionType unrouteConnectionType = destination.ConnectionType & ~connectionType;
-			graph.Unroute(source.Endpoint, destination.Endpoint, unrouteConnectionType, m_RoomId);
 		}
 
 		/// <summary>
