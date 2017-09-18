@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using ICD.Common.Logging.Console;
 using ICD.Common.Logging.Console.Loggers;
 using ICD.Common.Permissions;
