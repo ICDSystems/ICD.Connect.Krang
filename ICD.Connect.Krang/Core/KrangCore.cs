@@ -31,6 +31,11 @@ namespace ICD.Connect.Krang.Core
 {
 	public sealed class KrangCore : AbstractOriginator<KrangCoreSettings>, ICore, IConsoleNode
 	{
+		/// <summary>
+		/// Originator ids are pushed to the stack on load, and popped on clear.
+		/// </summary>
+		private readonly Stack<int> m_LoadedOriginators;
+
 		private readonly CoreOriginatorCollection m_Originators;
 
 		private readonly BroadcastManager m_BroadcastManager;
@@ -78,6 +83,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			ServiceProvider.AddService<ICore>(this);
 
+			m_LoadedOriginators = new Stack<int>();
 			m_Originators = new CoreOriginatorCollection();
 
 			m_BroadcastManager = ServiceProvider.GetService<BroadcastManager>();
@@ -152,8 +158,26 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private void DisposeOriginators()
 		{
+			// First try to dispose in reverse of load order
+			while (m_LoadedOriginators.Count > 0)
+			{
+				int id = m_LoadedOriginators.Pop();
+
+				IOriginator originator;
+				if (!m_Originators.TryGetChild(id, out originator))
+					continue;
+
+				IDisposable disposable = originator as IDisposable;
+				if (disposable == null)
+					continue;
+
+				disposable.Dispose();
+			}
+
+			// Now dispose the remainder
 			foreach (IDisposable originator in m_Originators.OfType<IDisposable>())
 				originator.Dispose();
+
 			m_Originators.Clear();
 		}
 		
@@ -211,10 +235,10 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IRoom>());
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators<ITheme>());
 
-			var routingGraph = RoutingGraph;
-			var routingSettings = routingGraph == null || !routingGraph.Serialize
-				                      ? new RoutingGraphSettings()
-				                      : routingGraph.CopySettings();
+			RoutingGraph routingGraph = RoutingGraph;
+			RoutingGraphSettings routingSettings = routingGraph == null || !routingGraph.Serialize
+				                                       ? new RoutingGraphSettings()
+				                                       : routingGraph.CopySettings();
 			settings.OriginatorSettings.Add(routingSettings);
 
 			settings.OriginatorSettings.AddRange(routingSettings.ConnectionSettings);
@@ -223,10 +247,10 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationGroupSettings);
 
-			var partitionManager = PartitionManager;
-			var partitionSettings = partitionManager == null || !partitionManager.Serialize
-				                        ? new PartitionManagerSettings()
-				                        : partitionManager.CopySettings();
+			PartitionManager partitionManager = PartitionManager;
+			PartitionManagerSettings partitionSettings = partitionManager == null || !partitionManager.Serialize
+				                                             ? new PartitionManagerSettings()
+				                                             : partitionManager.CopySettings();
 			settings.OriginatorSettings.Add(partitionSettings);
 
 			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
@@ -257,7 +281,8 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="factory"></param>
 		protected override void ApplySettingsFinal(KrangCoreSettings settings, IDeviceFactory factory)
 		{
-			factory.OnOriginatorLoaded += AddOriginator;
+			m_LoadedOriginators.Clear();
+			factory.OnOriginatorLoaded += FactoryOnOriginatorLoaded;
 
 			try
 			{
@@ -282,13 +307,23 @@ namespace ICD.Connect.Krang.Core
 			}
 			finally
 			{
-				factory.OnOriginatorLoaded -= AddOriginator;
+				factory.OnOriginatorLoaded -= FactoryOnOriginatorLoaded;
 			}
+		}
+
+		/// <summary>
+		/// Called each time an originator is loaded while applying settings.
+		/// </summary>
+		/// <param name="originator"></param>
+		private void FactoryOnOriginatorLoaded(IOriginator originator)
+		{
+			m_LoadedOriginators.Push(originator.Id);
+			AddOriginator(originator);
 		}
 
 		private void ResetDefaultPermissions()
 		{
-			var permissionsManager = ServiceProvider.TryGetService<PermissionsManager>();
+			PermissionsManager permissionsManager = ServiceProvider.TryGetService<PermissionsManager>();
 			if (permissionsManager != null)
 				permissionsManager.SetDefaultPermissions(Permissions);
 		}
