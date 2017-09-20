@@ -163,9 +163,12 @@ namespace ICD.Connect.Krang.Routing
 			if (signalDetected && !destinationControl.GetSignalDetectedState(destinationInput.Address, type))
 				yield break;
 
-			Connection inputConnection = Connections.GetInputConnection(destinationControl, destinationInput.Address, type);
+			Connection inputConnection = Connections.GetInputConnection(destinationControl, destinationInput.Address);
 			if (inputConnection == null)
 				yield break;
+
+			// Narrow the type by what the connection supports
+			type = EnumUtils.GetFlagsIntersection(type, inputConnection.ConnectionType);
 
 			IRouteSourceControl sourceControl = this.GetSourceControl(inputConnection);
 			if (sourceControl == null)
@@ -398,8 +401,8 @@ namespace ICD.Connect.Krang.Routing
 				throw new ArgumentException("Type enum requires exactly 1 flag.", "type");
 
 			// If there is no output connection from this source then we are done.
-			Connection outputConnection = Connections.GetOutputConnection(source, type);
-			if (outputConnection == null)
+			Connection outputConnection = Connections.GetOutputConnection(source);
+			if (outputConnection == null || !outputConnection.ConnectionType.HasFlag(type))
 			{
 				if (visited.Count > 0)
 					yield return visited.ToArray();

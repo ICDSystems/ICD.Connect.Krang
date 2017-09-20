@@ -101,10 +101,10 @@ namespace ICD.Connect.Krang.Routing.ConnectionUsage
 				int input = ((ConnectorInfo)connector).Address;
 
 				// If the input has changed for the output we need to recurse forwards and update usages
-				Connection inputConnection = m_RoutingGraph.Connections.GetInputConnection(switcher, input, flag);
+				Connection inputConnection = m_RoutingGraph.Connections.GetInputConnection(switcher, input);
 
 				// If there's no connection we have no idea what the source is
-				if (inputConnection == null)
+				if (inputConnection == null || !inputConnection.ConnectionType.HasFlag(flag))
 				{
 					PropogateConnectionSource(switcher, output, flag, null);
 					continue;
@@ -231,11 +231,14 @@ namespace ICD.Connect.Krang.Routing.ConnectionUsage
 		private void RecurseConnectionInfo(IRouteSourceControl sourceControl, int output, eConnectionType type,
 		                                   RecurseConnectionInfoCallback callback, IcdHashSet<Connection> visited)
 		{
-			Connection outputConnection = m_RoutingGraph.Connections.GetOutputConnection(sourceControl, output, type);
+			Connection outputConnection = m_RoutingGraph.Connections.GetOutputConnection(sourceControl, output);
 			if (outputConnection == null || visited.Contains(outputConnection))
 				return;
 
 			visited.Add(outputConnection);
+
+			// Narrow the connection type
+			type = EnumUtils.GetFlagsIntersection(type, outputConnection.ConnectionType);
 
 			ConnectionUsageInfo info = LazyLoadConnectionUsageInfo(outputConnection);
 
@@ -243,23 +246,14 @@ namespace ICD.Connect.Krang.Routing.ConnectionUsage
 			if (!callback(info))
 				return;
 
-			IRouteDestinationControl destinationDevice = m_RoutingGraph.GetDestinationControl(outputConnection);
-			IRouteSourceControl destinationAsSourceDevice = destinationDevice as IRouteSourceControl;
-			IRouteSwitcherControl switcherDevice = destinationDevice as IRouteSwitcherControl;
+			IRouteMidpointControl midpointDevice =
+				m_RoutingGraph.GetDestinationControl(outputConnection) as IRouteMidpointControl;
+			if (midpointDevice == null)
+				return;
 
-			// If the next node is a switcher, loop over the routed outputs and clear connection usages
-			if (switcherDevice != null)
-			{
-				foreach (ConnectorInfo switcherOutput in switcherDevice.GetOutputs(outputConnection.Destination.Address, type))
-					RecurseConnectionInfo(switcherDevice, switcherOutput.Address, type, callback);
-			}
-
-				// If the next node is a throughput device, loop over the outgoing connections and clear usages.
-			else if (destinationAsSourceDevice != null)
-			{
-				foreach (int destinationOutput in m_RoutingGraph.Connections.GetOutputs(destinationAsSourceDevice, type))
-					RecurseConnectionInfo(destinationAsSourceDevice, destinationOutput, type, callback);
-			}
+			// If the next node is a midpoint, loop over the routed outputs and clear connection usages
+			foreach (ConnectorInfo switcherOutput in midpointDevice.GetOutputs(outputConnection.Destination.Address, type))
+				RecurseConnectionInfo(midpointDevice, switcherOutput.Address, type, callback);
 		}
 
 		#endregion

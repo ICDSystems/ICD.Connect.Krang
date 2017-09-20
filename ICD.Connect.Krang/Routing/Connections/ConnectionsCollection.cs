@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Devices.Controls;
 using ICD.Connect.Routing.Connections;
@@ -21,14 +20,14 @@ namespace ICD.Connect.Krang.Routing.Connections
 		private readonly SafeCriticalSection m_ConnectionsSection;
 
 		/// <summary>
-		/// Maps Device -> Control -> outgoing connections.
+		/// Maps Device -> Control -> Address -> outgoing connections.
 		/// </summary>
-		private readonly Dictionary<DeviceControlInfo, IcdHashSet<Connection>> m_OutputConnectionLookup;
+		private readonly Dictionary<DeviceControlInfo, Dictionary<int, Connection>> m_OutputConnectionLookup;
 
 		/// <summary>
-		/// Maps Device -> Control -> incoming connections.
+		/// Maps Device -> Control -> Address -> incoming connections.
 		/// </summary>
-		private readonly Dictionary<DeviceControlInfo, IcdHashSet<Connection>> m_InputConnectionLookup;
+		private readonly Dictionary<DeviceControlInfo, Dictionary<int, Connection>> m_InputConnectionLookup;
 
 		/// <summary>
 		/// Gets the number of connections.
@@ -42,8 +41,8 @@ namespace ICD.Connect.Krang.Routing.Connections
 		public ConnectionsCollection(RoutingGraph routingGraph)
 		{
 			m_Connections = new Dictionary<int, Connection>();
-			m_OutputConnectionLookup = new Dictionary<DeviceControlInfo, IcdHashSet<Connection>>();
-			m_InputConnectionLookup = new Dictionary<DeviceControlInfo, IcdHashSet<Connection>>();
+			m_OutputConnectionLookup = new Dictionary<DeviceControlInfo, Dictionary<int, Connection>>();
+			m_InputConnectionLookup = new Dictionary<DeviceControlInfo, Dictionary<int, Connection>>();
 			m_ConnectionsSection = new SafeCriticalSection();
 
 			UpdateLookups();
@@ -54,30 +53,30 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <summary>
 		/// Gets the connection for the given endpoint.
 		/// </summary>
-		/// <param name="endpoint"></param>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		[CanBeNull]
-		public Connection GetInputConnection(EndpointInfo endpoint, eConnectionType type)
-		{
-			return GetInputConnections(endpoint.Device, endpoint.Control, type)
-				.FirstOrDefault(c => c.Destination.Address == endpoint.Address);
-		}
-
-		/// <summary>
-		/// Gets the connection for the given endpoint.
-		/// </summary>
 		/// <param name="destinationControl"></param>
 		/// <param name="input"></param>
-		/// <param name="type"></param>
 		/// <returns></returns>
 		[CanBeNull]
-		public Connection GetInputConnection(IRouteDestinationControl destinationControl, int input, eConnectionType type)
+		public Connection GetInputConnection(IRouteDestinationControl destinationControl, int input)
 		{
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return GetInputConnection(destinationControl.GetInputEndpointInfo(input), type);
+			DeviceControlInfo key = new DeviceControlInfo(destinationControl.Parent.Id, destinationControl.Id);
+
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				Dictionary<int, Connection> map;
+				return m_InputConnectionLookup.TryGetValue(key, out map)
+					       ? map.GetDefault(input, null)
+					       : null;
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
 		}
 
 		/// <summary>
@@ -96,11 +95,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 
 			try
 			{
-				if (!m_InputConnectionLookup.ContainsKey(info))
-					return Enumerable.Empty<Connection>();
-
-				return m_InputConnectionLookup[info].Where(c => EnumUtils.HasFlags(c.ConnectionType, type))
-				                                    .ToArray();
+				Dictionary<int, Connection> map;
+				return m_InputConnectionLookup.TryGetValue(info, out map)
+						   ? map.Values.Where(c => EnumUtils.HasFlags(c.ConnectionType, type)).ToArray()
+						   : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -124,11 +122,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 
 			try
 			{
-				if (!m_InputConnectionLookup.ContainsKey(info))
-					return Enumerable.Empty<Connection>();
-
-				return m_InputConnectionLookup[info].Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type))
-				                                    .ToArray();
+				Dictionary<int, Connection> map;
+				return m_InputConnectionLookup.TryGetValue(info, out map)
+						   ? map.Values.Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type)).ToArray()
+						   : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -139,14 +136,26 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <summary>
 		/// Gets the connection for the given endpoint.
 		/// </summary>
-		/// <param name="endpoint"></param>
-		/// <param name="type"></param>
+		/// <param name="source"></param>
 		/// <returns></returns>
 		[CanBeNull]
-		public Connection GetOutputConnection(EndpointInfo endpoint, eConnectionType type)
+		public Connection GetOutputConnection(EndpointInfo source)
 		{
-			return GetOutputConnections(endpoint.Device, endpoint.Control, type)
-				.FirstOrDefault(c => c.Source.Address == endpoint.Address);
+			DeviceControlInfo key = new DeviceControlInfo(source.Device, source.Control);
+
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				Dictionary<int, Connection> map;
+				return m_OutputConnectionLookup.TryGetValue(key, out map)
+					       ? map.GetDefault(source.Address, null)
+					       : null;
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
 		}
 
 		/// <summary>
@@ -154,15 +163,39 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// </summary>
 		/// <param name="sourceControl"></param>
 		/// <param name="output"></param>
-		/// <param name="type"></param>
 		/// <returns></returns>
 		[CanBeNull]
-		public Connection GetOutputConnection(IRouteSourceControl sourceControl, int output, eConnectionType type)
+		public Connection GetOutputConnection(IRouteSourceControl sourceControl, int output)
 		{
 			if (sourceControl == null)
 				throw new ArgumentNullException("sourceControl");
 
-			return GetOutputConnection(sourceControl.GetOutputEndpointInfo(output), type);
+			return GetOutputConnection(sourceControl.GetOutputEndpointInfo(output));
+		}
+
+		/// <summary>
+		/// Gets the output connections for the given source device.
+		/// </summary>
+		/// <param name="sourceDeviceId"></param>
+		/// <param name="sourceControlId"></param>
+		/// <returns></returns>
+		public IEnumerable<Connection> GetOutputConnections(int sourceDeviceId, int sourceControlId)
+		{
+			DeviceControlInfo info = new DeviceControlInfo(sourceDeviceId, sourceControlId);
+
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				Dictionary<int, Connection> map;
+				return m_OutputConnectionLookup.TryGetValue(info, out map)
+					       ? map.Values.ToArray()
+					       : Enumerable.Empty<Connection>();
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
 		}
 
 		/// <summary>
@@ -180,11 +213,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 
 			try
 			{
-				if (!m_OutputConnectionLookup.ContainsKey(info))
-					return Enumerable.Empty<Connection>();
-
-				return m_OutputConnectionLookup[info].Where(c => EnumUtils.HasFlags(c.ConnectionType, type))
-				                                     .ToArray();
+				Dictionary<int, Connection> map;
+				return m_OutputConnectionLookup.TryGetValue(info, out map)
+						   ? map.Values.Where(c => EnumUtils.HasFlags(c.ConnectionType, type)).ToArray()
+						   : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -207,11 +239,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 
 			try
 			{
-				if (!m_OutputConnectionLookup.ContainsKey(info))
-					return Enumerable.Empty<Connection>();
-
-				return m_OutputConnectionLookup[info].Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type))
-													 .ToArray();
+				Dictionary<int, Connection> map;
+				return m_OutputConnectionLookup.TryGetValue(info, out map)
+						   ? map.Values.Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type)).ToArray()
+						   : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -521,13 +552,13 @@ namespace ICD.Connect.Krang.Routing.Connections
 
 					// Add device controls to the maps
 					if (!m_OutputConnectionLookup.ContainsKey(sourceInfo))
-						m_OutputConnectionLookup.Add(sourceInfo, new IcdHashSet<Connection>());
+						m_OutputConnectionLookup.Add(sourceInfo, new Dictionary<int, Connection>());
 					if (!m_InputConnectionLookup.ContainsKey(destinationInfo))
-						m_InputConnectionLookup.Add(destinationInfo, new IcdHashSet<Connection>());
+						m_InputConnectionLookup.Add(destinationInfo,new Dictionary<int, Connection>());
 
 					// Add connections to the maps
-					m_OutputConnectionLookup[sourceInfo].Add(connection);
-					m_InputConnectionLookup[destinationInfo].Add(connection);
+					m_OutputConnectionLookup[sourceInfo][connection.Source.Address] = connection;
+					m_InputConnectionLookup[destinationInfo][connection.Destination.Address] = connection;
 				}
 			}
 			finally
