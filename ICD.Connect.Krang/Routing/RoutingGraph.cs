@@ -159,36 +159,59 @@ namespace ICD.Connect.Krang.Routing
 		public IEnumerable<EndpointInfo> GetActiveSourceEndpoints(EndpointInfo destinationInput, eConnectionType type,
 		                                                          bool signalDetected)
 		{
-			IRouteDestinationControl destinationControl = this.GetDestinationControl(destinationInput);
-			if (signalDetected && !destinationControl.GetSignalDetectedState(destinationInput.Address, type))
+			IRouteDestinationControl destination = GetDestinationControl(destinationInput.Device, destinationInput.Control);
+			if (destination == null)
 				yield break;
 
-			Connection inputConnection = Connections.GetInputConnection(destinationControl, destinationInput.Address);
+			foreach (eConnectionType flag in EnumUtils.GetFlagsExceptNone(type))
+			{
+				EndpointInfo? endpoint = GetActiveSourceEndpoint(destination, destinationInput.Address, flag, signalDetected);
+				if (endpoint.HasValue)
+					yield return endpoint.Value;
+			}
+		}
+
+		/// <summary>
+		/// Finds the actively routed source for the destination at the given input address.
+		/// </summary>
+		/// <param name="destination"></param>
+		/// <param name="input"></param>
+		/// <param name="type"></param>
+		/// <param name="signalDetected">When true skips inputs where no video is detected.</param>
+		/// <exception cref="ArgumentNullException"></exception>
+		/// <returns>The source</returns>
+		public EndpointInfo? GetActiveSourceEndpoint(IRouteDestinationControl destination, int input,
+		                                             eConnectionType type, bool signalDetected)
+		{
+			if (destination == null)
+				throw new ArgumentNullException("destination");
+
+			if (EnumUtils.HasMultipleFlags(type))
+				throw new ArgumentNullException("type", "type must have a single flag");
+
+			if (signalDetected && !destination.GetSignalDetectedState(input, type))
+				return null;
+
+			Connection inputConnection = Connections.GetInputConnection(destination, input);
 			if (inputConnection == null)
-				yield break;
+				return null;
 
 			// Narrow the type by what the connection supports
-			type = EnumUtils.GetFlagsIntersection(type, inputConnection.ConnectionType);
+			if (!inputConnection.ConnectionType.HasFlag(type))
+				return null;
 
 			IRouteSourceControl sourceControl = this.GetSourceControl(inputConnection);
 			if (sourceControl == null)
-				yield break;
+				return null;
 
-			IRouteMidpointControl sourceAsSwitcher = sourceControl as IRouteMidpointControl;
+			IRouteMidpointControl sourceAsMidpoint = sourceControl as IRouteMidpointControl;
+			if (sourceAsMidpoint == null)
+				return sourceControl.GetOutputEndpointInfo(inputConnection.Source.Address);
 
-			// If the source is a midpoint, loop through the routed inputs
-			if (sourceAsSwitcher != null)
-			{
-				foreach (ConnectorInfo info in sourceAsSwitcher.GetInputs(inputConnection.Source.Address, type))
-				{
-					foreach (EndpointInfo result in GetActiveSourceEndpoints(sourceAsSwitcher.GetInputEndpointInfo(info.Address), type, signalDetected))
-						yield return result;
-				}
-				yield break;
-			}
-
-			// The source is a source!
-			yield return sourceControl.GetOutputEndpointInfo(inputConnection.Source.Address);
+			ConnectorInfo? sourceConnector = sourceAsMidpoint.GetInput(inputConnection.Source.Address, type);
+			return sourceConnector.HasValue
+				       ? GetActiveSourceEndpoint(sourceAsMidpoint, sourceConnector.Value.Address, type, signalDetected)
+				       : null;
 		}
 
 		/// <summary>
