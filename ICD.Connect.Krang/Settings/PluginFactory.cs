@@ -141,9 +141,14 @@ namespace ICD.Connect.Krang.Settings
 		public static IEnumerable<Assembly> GetFactoryAssemblies()
 		{
 			return s_AttributeNameMethodMap.SelectMany(kvp => kvp.Value)
-			                               .Select(kvp => kvp.Value.DeclaringType.Assembly)
-			                               .Distinct()
-			                               .ToArray();
+										   .Select(kvp => kvp.Value
+															 .DeclaringType
+#if !SIMPLSHARP
+															 .GetTypeInfo()
+#endif
+															 .Assembly)
+										   .Distinct()
+										   .ToArray();
 		}
 
 		/// <summary>

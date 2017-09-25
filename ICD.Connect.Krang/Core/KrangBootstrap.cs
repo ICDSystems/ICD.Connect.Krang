@@ -175,7 +175,11 @@ namespace ICD.Connect.Krang.Core
 			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
 			{
 				string name = assembly.GetName().Name;
-				string path = assembly.GetName().CodeBase;
+				string path = assembly
+#if SIMPLSHARP
+					.GetName()
+#endif
+					.CodeBase;
 				string version = assembly.GetName().Version.ToString();
 
 				builder.AddRow(name, path, version);
