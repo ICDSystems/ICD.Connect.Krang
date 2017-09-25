@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+#if SIMPLSHARP
+using Crestron.SimplSharp.Reflection;
+#else
+using System.Reflection;
+#endif
 using ICD.Common.Logging.Console;
 using ICD.Common.Logging.Console.Loggers;
 using ICD.Common.Permissions;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
@@ -150,10 +157,37 @@ namespace ICD.Connect.Krang.Core
 		{
 			yield return new ConsoleCommand("LoadCore", "Loads and applies the XML config.",
 			                                () => m_Core.LoadSettings());
-			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML",
+			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML.",
 			                                () => FileOperations.SaveSettings(m_Core.CopySettings()));
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.",
 			                                () => FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings()));
+
+			yield return new ConsoleCommand("PrintPlugins", "Prints the loaded plugin assemblies.",
+											() => PrintPlugins());
+			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.",
+											() => PrintTypes());
+		}
+
+		private static string PrintPlugins()
+		{
+			TableBuilder builder = new TableBuilder("Name", "Path", "Version");
+
+			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
+			{
+				string name = assembly.GetName().Name;
+				string path = assembly.GetName().CodeBase;
+				string version = assembly.GetName().Version.ToString();
+
+				builder.AddRow(name, path, version);
+			}
+
+			return builder.ToString();
+		}
+
+		private static string PrintTypes()
+		{
+			string[] factoryNames = PluginFactory.GetFactoryNames().Order().ToArray();
+			return string.Join(IcdEnvironment.NewLine, factoryNames);
 		}
 
 		#endregion

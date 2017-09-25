@@ -9,7 +9,6 @@ using System.Linq;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes.Factories;
@@ -121,8 +120,30 @@ namespace ICD.Connect.Krang.Settings
 				return Enumerable.Empty<string>();
 
 			return s_AttributeNameMethodMap[typeof(TAttribute)].Keys
-															   .Order()
 															   .ToArray();
+		}
+
+		/// <summary>
+		/// Gets all available factory names.
+		/// </summary>
+		/// <returns></returns>
+		public static IEnumerable<string> GetFactoryNames()
+		{
+			return s_AttributeNameMethodMap.SelectMany(kvp => kvp.Value)
+			                               .Select(kvp => kvp.Key)
+			                               .ToArray();
+		}
+
+		/// <summary>
+		/// Gets the assemblies for the loaded factories.
+		/// </summary>
+		/// <returns></returns>
+		public static IEnumerable<Assembly> GetFactoryAssemblies()
+		{
+			return s_AttributeNameMethodMap.SelectMany(kvp => kvp.Value)
+			                               .Select(kvp => kvp.Value.DeclaringType.Assembly)
+			                               .Distinct()
+			                               .ToArray();
 		}
 
 		/// <summary>
