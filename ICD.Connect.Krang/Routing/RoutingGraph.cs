@@ -1171,6 +1171,13 @@ namespace ICD.Connect.Krang.Routing
 			yield return new ConsoleCommand("PrintSources", "Prints the list of Sources", () => PrintSources());
 			yield return new ConsoleCommand("PrintDestinations", "Prints the list of Destinations", () => PrintDestinations());
 			yield return new ConsoleCommand("PrintUsages", "Prints a table of the connection usages.", () => PrintUsages());
+
+			yield return new GenericConsoleCommand<int, int, eConnectionType, int>("Route",
+	"Routes source to destination. Usage: Route <sourceId> <destId> <connType> <roomId>",
+	(a, b, c, d) => RouteConsoleCommand(a, b, c, d));
+			yield return new GenericConsoleCommand<int, int, eConnectionType, int>("RouteGroup",
+				"Routes source to destination group. Usage: Route <sourceId> <destGrpId> <connType> <roomId>",
+				(a, b, c, d) => RouteGroupConsoleCommand(a, b, c, d));
 		}
 
 		private string PrintSources()
@@ -1244,6 +1251,48 @@ namespace ICD.Connect.Krang.Routing
 			}
 
 			return builder.ToString();
+		}
+
+		private string RouteConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
+		{
+			if (!Sources.ContainsChild(source) || !Destinations.ContainsChild(destination))
+				return "Krang does not contains a source or destination with that id";
+
+			Route(Sources.GetChild(source), Destinations.GetChild(destination), connectionType, roomId);
+
+			return "Sucessfully executed route command";
+		}
+
+		private string RouteGroupConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
+		{
+			if (!Sources.ContainsChild(source) || !DestinationGroups.ContainsChild(destination))
+				return "Krang does not contains a source or destination group with that id";
+
+			Route(Sources.GetChild(source), DestinationGroups.GetChild(destination), connectionType, roomId);
+
+			return "Sucessfully executed route command";
+		}
+
+		private void Route(ISource source, IDestination destination, eConnectionType connectionType, int roomId)
+		{
+			RouteOperation operation = new RouteOperation
+			{
+				Source = source.Endpoint,
+				Destination = destination.Endpoint,
+				ConnectionType = connectionType,
+				RoomId = roomId
+			};
+
+			Route(operation);
+		}
+
+		private void Route(ISource source, IDestinationGroup destinationGroup, eConnectionType connectionType, int roomId)
+		{
+			foreach (var destination in destinationGroup.Destinations.Where(Destinations.ContainsChild).Select(d => Destinations.GetChild(d)))
+			{
+				IDestination destination1 = destination;
+				ThreadingUtils.SafeInvoke(() => Route(source, destination1, connectionType, roomId));
+			}
 		}
 
 		#endregion

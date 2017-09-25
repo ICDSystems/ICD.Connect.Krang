@@ -4,7 +4,6 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Services;
-using ICD.Common.Utils;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
@@ -19,10 +18,6 @@ using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing;
-using ICD.Connect.Routing.Connections;
-using ICD.Connect.Routing.Endpoints.Destinations;
-using ICD.Connect.Routing.Endpoints.Groups;
-using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Themes;
@@ -88,40 +83,6 @@ namespace ICD.Connect.Krang.Core
 
 			m_BroadcastManager = ServiceProvider.GetService<BroadcastManager>();
 			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
-		}
-
-		#endregion
-
-		#region Methods
-
-		public void Route(ISource source, IDestination destination, eConnectionType connectionType, int roomId)
-		{
-			RoutingGraph graph = RoutingGraph;
-			if (graph == null)
-				throw new InvalidOperationException("No routing graph in core");
-
-			RouteOperation operation = new RouteOperation
-			{
-				Source = source.Endpoint,
-				Destination = destination.Endpoint,
-				ConnectionType = connectionType,
-				RoomId = roomId
-			};
-
-			graph.Route(operation);
-		}
-
-		public void Route(ISource source, IDestinationGroup destinationGroup, eConnectionType connectionType, int roomId)
-		{
-			RoutingGraph graph = RoutingGraph;
-			if (graph == null)
-				throw new InvalidOperationException("No routing graph in core");
-
-			foreach(var destination in destinationGroup.Destinations.Where(graph.Destinations.ContainsChild).Select(d => graph.Destinations.GetChild(d)))
-			{
-				IDestination destination1 = destination;
-				ThreadingUtils.SafeInvoke(() => Route(source, destination1, connectionType, roomId));
-			}
 		}
 
 		#endregion
@@ -378,40 +339,6 @@ namespace ICD.Connect.Krang.Core
 		public IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
 			yield return new ConsoleCommand("whoami", "Displays info about Krang", () => PrintKrang(), true);
-			yield return new GenericConsoleCommand<int, int, eConnectionType, int>("Route", 
-				"Routes source to destination. Usage: Route <sourceId> <destId> <connType> <roomId>",
-				(a,b,c,d) => RouteConsoleCommand(a,b,c,d));
-			yield return new GenericConsoleCommand<int, int, eConnectionType, int>("RouteGroup",
-				"Routes source to destination group. Usage: Route <sourceId> <destGrpId> <connType> <roomId>",
-				(a,b,c,d) => RouteGroupConsoleCommand(a,b,c,d));
-		}
-
-		public string RouteConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
-		{
-			RoutingGraph graph = RoutingGraph;
-			if (graph == null)
-				throw new InvalidOperationException("Core contains no RoutingGraph");
-
-			if (!graph.Sources.ContainsChild(source) || !graph.Destinations.ContainsChild(destination))
-				return "Krang does not contains a source or destination with that id";
-
-			Route(graph.Sources.GetChild(source), graph.Destinations.GetChild(destination), connectionType, roomId);
-
-			return "Sucessfully executed route command";
-		}
-
-		public string RouteGroupConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
-		{
-			RoutingGraph graph = RoutingGraph;
-			if (graph == null)
-				throw new InvalidOperationException("Core contains no RoutingGraph");
-
-			if (!graph.Sources.ContainsChild(source) || !graph.DestinationGroups.ContainsChild(destination))
-				return "Krang does not contains a source or destination group with that id";
-
-			Route(graph.Sources.GetChild(source), graph.DestinationGroups.GetChild(destination), connectionType, roomId);
-
-			return "Sucessfully executed route command";
 		}
 
 		public static string PrintKrang()
