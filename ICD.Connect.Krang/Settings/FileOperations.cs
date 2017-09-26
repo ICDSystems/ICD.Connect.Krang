@@ -107,6 +107,10 @@ namespace ICD.Connect.Krang.Settings
 			where TCore : ICore
 		{
 			TSettings settings = Activator.CreateInstance<TSettings>();
+
+			// Ensure the new core settings don't default to an id of 0.
+			settings.Id = 1;
+
 			LoadCoreSettings(core, settings);
 		}
 
