@@ -194,8 +194,14 @@ namespace ICD.Connect.Krang.Core
 			PortSettings.ToXml(writer, PORTS_ELEMENT);
 			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
 			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
-			RoutingGraphSettings.ToXml(writer);
-			PartitionManagerSettings.ToXml(writer);
+
+			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
+			if (routingGraphSettings != null)
+				routingGraphSettings.ToXml(writer);
+
+			PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
+			if (partitionManagerSettings != null)
+				partitionManagerSettings.ToXml(writer);
 		}
 
 		#region Protected Methods
