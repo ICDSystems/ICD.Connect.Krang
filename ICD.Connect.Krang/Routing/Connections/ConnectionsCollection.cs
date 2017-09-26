@@ -53,6 +53,31 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <summary>
 		/// Gets the connection for the given endpoint.
 		/// </summary>
+		/// <param name="destination"></param>
+		/// <returns></returns>
+		[CanBeNull]
+		public Connection GetInputConnection(EndpointInfo destination)
+		{
+			DeviceControlInfo key = new DeviceControlInfo(destination.Device, destination.Control);
+
+			m_ConnectionsSection.Enter();
+
+			try
+			{
+				Dictionary<int, Connection> map;
+				return m_InputConnectionLookup.TryGetValue(key, out map)
+					       ? map.GetDefault(destination.Address, null)
+					       : null;
+			}
+			finally
+			{
+				m_ConnectionsSection.Leave();
+			}
+		}
+
+		/// <summary>
+		/// Gets the connection for the given endpoint.
+		/// </summary>
 		/// <param name="destinationControl"></param>
 		/// <param name="input"></param>
 		/// <returns></returns>
@@ -62,21 +87,7 @@ namespace ICD.Connect.Krang.Routing.Connections
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			DeviceControlInfo key = new DeviceControlInfo(destinationControl.Parent.Id, destinationControl.Id);
-
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				Dictionary<int, Connection> map;
-				return m_InputConnectionLookup.TryGetValue(key, out map)
-					       ? map.GetDefault(input, null)
-					       : null;
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
+			return GetOutputConnection(destinationControl.GetInputEndpointInfo(input));
 		}
 
 		/// <summary>
