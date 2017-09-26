@@ -210,7 +210,7 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 		/// <param name="map"></param>
 		/// <param name="rootAndNodeCallback"></param>
 		private static void RecurseAdjacencyMap(IDictionary<IPartition, IcdHashSet<IPartition>> map,
-		                                 Action<IPartition, IPartition> rootAndNodeCallback)
+		                                        Action<IPartition, IPartition> rootAndNodeCallback)
 		{
 			Queue<IPartition> processing = new Queue<IPartition>();
 			IcdHashSet<IPartition> visited = new IcdHashSet<IPartition>();
