@@ -19,6 +19,7 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
+using ICD.Common.Utils.IO;
 
 namespace ICD.Connect.Krang.Core
 {
@@ -170,7 +171,7 @@ namespace ICD.Connect.Krang.Core
 
 		private static string PrintPlugins()
 		{
-			TableBuilder builder = new TableBuilder("Name", "Path", "Version");
+			TableBuilder builder = new TableBuilder("Name", "Path", "Version", "Date");
 
 			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
 			{
@@ -181,8 +182,9 @@ namespace ICD.Connect.Krang.Core
 #endif
 					.CodeBase;
 				string version = assembly.GetName().Version.ToString();
+				DateTime date = IcdFile.GetLastWriteTime(path);
 
-				builder.AddRow(name, path, version);
+				builder.AddRow(name, path, version, date);
 			}
 
 			return builder.ToString();
