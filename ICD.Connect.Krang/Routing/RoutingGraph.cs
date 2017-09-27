@@ -296,67 +296,57 @@ namespace ICD.Connect.Krang.Routing
 		}
 
 		/// <summary>
-		/// Enumerates through possible paths from the source to the destination.
+		/// Finds the shortest available path from the source to the destination.
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="destination"></param>
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
-		private IEnumerable<ConnectionPath> FindPaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
-		                                                int roomId)
+		[CanBeNull]
+		private ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
 		{
 			if (EnumUtils.HasMultipleFlags(type))
 				throw new ArgumentException("ConnectionType has multiple flags", "type");
 
-			Queue<EndpointInfo> queue = new Queue<EndpointInfo>();
-			queue.Enqueue(source);
+			// Ensure the source has a valid output connection
+			Connection outputConnection = Connections.GetOutputConnection(source);
+			if (outputConnection == null || !outputConnection.ConnectionType.HasFlag(type))
+				return null;
 
-			Dictionary<IRouteDestinationControl, ConnectionPath> paths =
-				new Dictionary<IRouteDestinationControl, ConnectionPath>();
+			// Ensure the destination has a valid input connection
+			Connection inputConnection = Connections.GetInputConnection(destination);
+			if (inputConnection == null || !inputConnection.ConnectionType.HasFlag(type))
+				return null;
 
-			while (queue.Any())
-			{
-				EndpointInfo currentSource = queue.Dequeue();
+			IEnumerable<Connection> path = RecursionUtils.BreadthFirstSearchPath(outputConnection, inputConnection,
+			                                                                     c => GetConnectionChildren(source, c, type, roomId));
+			return path == null ? null : new ConnectionPath(path);
+		}
 
-				IEnumerable<Connection> availableConnections =
-					Connections.GetOutputConnections(currentSource.Device, currentSource.Control, type)
-					           .Where(c =>
-					                  ConnectionUsages.CanRouteConnection(c, source, roomId, type) &&
-					                  c.IsAvailableToSourceDevice(source.Device) &&
-					                  c.IsAvailableToRoom(roomId) &&
-					                  (!(currentSource.Device == source.Device && currentSource.Control == source.Control) ||
-					                   source.Address == c.Source.Address));
+		/// <summary>
+		/// Gets the potential output connections for the given input connections.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="inputConnection"></param>
+		/// <param name="type"></param>
+		/// <param name="roomId"></param>
+		/// <returns></returns>
+		private IEnumerable<Connection> GetConnectionChildren(EndpointInfo source, Connection inputConnection, eConnectionType type, int roomId)
+		{
+			if (inputConnection == null)
+				throw new ArgumentNullException("sourceConnection");
 
-				foreach (Connection connection in availableConnections)
-				{
-					IRouteDestinationControl destinationControl = this.GetDestinationControl(connection);
-					if (paths.ContainsKey(destinationControl))
-						continue;
+			if (EnumUtils.HasMultipleFlags(type))
+				throw new ArgumentException("ConnectionType has multiple flags", "type");
 
-					// If the current source is the root, only consider the desired source address
-					if (currentSource.Device == source.Device &&
-					    currentSource.Control == source.Control &&
-					    connection.Source.Address != source.Address)
-						continue;
-
-					IRouteDestinationControl cast = this.GetSourceControl(connection) as IRouteDestinationControl;
-					ConnectionPath path = cast != null && paths.ContainsKey(cast)
-												? new ConnectionPath(paths[cast])
-												: new ConnectionPath();
-
-					if (!path.Add(connection))
-						throw new InvalidProgramException("Not a contiguous path");
-
-					if (connection.Destination == destination)
-						yield return path;
-
-					paths[destinationControl] = path;
-
-					IRouteSourceControl control = destinationControl as IRouteSourceControl;
-					if (control != null)
-						queue.Enqueue(control.GetOutputEndpointInfo(connection.Source.Address));
-				}
-			}
+			return
+				Connections.GetOutputConnections(inputConnection.Destination.Device,
+				                                 inputConnection.Destination.Control,
+				                                 type)
+				           .Where(c =>
+				                  ConnectionUsages.CanRouteConnection(c, source, roomId, type) &&
+				                  c.IsAvailableToSourceDevice(source.Device) &&
+				                  c.IsAvailableToRoom(roomId));
 		}
 
 		/// <summary>
@@ -540,7 +530,7 @@ namespace ICD.Connect.Krang.Routing
 
 			foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(op.ConnectionType))
 			{
-				ConnectionPath path = FindPaths(op.Source, op.Destination, op.ConnectionType, op.RoomId).FirstOrDefault();
+				ConnectionPath path = FindPath(op.Source, op.Destination, op.ConnectionType, op.RoomId);
 				RouteOperation operation = new RouteOperation(op) {ConnectionType = type};
 
 				if (path == null)
