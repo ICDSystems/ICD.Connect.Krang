@@ -1,4 +1,6 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Common.Utils.Extensions;
+using ICD.Connect.Settings.Attributes;
+#if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
 #else
 using System.Reflection;
@@ -11,16 +13,15 @@ using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Attributes.Factories;
 
 namespace ICD.Connect.Krang.Settings
 {
 	public static class PluginFactory
 	{
 		/// <summary>
-		/// Maps attribute type -> factory name -> factory method
+		/// Maps factory name -> factory method
 		/// </summary>
-		private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> s_AttributeNameMethodMap;
+		private static readonly Dictionary<string, MethodInfo> s_FactoryNameMethodMap;
 
 		/// <summary>
 		/// Maps settings type -> factory name
@@ -32,7 +33,7 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		static PluginFactory()
 		{
-			s_AttributeNameMethodMap = new Dictionary<Type, Dictionary<string, MethodInfo>>();
+			s_FactoryNameMethodMap = new Dictionary<string, MethodInfo>();
 			s_SettingsFactoryNameMap = new Dictionary<Type, string>();
 
 			try
@@ -51,16 +52,14 @@ namespace ICD.Connect.Krang.Settings
 		/// Finds the element in the xml document and instantiates the settings for each child.
 		/// Skips and logs any elements that fail to parse.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
 		/// <param name="xml"></param>
 		/// <param name="elementName"></param>
 		/// <returns></returns>
-		public static IEnumerable<ISettings> GetSettingsFromXml<T>(string xml, string elementName)
-			where T : AbstractXmlFactoryMethodAttribute
+		public static IEnumerable<ISettings> GetSettingsFromXml(string xml, string elementName)
 		{
 			string child;
 			return XmlUtils.TryGetChildElementAsString(xml, elementName, out child)
-					   ? GetSettingsFromXml<T>(child)
+					   ? GetSettingsFromXml(child)
 					   : Enumerable.Empty<ISettings>();
 		}
 
@@ -68,11 +67,9 @@ namespace ICD.Connect.Krang.Settings
 		/// Instantiates the settings for each child element in the xml document.
 		/// Skips and logs any elements that fail to parse.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
 		/// <param name="xml"></param>
 		/// <returns></returns>
-		public static IEnumerable<ISettings> GetSettingsFromXml<T>(string xml)
-			where T : AbstractXmlFactoryMethodAttribute
+		public static IEnumerable<ISettings> GetSettingsFromXml(string xml)
 		{
 			foreach (string element in XmlUtils.GetChildElementsAsString(xml))
 			{
@@ -80,7 +77,7 @@ namespace ICD.Connect.Krang.Settings
 
 				try
 				{
-					output = Instantiate<T>(element);
+					output = Instantiate(element);
 				}
 				catch (Exception e)
 				{
@@ -112,15 +109,11 @@ namespace ICD.Connect.Krang.Settings
 		/// Gets the available factory names.
 		/// </summary>
 		/// <returns></returns>
-		public static IEnumerable<string> GetFactoryNames<TAttribute>()
-			where TAttribute : AbstractXmlFactoryMethodAttribute
+		public static IEnumerable<string> GetFactoryNames<TSettings>()
+			where TSettings : ISettings
 		{
-			Type type = typeof(TAttribute);
-			if (!s_AttributeNameMethodMap.ContainsKey(type))
-				return Enumerable.Empty<string>();
-
-			return s_AttributeNameMethodMap[typeof(TAttribute)].Keys
-															   .ToArray();
+			return s_SettingsFactoryNameMap.Where(kvp => kvp.Key.IsAssignableTo(typeof(TSettings)))
+			                               .Select(kvp => kvp.Value);
 		}
 
 		/// <summary>
@@ -129,9 +122,7 @@ namespace ICD.Connect.Krang.Settings
 		/// <returns></returns>
 		public static IEnumerable<string> GetFactoryNames()
 		{
-			return s_AttributeNameMethodMap.SelectMany(kvp => kvp.Value)
-			                               .Select(kvp => kvp.Key)
-			                               .ToArray();
+			return s_FactoryNameMethodMap.Keys;
 		}
 
 		/// <summary>
@@ -140,15 +131,13 @@ namespace ICD.Connect.Krang.Settings
 		/// <returns></returns>
 		public static IEnumerable<Assembly> GetFactoryAssemblies()
 		{
-			return s_AttributeNameMethodMap.SelectMany(kvp => kvp.Value)
-										   .Select(kvp => kvp.Value
-															 .DeclaringType
+			return s_FactoryNameMethodMap.Values
+			                             .Select(v => v.DeclaringType
 #if !SIMPLSHARP
-															 .GetTypeInfo()
+			                                           .GetTypeInfo()
 #endif
-															 .Assembly)
-										   .Distinct()
-										   .ToArray();
+			                                           .Assembly)
+			                             .Distinct();
 		}
 
 		/// <summary>
@@ -156,20 +145,32 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="xml"></param>
 		/// <returns></returns>
-		public static ISettings Instantiate<TAttribute>(string xml)
-			where TAttribute : AbstractXmlFactoryMethodAttribute
+		public static ISettings Instantiate(string xml)
 		{
-			return Instantiate<ISettings, TAttribute>(xml);
+			return Instantiate<ISettings>(xml);
 		}
 
 		/// <summary>
 		/// Calls the default constructor for the class with the given factory name.
 		/// </summary>
 		/// <returns></returns>
-		public static ISettings InstantiateDefault<TAttribute>(string factoryName)
-			where TAttribute : AbstractXmlFactoryMethodAttribute
+		public static ISettings InstantiateDefault(string factoryName)
 		{
-			return InstantiateDefault<ISettings, TAttribute>(factoryName);
+			return InstantiateDefault<ISettings>(factoryName);
+		}
+
+		/// <summary>
+		/// Gets the settings type for the given factory name.
+		/// </summary>
+		/// <param name="factoryName"></param>
+		/// <returns></returns>
+		public static Type GetType(string factoryName)
+		{
+			MethodInfo methodInfo;
+			if (!s_FactoryNameMethodMap.TryGetValue(factoryName, out methodInfo))
+				throw new KeyNotFoundException(string.Format("No factory name {0}", factoryName));
+
+			return methodInfo.DeclaringType;
 		}
 
 		#endregion
@@ -181,13 +182,11 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="xml"></param>
 		/// <typeparam name="TSettings"></typeparam>
-		/// <typeparam name="TAttribute"></typeparam>
 		/// <returns></returns>
-		private static TSettings Instantiate<TSettings, TAttribute>(string xml)
+		private static TSettings Instantiate<TSettings>(string xml)
 			where TSettings : ISettings
-			where TAttribute : AbstractXmlFactoryMethodAttribute
 		{
-			MethodInfo method = GetMethodFromXml<TAttribute>(xml);
+			MethodInfo method = GetMethodFromXml(xml);
 
 			try
 			{
@@ -204,16 +203,14 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="factoryName"></param>
 		/// <typeparam name="TSettings"></typeparam>
-		/// <typeparam name="TAttribute"></typeparam>
 		/// <returns></returns>
-		private static TSettings InstantiateDefault<TSettings, TAttribute>(string factoryName)
+		private static TSettings InstantiateDefault<TSettings>(string factoryName)
 			where TSettings : ISettings
-			where TAttribute : AbstractXmlFactoryMethodAttribute
 		{
 			if (factoryName == null)
 				throw new ArgumentNullException("factoryName");
 
-			MethodInfo method = GetMethod<TAttribute>(factoryName);
+			MethodInfo method = GetMethod(factoryName);
 
 #if SIMPLSHARP
 			CType type = method.DeclaringType;
@@ -238,19 +235,18 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		private static MethodInfo GetMethod<T>(string name)
-			where T : AbstractXmlFactoryMethodAttribute
+		private static MethodInfo GetMethod(string name)
 		{
 			if (name == null)
 				throw new ArgumentNullException("name");
 
 			try
 			{
-				return s_AttributeNameMethodMap[typeof(T)][name];
+				return s_FactoryNameMethodMap[name];
 			}
 			catch (KeyNotFoundException)
 			{
-				string message = string.Format("No {0} found with name {1}", typeof(T).Name, name);
+				string message = string.Format("No factory found with name {0}", name);
 				throw new KeyNotFoundException(message);
 			}
 		}
@@ -260,11 +256,10 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="xml"></param>
 		/// <returns></returns>
-		private static MethodInfo GetMethodFromXml<T>(string xml)
-			where T : AbstractXmlFactoryMethodAttribute
+		private static MethodInfo GetMethodFromXml(string xml)
 		{
 			string type = XmlUtils.GetAttributeAsString(xml, AbstractSettings.TYPE_ATTRIBUTE);
-			return GetMethod<T>(type);
+			return GetMethod(type);
 		}
 
 		/// <summary>
@@ -281,19 +276,18 @@ namespace ICD.Connect.Krang.Settings
 							   .AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.GetName().Name);
 			}
 
-			foreach (AbstractXmlFactoryMethodAttribute attribute in AttributeUtils.GetMethodAttributes<AbstractXmlFactoryMethodAttribute>().OrderBy(a => a.TypeName))
+			foreach (
+				XmlFactoryMethodAttribute attribute in
+					AttributeUtils.GetMethodAttributes<XmlFactoryMethodAttribute>().OrderBy(a => a.FactoryName))
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-							   .AddEntry(eSeverity.Informational, "Loaded type {0}", attribute.TypeName);
+				               .AddEntry(eSeverity.Informational, "Loaded type {0}", attribute.FactoryName);
 
 				MethodInfo method = AttributeUtils.GetMethod(attribute);
-				Type attributeType = attribute.GetType();
 
-				if (!s_AttributeNameMethodMap.ContainsKey(attributeType))
-					s_AttributeNameMethodMap[attributeType] = new Dictionary<string, MethodInfo>();
-				s_AttributeNameMethodMap[attributeType][attribute.TypeName] = method;
+				s_FactoryNameMethodMap.Add(attribute.FactoryName, method);
 
-				s_SettingsFactoryNameMap[method.DeclaringType] = attribute.TypeName;
+				s_SettingsFactoryNameMap[method.DeclaringType] = attribute.FactoryName;
 			}
 		}
 

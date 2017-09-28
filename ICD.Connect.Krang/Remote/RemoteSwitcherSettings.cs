@@ -3,7 +3,7 @@ using ICD.Common.Properties;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Settings.Attributes.Factories;
+using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Remote
 {
@@ -43,7 +43,7 @@ namespace ICD.Connect.Krang.Remote
 		/// </summary>
 		/// <param name="xml"></param>
 		/// <returns></returns>
-		[PublicAPI, XmlDeviceSettingsFactoryMethod(FACTORY_NAME)]
+		[PublicAPI, XmlFactoryMethod(FACTORY_NAME)]
 		public static RemoteSwitcherSettings FromXml(string xml)
 		{
 			RemoteSwitcherSettings output = new RemoteSwitcherSettings();

@@ -4,7 +4,7 @@ using System.Linq;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Attributes.Factories;
+using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Partitioning
 {
@@ -56,7 +56,7 @@ namespace ICD.Connect.Krang.Partitioning
 		public void ParseXml(string xml)
 		{
 			IEnumerable<ISettings> partitions =
-				PluginFactory.GetSettingsFromXml<XmlPartitionSettingsFactoryMethod>(xml, PARTITIONS_ELEMENT);
+				PluginFactory.GetSettingsFromXml(xml, PARTITIONS_ELEMENT);
 
 			m_PartitionSettings.SetRange(partitions);
 

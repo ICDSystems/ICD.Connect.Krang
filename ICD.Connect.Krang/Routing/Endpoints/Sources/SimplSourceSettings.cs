@@ -2,7 +2,7 @@
 using ICD.Common.Properties;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Routing.Endpoints.Sources;
-using ICD.Connect.Settings.Attributes.Factories;
+using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 {
@@ -54,7 +54,7 @@ namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 		/// </summary>
 		/// <param name="xml"></param>
 		/// <returns></returns>
-		[PublicAPI, XmlSourceSettingsFactoryMethod(FACTORY_NAME)]
+		[PublicAPI, XmlFactoryMethod(FACTORY_NAME)]
 		public static SimplSourceSettings FromXml(string xml)
 		{
 			SimplSourceSettings output = new SimplSourceSettings

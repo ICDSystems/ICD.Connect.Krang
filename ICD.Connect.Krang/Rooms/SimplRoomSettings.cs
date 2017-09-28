@@ -6,7 +6,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Partitioning.Rooms;
-using ICD.Connect.Settings.Attributes.Factories;
+using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Rooms
 {
@@ -96,7 +96,7 @@ namespace ICD.Connect.Krang.Rooms
 		/// </summary>
 		/// <param name="xml"></param>
 		/// <returns></returns>
-		[PublicAPI, XmlRoomSettingsFactoryMethod(FACTORY_NAME)]
+		[PublicAPI, XmlFactoryMethod(FACTORY_NAME)]
 		public static SimplRoomSettings FromXml(string xml)
 		{
 			IEnumerable<KeyValuePair<ushort, SimplRoom.eCrosspointType>> crosspoints = ReadCrosspointsFromXml(xml);

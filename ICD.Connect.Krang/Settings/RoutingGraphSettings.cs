@@ -4,7 +4,6 @@ using System.Linq;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Attributes.Factories;
 
 namespace ICD.Connect.Krang.Settings
 {
@@ -74,16 +73,11 @@ namespace ICD.Connect.Krang.Settings
 
 		public void ParseXml(string xml)
 		{
-			IEnumerable<ISettings> connections =
-				PluginFactory.GetSettingsFromXml<XmlConnectionSettingsFactoryMethodAttribute>(xml, CONNECTIONS_ELEMENT);
-			IEnumerable<ISettings> staticRoutes =
-				PluginFactory.GetSettingsFromXml<XmlStaticRouteSettingsFactoryMethodAttribute>(xml, STATIC_ROUTES_ELEMENT);
-			IEnumerable<ISettings> sources =
-				PluginFactory.GetSettingsFromXml<XmlSourceSettingsFactoryMethodAttribute>(xml, SOURCES_ELEMENT);
-			IEnumerable<ISettings> destinations =
-				PluginFactory.GetSettingsFromXml<XmlDestinationSettingsFactoryMethodAttribute>(xml, DESTINATIONS_ELEMENT);
-			IEnumerable<ISettings> destinationGroups =
-				PluginFactory.GetSettingsFromXml<XmlDestinationGroupSettingsFactoryMethodAttribute>(xml, DESTINATION_GROUPS_ELEMENT);
+			IEnumerable<ISettings> connections = PluginFactory.GetSettingsFromXml(xml, CONNECTIONS_ELEMENT);
+			IEnumerable<ISettings> staticRoutes = PluginFactory.GetSettingsFromXml(xml, STATIC_ROUTES_ELEMENT);
+			IEnumerable<ISettings> sources = PluginFactory.GetSettingsFromXml(xml, SOURCES_ELEMENT);
+			IEnumerable<ISettings> destinations = PluginFactory.GetSettingsFromXml(xml, DESTINATIONS_ELEMENT);
+			IEnumerable<ISettings> destinationGroups = PluginFactory.GetSettingsFromXml(xml, DESTINATION_GROUPS_ELEMENT);
 
 			m_ConnectionSettings.SetRange(connections);
 			m_StaticRouteSettings.SetRange(staticRoutes);

@@ -11,7 +11,6 @@ using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Attributes.Factories;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Themes;
@@ -217,16 +216,11 @@ namespace ICD.Connect.Krang.Core
 			Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
 			UpdateHeaderFromXml(xml);
 
-			IEnumerable<ISettings> themes =
-					PluginFactory.GetSettingsFromXml<XmlThemeSettingsFactoryMethod>(xml, THEMES_ELEMENT);
-			IEnumerable<ISettings> panels =
-					PluginFactory.GetSettingsFromXml<XmlPanelSettingsFactoryMethodAttribute>(xml, PANELS_ELEMENT);
-			IEnumerable<ISettings> ports =
-					PluginFactory.GetSettingsFromXml<XmlPortSettingsFactoryMethodAttribute>(xml, PORTS_ELEMENT);
-			IEnumerable<ISettings> devices =
-					PluginFactory.GetSettingsFromXml<XmlDeviceSettingsFactoryMethodAttribute>(xml, DEVICES_ELEMENT);
-			IEnumerable<ISettings> rooms =
-					PluginFactory.GetSettingsFromXml<XmlRoomSettingsFactoryMethodAttribute>(xml, ROOMS_ELEMENT);
+			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
+			IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
+			IEnumerable<ISettings> ports = PluginFactory.GetSettingsFromXml(xml, PORTS_ELEMENT);
+			IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
+			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
 
 			OriginatorSettings.AddRange(themes);
 			OriginatorSettings.AddRange(panels);
