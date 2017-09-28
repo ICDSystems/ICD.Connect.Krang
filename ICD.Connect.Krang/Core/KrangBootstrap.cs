@@ -201,8 +201,10 @@ namespace ICD.Connect.Krang.Core
 				Assembly assembly = PluginFactory.GetType(factoryName)
 #if SIMPLSHARP
 				                                 .GetCType()
+#else
+												 .GetTypeInfo()
 #endif
-				                                 .Assembly;
+												 .Assembly;
 
 				string name = assembly.GetName().Name;
 				string path = assembly
