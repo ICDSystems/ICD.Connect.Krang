@@ -194,8 +194,31 @@ namespace ICD.Connect.Krang.Core
 
 		private static string PrintTypes()
 		{
-			string[] factoryNames = PluginFactory.GetFactoryNames().Order().ToArray();
-			return string.Join(IcdEnvironment.NewLine, factoryNames);
+			TableBuilder builder = new TableBuilder("Type", "Assembly", "Path", "Version", "Date");
+
+			foreach (string factoryName in PluginFactory.GetFactoryNames().Order())
+			{
+				Assembly assembly = PluginFactory.GetType(factoryName)
+#if SIMPLSHARP
+				                                 .GetCType()
+#endif
+				                                 .Assembly;
+
+				string name = assembly.GetName().Name;
+				string path = assembly
+#if SIMPLSHARP
+					.GetName()
+#endif
+					.CodeBase;
+				string version = assembly.GetName().Version.ToString();
+				DateTime date = IcdFile.GetLastWriteTime(path);
+
+				path = IcdPath.GetDirectoryName(path);
+
+				builder.AddRow(factoryName, name, path, version, date);
+			}
+
+			return builder.ToString();
 		}
 
 		#endregion
