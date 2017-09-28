@@ -171,7 +171,7 @@ namespace ICD.Connect.Krang.Core
 
 		private static string PrintPlugins()
 		{
-			TableBuilder builder = new TableBuilder("Name", "Path", "Version", "Date");
+			TableBuilder builder = new TableBuilder("Assembly", "Path", "Version", "Date");
 
 			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
 			{
@@ -183,6 +183,8 @@ namespace ICD.Connect.Krang.Core
 					.CodeBase;
 				string version = assembly.GetName().Version.ToString();
 				DateTime date = IcdFile.GetLastWriteTime(path);
+
+				path = IcdPath.GetDirectoryName(path);
 
 				builder.AddRow(name, path, version, date);
 			}
