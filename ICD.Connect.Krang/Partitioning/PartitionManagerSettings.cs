@@ -4,7 +4,6 @@ using System.Linq;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Partitioning
 {
