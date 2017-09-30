@@ -144,12 +144,56 @@ namespace ICD.Connect.Krang.Settings
 		///		Program installation directory
 		///		Program configuration
 		///		Common configuration
+		/// 
+		/// Further, for the sake of convenience, check if this is running from a build directory
+		/// and check sibling build directories for assemblies.
 		/// </summary>
 		/// <returns></returns>
 		private static IEnumerable<string> GetAssemblyPaths()
 		{
-			return s_LibDirectories.SelectMany(d => PathUtils.RecurseFilePaths(d))
-								   .Where(IsAssembly);
+			return GetBuildAssemblyPaths().Concat(GetLibAssemblyPaths());
+		}
+
+		/// <summary>
+		/// Gets the paths to the available runtime assemblies.
+		/// Assemblies may be located in 3 places, in order of importance:
+		///		Program installation directory
+		///		Program configuration
+		///		Common configuration
+		/// </summary>
+		/// <returns></returns>
+		private static IEnumerable<string> GetLibAssemblyPaths()
+		{
+			return s_LibDirectories.SelectMany(d => PathUtils.RecurseFilePaths(d)).Where(IsAssembly);
+		}
+
+		/// <summary>
+		/// If the program is being run from a build directory, finds assemblies from sibling projects
+		/// that are part of the same solution.
+		/// </summary>
+		/// <returns></returns>
+		private static IEnumerable<string> GetBuildAssemblyPaths()
+		{
+			string path = typeof(LibraryUtils)
+#if SIMPLSHARP
+				.GetCType()
+#else
+				.GetTypeInfo()
+#endif
+				.Assembly.GetPath();
+
+			// Find the .sln
+			while (path != null)
+			{
+				path = IcdPath.GetDirectoryName(path);
+				bool foundSln = !string.IsNullOrEmpty(path) && IcdDirectory
+									.GetFiles(path).Any(p => IcdPath.GetExtension(p).Equals(".sln", StringComparison.OrdinalIgnoreCase));
+
+				if (foundSln)
+					return PathUtils.RecurseFilePaths(path).Where(IsAssembly);
+			}
+
+			return Enumerable.Empty<string>();
 		}
 
 		/// <summary>
@@ -236,6 +280,6 @@ namespace ICD.Connect.Krang.Settings
 			return match.Success ? new Version(match.Groups[1].Value) : new Version(0, 0);
 		}
 
-		#endregion
+#endregion
 	}
 }
