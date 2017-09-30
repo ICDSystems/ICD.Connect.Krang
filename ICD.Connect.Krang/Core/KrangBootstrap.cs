@@ -176,11 +176,7 @@ namespace ICD.Connect.Krang.Core
 			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
 			{
 				string name = assembly.GetName().Name;
-				string path = assembly
-#if SIMPLSHARP
-					.GetName()
-#endif
-					.CodeBase;
+				string path = assembly.GetPath();
 				string version = assembly.GetName().Version.ToString();
 				DateTime date = IcdFile.GetLastWriteTime(path);
 
@@ -198,20 +194,10 @@ namespace ICD.Connect.Krang.Core
 
 			foreach (string factoryName in PluginFactory.GetFactoryNames().Order())
 			{
-				Assembly assembly = PluginFactory.GetType(factoryName)
-#if SIMPLSHARP
-				                                 .GetCType()
-#else
-												 .GetTypeInfo()
-#endif
-												 .Assembly;
+				Assembly assembly = PluginFactory.GetType(factoryName).GetAssembly();
 
 				string name = assembly.GetName().Name;
-				string path = assembly
-#if SIMPLSHARP
-					.GetName()
-#endif
-					.CodeBase;
+				string path = assembly.GetPath();
 				string version = assembly.GetName().Version.ToString();
 				DateTime date = IcdFile.GetLastWriteTime(path);
 
