@@ -87,7 +87,7 @@ namespace ICD.Connect.Krang.Routing.Connections
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			return GetOutputConnection(destinationControl.GetInputEndpointInfo(input));
+			return GetInputConnection(destinationControl.GetInputEndpointInfo(input));
 		}
 
 		/// <summary>
