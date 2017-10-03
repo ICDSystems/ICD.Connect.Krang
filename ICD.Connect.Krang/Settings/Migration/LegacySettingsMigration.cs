@@ -14,6 +14,7 @@ using ICD.Connect.Krang.Core;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol;
+using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Header;
 #if SIMPLSHARP
