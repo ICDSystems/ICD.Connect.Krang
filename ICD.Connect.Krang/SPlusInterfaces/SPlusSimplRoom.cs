@@ -247,7 +247,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private IEnumerable<IDestination> GetRoomDestinations()
 		{
 			IRoom room = GetRoom();
-			return room == null ? Enumerable.Empty<IDestination>() : room.Destinations.GetInstancesRecursive();
+			return room == null ? Enumerable.Empty<IDestination>() : room.Originators.GetInstancesRecursive<IDestination>();
 		}
 
 		#endregion

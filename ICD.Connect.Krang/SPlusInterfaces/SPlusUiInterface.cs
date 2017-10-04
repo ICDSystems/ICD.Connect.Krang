@@ -401,7 +401,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 			IRoom room = GetRoom();
 
-			var sources = room == null ? new List<ISource>() : room.Sources.GetInstancesRecursive().ToList();
+			var sources = room == null ? new List<ISource>() : room.Originators.GetInstancesRecursive<ISource>().ToList();
 
 			var handler = OnSourceListChanged;
 
@@ -520,7 +520,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private IEnumerable<IDestination> GetRoomDestinations()
 		{
 			IRoom room = GetRoom();
-			return room == null ? Enumerable.Empty<IDestination>() : room.Destinations.GetInstancesRecursive();
+			return room == null ? Enumerable.Empty<IDestination>() : room.Originators.GetInstancesRecursive<IDestination>();
 		}
 
 		#endregion

@@ -117,7 +117,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <returns></returns>
 		public bool CombinesRoom(int partitionId)
 		{
-			return GetRooms().Any(r => r.Partitions.ContainsRecursive(partitionId));
+			return GetRooms().Any(r => r.Originators.ContainsRecursive(partitionId));
 		}
 
 		/// <summary>
@@ -130,7 +130,7 @@ namespace ICD.Connect.Krang.Partitioning
 			if (partition == null)
 				throw new ArgumentNullException("partition");
 
-			return GetRooms().FirstOrDefault(r => r.Partitions.ContainsRecursive(partition.Id));
+			return GetRooms().FirstOrDefault(r => r.Originators.ContainsRecursive(partition.Id));
 		}
 
 		/// <summary>
@@ -139,7 +139,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <returns></returns>
 		public IEnumerable<IRoom> GetTopLevelRooms()
 		{
-			IRoom[] rooms = GetRooms().OrderByDescending(r => r.Partitions.Count).ToArray();
+			IRoom[] rooms = GetRooms().OrderByDescending(r => r.Originators.GetInstances<IPartition>().Count()).ToArray();
 			IcdHashSet<IRoom> visited = new IcdHashSet<IRoom>();
 
 			foreach (IRoom room in rooms)
@@ -212,7 +212,7 @@ namespace ICD.Connect.Krang.Partitioning
 
 			// Get the complete set of partitions through the new combine space
 			// ToArray() because room partitions are cleared on dispose.
-			IEnumerable<IPartition> partitions = rooms.SelectMany(r => r.Partitions.GetInstancesRecursive())
+			IEnumerable<IPartition> partitions = rooms.SelectMany(r => r.Originators.GetInstancesRecursive<IPartition>())
 													  .Append(partition)
 													  .Distinct()
 													  .ToArray();
@@ -292,7 +292,7 @@ namespace ICD.Connect.Krang.Partitioning
 
 			Logger.AddEntry(eSeverity.Informational, "{0} destroying combined room {1}", this, room);
 
-			ClosePartitions(room.Partitions.GetInstances());
+			ClosePartitions(room.Originators.GetInstances<IPartition>());
 
 			IRoom[] childRooms = room.GetRoomsRecursive().Except(room).ToArray();
 
@@ -321,11 +321,11 @@ namespace ICD.Connect.Krang.Partitioning
 				throw new ArgumentNullException("constructor");
 
 			TRoom room = constructor();
-			room.Partitions.AddRange(partitions.Select(p => p.Id));
+			room.Originators.AddRange(partitions.Select(p => p.Id));
 
 			Core.Originators.AddChildAssignId(room);
 
-			OpenPartitions(room.Partitions.GetInstances());
+			OpenPartitions(room.Originators.GetInstances<IPartition>());
 
 			IRoom[] childRooms = room.GetRoomsRecursive().Except(room).ToArray();
 			foreach (IRoom childRoom in childRooms)
@@ -353,7 +353,7 @@ namespace ICD.Connect.Krang.Partitioning
 			if (constructor == null)
 				throw new ArgumentNullException("constructor");
 
-			if (!room.Partitions.ContainsRecursive(partition.Id))
+			if (!room.Originators.ContainsRecursive(partition.Id))
 				return;
 
 			IEnumerable<IPartition[]> split = SplitPartitions(room, partition);
@@ -381,8 +381,8 @@ namespace ICD.Connect.Krang.Partitioning
 			if (partition == null)
 				throw new ArgumentNullException("partition");
 
-			IPartition[] partitions = room.Partitions
-			                              .GetInstancesRecursive()
+			IPartition[] partitions = room.Originators
+			                              .GetInstancesRecursive<IPartition>()
 			                              .Except(partition)
 										  .Distinct()
 			                              .ToArray();
@@ -419,12 +419,12 @@ namespace ICD.Connect.Krang.Partitioning
 				throw new ArgumentNullException("partition");
 
 			// Only interested in the edge of the combined space
-			if (room.Partitions.ContainsRecursive(partition.Id))
+			if (room.Originators.ContainsRecursive(partition.Id))
 				return false;
 
 			// Returns true if any of the rooms in the combined space overlap with the partition rooms.
-			return room.Partitions
-			           .GetInstancesRecursive()
+			return room.Originators
+			           .GetInstancesRecursive<IPartition>()
 			           .Any(p => partition.GetRooms()
 			                              .Any(p.ContainsRoom));
 		}
