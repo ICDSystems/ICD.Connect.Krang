@@ -71,6 +71,8 @@ namespace ICD.Connect.Krang.Partitioning
 			OnPartitionOpenStateChange = null;
 
 			base.DisposeFinal(disposing);
+
+			ServiceProvider.RemoveService<IPartitionManager>(this);
 		}
 
 		#region Controls

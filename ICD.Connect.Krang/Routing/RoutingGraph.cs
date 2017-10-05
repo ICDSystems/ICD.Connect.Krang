@@ -118,7 +118,19 @@ namespace ICD.Connect.Krang.Routing
 
 			m_PendingRoutes = new Dictionary<Guid, int>();
 			m_PendingRoutesSection = new SafeCriticalSection();
+
 			ServiceProvider.AddService<IRoutingGraph>(this);
+		}
+
+		/// <summary>
+		/// Override to release resources.
+		/// </summary>
+		/// <param name="disposing"></param>
+		protected override void DisposeFinal(bool disposing)
+		{
+			base.DisposeFinal(disposing);
+
+			ServiceProvider.RemoveService<IRoutingGraph>(this);
 		}
 
 		/// <summary>
