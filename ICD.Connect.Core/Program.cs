@@ -6,7 +6,7 @@ using ICD.Connect.API;
 
 namespace ICD.NetStandard.Core
 {
-	internal class Program
+	internal static class Program
     {
         private static KrangBootstrap s_Bootstrap;
         
