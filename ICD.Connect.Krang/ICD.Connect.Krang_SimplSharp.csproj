@@ -123,6 +123,9 @@
     <Compile Include="SPlusInterfaces\SPlusSwitcherInterface.cs" />
     <Compile Include="SPlusInterfaces\SPlusUiInterface.cs" />
     <None Include="Properties\ControlSystem.cfg" />
+    <None Include="licensekey">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ICD.Common.Logging\ICD.Common.Logging.Console\ICD.Common.Logging.Console_SimplSharp.csproj">
