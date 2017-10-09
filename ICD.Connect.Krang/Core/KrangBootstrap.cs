@@ -29,6 +29,7 @@ namespace ICD.Connect.Krang.Core
 
 		private DirectMessageManager m_DirectMessageManager;
 		private BroadcastManager m_BroadcastManager;
+		private LicenseManager m_LicenseManager;
 
 		#region Properties
 
@@ -126,6 +127,9 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService(m_BroadcastManager);
 
 			ServiceProvider.AddService(new PermissionsManager());
+
+			m_LicenseManager = new LicenseManager();
+			ServiceProvider.AddService(m_LicenseManager);
 		}
 
 		#endregion
@@ -148,6 +152,7 @@ namespace ICD.Connect.Krang.Core
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
 			yield return m_Core;
+			yield return m_LicenseManager;
 		}
 
 		/// <summary>
