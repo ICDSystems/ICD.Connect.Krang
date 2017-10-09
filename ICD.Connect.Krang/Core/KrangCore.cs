@@ -99,12 +99,6 @@ namespace ICD.Connect.Krang.Core
 			DisposeOriginators();
 		}
 
-		private void SetOriginators(IEnumerable<IOriginator> originators)
-		{
-			DisposeOriginators();
-			m_Originators.SetChildren(originators);
-		}
-
 		/// <summary>
 		/// Adds the given originator to the cor.
 		/// </summary>
@@ -231,7 +225,7 @@ namespace ICD.Connect.Krang.Core
 		protected override void ClearSettingsFinal()
 		{
 			base.ClearSettingsFinal();
-			SetOriginators(Enumerable.Empty<IOriginator>());
+			DisposeOriginators();
 			ResetDefaultPermissions();
 		}
 
