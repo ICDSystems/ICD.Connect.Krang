@@ -96,6 +96,7 @@
     <Compile Include="ConsoleCommandServer.cs" />
     <Compile Include="KrangControlSystem.cs" />
     <None Include="ObfuscationSettings.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
