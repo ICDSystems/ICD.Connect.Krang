@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 #if SIMPLSHARP
-using Crestron.SimplSharp.CrestronIO;
+using Crestron.SimplSharp.Reflection;
 #else
-using System.IO;
+using System.Reflection;
 #endif
 using System.Text;
 using ICD.Common.Services;
@@ -12,6 +13,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Settings;
 using Portable.Licensing;
 using Portable.Licensing.Validation;
 
@@ -28,6 +30,7 @@ namespace ICD.Connect.Krang.Settings
 		public string ConsoleName { get { return GetType().Name; } }
 
 		public string ConsoleHelp { get { return "Features for software license registration"; } }
+
 		private string PublicKey { get { return m_PublicKey ?? (m_PublicKey = LoadPublicKey()); } }
 
 		private static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
@@ -44,19 +47,81 @@ namespace ICD.Connect.Krang.Settings
 		{
 			UnloadLicense();
 
-			m_LicensePath = PathUtils.GetProgramConfigPath("License", path);
+			m_LicensePath = PathUtils.GetProgramConfigPath(path);
+
+			Logger.AddEntry(eSeverity.Informational, "Loading license at path {0}", m_LicensePath);
+
 			if (!IcdFile.Exists(m_LicensePath))
-				throw new FileNotFoundException(string.Format("Unable to load license at path {0}", m_LicensePath));
+			{
+				Logger.AddEntry(eSeverity.Warning, "Unable to find license at path {0}", m_LicensePath);
+				return;
+			}
 
 			string licenseData = IcdFile.ReadToEnd(m_LicensePath, Encoding.ASCII);
-			m_License = License.Load(licenseData);
-			IValidationFailure[] validationResults = m_License.Validate()
-			                                                  .Signature(PublicKey)
-			                                                  .AssertValidLicense()
-			                                                  .ToArray();
+			License license = License.Load(licenseData);
+			IValidationFailure[] validationResults = license.Validate()
+			                                                .Signature(PublicKey)
+			                                                .And()
+			                                                .AssertThat(ValidateMacAddress,
+			                                                            new GeneralValidationFailure
+			                                                            {
+				                                                            Message = "License MAC Address does not match system",
+				                                                            HowToResolve =
+					                                                            "Are you using this license on the correct system?"
+			                                                            })
+			                                                .And()
+			                                                .AssertThat(ValidateProgramSlot,
+			                                                            new GeneralValidationFailure
+			                                                            {
+				                                                            Message = "License Program Slot does not match system",
+				                                                            HowToResolve =
+					                                                            "Are you using this license on the correct slot?"
+			                                                            })
+			                                                .AssertValidLicense()
+			                                                .ToArray();
 
 			foreach (IValidationFailure failure in validationResults)
 				Logger.AddEntry(eSeverity.Warning, "{0} - {1} - {2}", GetType().Name, failure.Message, failure.HowToResolve);
+
+			// Only take the license if it passed validation.
+			if (validationResults.Length > 0)
+				return;
+
+			Logger.AddEntry(eSeverity.Informational, "Successfully Loaded license");
+			m_License = license;
+		}
+
+		/// <summary>
+		/// Returns true if the program slot in the license is valid for this program.
+		/// </summary>
+		/// <param name="license"></param>
+		/// <returns></returns>
+		private bool ValidateProgramSlot(License license)
+		{
+			if (!license.AdditionalAttributes.Contains("ProgramSlot"))
+				return true;
+
+			string slotString = license.AdditionalAttributes.Get("ProgramSlot");
+
+			uint programSlot;
+			if (!StringUtils.TryParse(slotString, out programSlot))
+				return false;
+
+			return programSlot == ProgramUtils.ProgramNumber;
+		}
+
+		/// <summary>
+		/// Returns true if the mac address in the license is valid for this program.
+		/// </summary>
+		/// <param name="license"></param>
+		/// <returns></returns>
+		private bool ValidateMacAddress(License license)
+		{
+			if (!license.AdditionalAttributes.Contains("MacAddress"))
+				return true;
+
+			string macAddress = license.AdditionalAttributes.Get("MacAddress");
+			return IcdEnvironment.MacAddresses.Any(m => macAddress.Equals(m, StringComparison.OrdinalIgnoreCase));
 		}
 
 		/// <summary>
@@ -66,6 +131,41 @@ namespace ICD.Connect.Krang.Settings
 		{
 			m_License = null;
 			m_PublicKey = null;
+		}
+
+		/// <summary>
+		/// Returns true if the loaded license was validated.
+		/// </summary>
+		/// <returns></returns>
+		public bool IsValid()
+		{
+			return m_License != null;
+		}
+
+		/// <summary>
+		/// Returns true if the given assembly passes validation.
+		/// </summary>
+		/// <param name="assembly"></param>
+		/// <returns></returns>
+		public bool IsValid(Assembly assembly)
+		{
+			if (!IsValid())
+				return false;
+
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Returns true if the given originator passes validation.
+		/// </summary>
+		/// <param name="originator"></param>
+		/// <returns></returns>
+		public bool IsValid(IOriginator originator)
+		{
+			if (!IsValid())
+				return false;
+
+			throw new NotImplementedException();
 		}
 
 		#endregion
