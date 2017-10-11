@@ -66,10 +66,18 @@ namespace ICD.Connect.Krang.Core
 
 		public void Start()
 		{
+			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
+
 			try
 			{
-				FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
+				foreach (string address in IcdEnvironment.MacAddresses)
+					IcdConsole.PrintLine(address);
+
+				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
+
+				if (m_LicenseManager.IsValid())
+					FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
 			}
 			catch (Exception e)
 			{

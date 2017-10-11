@@ -20,8 +20,10 @@ namespace ICD.Connect.Krang.Settings
 	public static class FileOperations
 	{
 		private const string CONFIG_LOCAL_PATH = "RoomConfig-Base.xml";
+		private const string LICENSE_LOCAL_PATH = "license";
 
 		public static string IcdConfigPath { get { return PathUtils.GetProgramConfigPath(CONFIG_LOCAL_PATH); } }
+		public static string LicensePath { get { return PathUtils.GetProgramConfigPath(LICENSE_LOCAL_PATH); } }
 
 		/// <summary>
 		/// Applies the settings to Krang.
