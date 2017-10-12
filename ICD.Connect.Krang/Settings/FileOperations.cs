@@ -42,7 +42,7 @@ namespace ICD.Connect.Krang.Settings
 		/// Serializes the settings to disk.
 		/// </summary>
 		/// <param name="settings"></param>
-		public static void SaveSettings(ICoreSettings settings)
+		public static void SaveSettings(ISettings settings)
 		{
 			SaveSettings(settings, false);
 		}
@@ -52,7 +52,7 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <param name="backup"></param>
-		public static void SaveSettings(ICoreSettings settings, bool backup)
+		public static void SaveSettings(ISettings settings, bool backup)
 		{
 			if (backup)
 				BackupSettings();
