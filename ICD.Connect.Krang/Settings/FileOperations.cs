@@ -5,6 +5,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Core;
+using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
@@ -23,6 +24,8 @@ namespace ICD.Connect.Krang.Settings
 
 		public static string IcdConfigPath { get { return PathUtils.GetProgramConfigPath(CONFIG_LOCAL_PATH); } }
 
+		public static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
+
 		/// <summary>
 		/// Applies the settings to Krang.
 		/// </summary>
@@ -30,7 +33,7 @@ namespace ICD.Connect.Krang.Settings
 			where TSettings : ICoreSettings
 			where TCore : ICore
 		{
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Applying settings.");
+			
 			IDeviceFactory factory = new CoreDeviceFactory(settings);
 			core.ApplySettings(settings, factory);
 		}
@@ -54,7 +57,7 @@ namespace ICD.Connect.Krang.Settings
 			if (backup)
 				BackupSettings();
 
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Saving settings.");
+			Logger.AddEntry(eSeverity.Notice, "Saving settings.");
 
 			string path = IcdConfigPath;
 			string directory = IcdPath.GetDirectoryName(path);
@@ -78,7 +81,7 @@ namespace ICD.Connect.Krang.Settings
 			if (!IcdFile.Exists(IcdConfigPath))
 				return;
 
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Creating settings backup.");
+			Logger.AddEntry(eSeverity.Notice, "Creating settings backup.");
 
 			string name = IcdPath.GetFileNameWithoutExtension(IcdConfigPath);
 			string date = IcdEnvironment.GetLocalTime().ToString("MM-dd-yyyy_HH-mm");
@@ -121,7 +124,7 @@ namespace ICD.Connect.Krang.Settings
 			where TSettings : ICoreSettings
 			where TCore : ICore
 		{
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Loading settings.");
+			Logger.AddEntry(eSeverity.Notice, "Loading settings.");
 
 			string path = IcdConfigPath;
 
