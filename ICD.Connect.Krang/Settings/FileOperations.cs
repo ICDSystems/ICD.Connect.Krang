@@ -9,9 +9,11 @@ using ICD.Connect.Krang.Settings.Migration;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
+using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Reflection;
 #else
 using System;
+using System.IO;
 #endif
 
 namespace ICD.Connect.Krang.Settings
@@ -68,7 +70,7 @@ namespace ICD.Connect.Krang.Settings
 
 			Logger.AddEntry(eSeverity.Notice, "Saving settings to {0}", path);
 
-			using (IcdFileStream stream = IcdFile.OpenWrite(path))
+			using (IcdFileStream stream = IcdFile.Open(path, FileMode.Create))
 			{
 				using (IcdXmlTextWriter writer = new IcdXmlTextWriter(stream, new UTF8Encoding(false)))
 				{
