@@ -5,6 +5,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Core;
+using ICD.Connect.Krang.Settings.Migration;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
@@ -146,28 +147,28 @@ namespace ICD.Connect.Krang.Settings
 			if (!string.IsNullOrEmpty(configXml))
 			{
 				// TODO Temporary - V5 release
-				//if (LegacySettingsMigration.IsSingleRoom(configXml))
-				//{
-				//    //configXml = LegacySettingsMigration.Migrate(configXml);
-				//    save = true;
-				//}
+				if (LegacySettingsMigration.IsSingleRoom(configXml))
+				{
+				    configXml = LegacySettingsMigration.Migrate(configXml);
+				    save = true;
+				}
 
 				// TODO Temporary - adding routing element to existing configs
-				//if (!ConnectionsRoutingMigration.HasRoutingElement(configXml))
-				//{
-				//    //configXml = ConnectionsRoutingMigration.Migrate(configXml);
-				//    save = true;
-				//}
+				if (!ConnectionsRoutingMigration.HasRoutingElement(configXml))
+				{
+				    configXml = ConnectionsRoutingMigration.Migrate(configXml);
+				    save = true;
+				}
 
 				// TODO Temporary - Source.Output and Destination.Input becomes Source.Address and Destination.Address
-				//SourceDestinationAddressMigration.Migrate(configXml);
+				SourceDestinationAddressMigration.Migrate(configXml);
 
 				// TODO Temporary - V5 release
-				//if (!SourceDestinationRoutingMigration.HasSourceOrDestinationRoutingElement(configXml))
-				//{
-				//    configXml = SourceDestinationRoutingMigration.Migrate(configXml);
-				//    save = true;
-				//}
+				if (!SourceDestinationRoutingMigration.HasSourceOrDestinationRoutingElement(configXml))
+				{
+				    configXml = SourceDestinationRoutingMigration.Migrate(configXml);
+				    save = true;
+				}
 			}
 
 			Logger.AddEntry(eSeverity.Notice, "Finished loading settings");
