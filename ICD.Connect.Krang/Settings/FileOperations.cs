@@ -169,6 +169,13 @@ namespace ICD.Connect.Krang.Settings
 				    configXml = SourceDestinationRoutingMigration.Migrate(configXml);
 				    save = true;
 				}
+
+				// TODO Temporary - Older configs didn't specify a routing graph originator
+				if (!RoutingGraphMigration.HasRoutingGraphOriginator(configXml))
+				{
+					configXml = RoutingGraphMigration.Migrate(configXml);
+					save = true;
+				}
 			}
 
 			Logger.AddEntry(eSeverity.Notice, "Finished loading settings");

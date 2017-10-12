@@ -105,6 +105,7 @@
     <Compile Include="Routing\StaticRoutes\StaticRoutesCollection.cs" />
     <Compile Include="Settings\LibraryUtils.cs" />
     <Compile Include="Settings\Migration\ConnectionsRoutingMigration.cs" />
+    <Compile Include="Settings\Migration\RoutingGraphMigration.cs" />
     <Compile Include="Settings\Migration\SourceDestinationAddressMigration.cs" />
     <Compile Include="Settings\Migration\SourceDestinationRoutingMigration.cs" />
     <Compile Include="Settings\PluginFactory.cs" />
