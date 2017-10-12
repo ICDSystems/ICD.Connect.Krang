@@ -33,9 +33,13 @@ namespace ICD.Connect.Krang.Settings
 			where TSettings : ICoreSettings
 			where TCore : ICore
 		{
-			
+
+			Logger.AddEntry(eSeverity.Notice, "Applying settings");
+
 			IDeviceFactory factory = new CoreDeviceFactory(settings);
 			core.ApplySettings(settings, factory);
+
+			Logger.AddEntry(eSeverity.Notice, "Finished applying settings");
 		}
 
 		/// <summary>
@@ -57,11 +61,11 @@ namespace ICD.Connect.Krang.Settings
 			if (backup)
 				BackupSettings();
 
-			Logger.AddEntry(eSeverity.Notice, "Saving settings.");
-
 			string path = IcdConfigPath;
 			string directory = IcdPath.GetDirectoryName(path);
 			IcdDirectory.CreateDirectory(directory);
+
+			Logger.AddEntry(eSeverity.Notice, "Saving settings to {0}", path);
 
 			using (IcdFileStream stream = IcdFile.OpenWrite(path))
 			{
@@ -71,6 +75,8 @@ namespace ICD.Connect.Krang.Settings
 					settings.ToXml(writer);
 				}
 			}
+
+			Logger.AddEntry(eSeverity.Notice, "Finished saving settings");
 		}
 
 		/// <summary>
@@ -81,14 +87,16 @@ namespace ICD.Connect.Krang.Settings
 			if (!IcdFile.Exists(IcdConfigPath))
 				return;
 
-			Logger.AddEntry(eSeverity.Notice, "Creating settings backup.");
-
 			string name = IcdPath.GetFileNameWithoutExtension(IcdConfigPath);
 			string date = IcdEnvironment.GetLocalTime().ToString("MM-dd-yyyy_HH-mm");
 			string newName = string.Format("{0}_Backup_{1}", name, date);
 			string newPath = PathUtils.ChangeFilenameWithoutExt(IcdConfigPath, newName);
 
+			Logger.AddEntry(eSeverity.Notice, "Creating settings backup of {0} at {1}", IcdConfigPath, newPath);
+
 			IcdFile.Copy(IcdConfigPath, newPath);
+
+			Logger.AddEntry(eSeverity.Notice, "Finished settings backup");
 		}
 
 		/// <summary>
@@ -124,9 +132,9 @@ namespace ICD.Connect.Krang.Settings
 			where TSettings : ICoreSettings
 			where TCore : ICore
 		{
-			Logger.AddEntry(eSeverity.Notice, "Loading settings.");
-
 			string path = IcdConfigPath;
+
+			Logger.AddEntry(eSeverity.Notice, "Loading settings from {0}", path);
 
 			// Load XML config into string
 			string configXml = null;
@@ -161,6 +169,8 @@ namespace ICD.Connect.Krang.Settings
 				//    save = true;
 				//}
 			}
+
+			Logger.AddEntry(eSeverity.Notice, "Finished loading settings");
 
 			// Save a stub xml file if one doesn't already exist
 			if (string.IsNullOrEmpty(configXml))
