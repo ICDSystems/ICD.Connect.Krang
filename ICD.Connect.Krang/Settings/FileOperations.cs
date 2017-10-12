@@ -63,7 +63,7 @@ namespace ICD.Connect.Krang.Settings
 			string directory = IcdPath.GetDirectoryName(path);
 			IcdDirectory.CreateDirectory(directory);
 
-			using (IcdFileStream fileStream = IcdFile.OpenWrite(path))
+			using (IcdFileStream stream = IcdFile.OpenWrite(path))
 			{
 				using (IcdXmlTextWriter writer = new IcdXmlTextWriter(stream, new UTF8Encoding(false)))
 				{
