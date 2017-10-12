@@ -108,6 +108,7 @@
     <Compile Include="Settings\Migration\RoutingGraphMigration.cs" />
     <Compile Include="Settings\Migration\SourceDestinationAddressMigration.cs" />
     <Compile Include="Settings\Migration\SourceDestinationRoutingMigration.cs" />
+    <Compile Include="Settings\Migration\UniqueIdMigration.cs" />
     <Compile Include="Settings\PluginFactory.cs" />
     <Compile Include="Settings\FileOperations.cs" />
     <Compile Include="Core\KrangCore.cs" />
