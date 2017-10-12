@@ -18,7 +18,7 @@ namespace ICD.Connect.Krang.Settings.Migration
 				return configXml;
 
 			ServiceProvider.TryGetService<ILoggerService>()
-			               .AddEntry(eSeverity.Notice, "Attempting to migrate old routing config");
+			               .AddEntry(eSeverity.Notice, "Attempting to migrate to unique ids config");
 
 			try
 			{
