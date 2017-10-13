@@ -199,10 +199,10 @@ namespace ICD.Connect.Krang.Settings
 			else
 				settings.ParseXml(configXml);
 
-			if (save)
-				SaveSettings(settings, true);
-
 			ApplyCoreSettings(core, settings);
+
+			if (save)
+				SaveSettings(core.CopySettings(), true);
 		}
 	}
 }
