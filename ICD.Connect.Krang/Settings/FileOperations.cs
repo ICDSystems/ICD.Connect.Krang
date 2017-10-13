@@ -163,7 +163,11 @@ namespace ICD.Connect.Krang.Settings
 				}
 
 				// TODO Temporary - Source.Output and Destination.Input becomes Source.Address and Destination.Address
-				SourceDestinationAddressMigration.Migrate(configXml);
+				if (SourceDestinationAddressMigration.HasOutputOrInput(configXml))
+				{
+					configXml = SourceDestinationAddressMigration.Migrate(configXml);
+					save = true;
+				}
 
 				// TODO Temporary - V5 release
 				if (!SourceDestinationRoutingMigration.HasSourceOrDestinationRoutingElement(configXml))
