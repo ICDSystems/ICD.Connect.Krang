@@ -46,7 +46,7 @@ namespace ICD.Connect.Krang.Settings.Migration
 		/// <returns></returns>
 		public static bool HasRoutingElement(string configXml)
 		{
-			return configXml.Contains(@"<Routing>") && configXml.Contains(@"</Routing>");
+			return configXml.Contains(@"<Routing") && configXml.Contains(@"</Routing>");
 		}
 
 		/// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Services;
+using ICD.Common.Utils;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
@@ -192,7 +193,10 @@ namespace ICD.Connect.Krang.Core
 
 			RoutingGraph routingGraph = RoutingGraph;
 			RoutingGraphSettings routingSettings = routingGraph == null || !routingGraph.Serialize
-				                                       ? new RoutingGraphSettings()
+				                                       ? new RoutingGraphSettings
+				                                       {
+					                                       Id = MathUtils.GetNewId(Originators.GetChildrenIds())
+				                                       }
 				                                       : routingGraph.CopySettings();
 			settings.OriginatorSettings.Add(routingSettings);
 
@@ -204,7 +208,10 @@ namespace ICD.Connect.Krang.Core
 
 			PartitionManager partitionManager = PartitionManager;
 			PartitionManagerSettings partitionSettings = partitionManager == null || !partitionManager.Serialize
-				                                             ? new PartitionManagerSettings()
+				                                             ? new PartitionManagerSettings
+				                                             {
+					                                             Id = MathUtils.GetNewId(Originators.GetChildrenIds())
+				                                             }
 				                                             : partitionManager.CopySettings();
 			settings.OriginatorSettings.Add(partitionSettings);
 

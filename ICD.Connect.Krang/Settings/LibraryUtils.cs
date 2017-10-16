@@ -34,6 +34,8 @@ namespace ICD.Connect.Krang.Settings
 
 		private static readonly string[] s_LibDirectories;
 
+		private static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
+
 		/// <summary>
 		/// Constructor.
 		/// </summary>
@@ -92,13 +94,11 @@ namespace ICD.Connect.Krang.Settings
 				try
 				{
 					IcdDirectory.Delete(outputDir, true);
-					ServiceProvider.TryGetService<ILoggerService>()
-								   .AddEntry(eSeverity.Informational, "Removed old plugin {0}", outputDir);
+					Logger.AddEntry(eSeverity.Informational, "Removed old plugin {0}", outputDir);
 				}
 				catch (Exception e)
 				{
-					ServiceProvider.TryGetService<ILoggerService>()
-								   .AddEntry(eSeverity.Warning, "Failed to remove old plugin {0} - {1}", outputDir, e.Message);
+					Logger.AddEntry(eSeverity.Warning, "Failed to remove old plugin {0} - {1}", outputDir, e.Message);
 					return false;
 				}
 			}
@@ -111,7 +111,7 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		public static void UnzipLibAssemblies()
 		{
-			foreach (string path in GetArchivePaths())
+			foreach (string path in GetArchivePaths().Where(p => !IsProgramCpz(p)))
 			{
 				bool result = Unzip(path);
 
@@ -119,12 +119,11 @@ namespace ICD.Connect.Krang.Settings
 				if (result)
 				{
 					IcdFile.Delete(path);
-					ServiceProvider.TryGetService<ILoggerService>()
-								   .AddEntry(eSeverity.Informational, "Extracted plugin {0}", path);
+					Logger.AddEntry(eSeverity.Informational, "Extracted plugin {0}", path);
 				}
 				else
 				{
-					ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Warning, "Failed to extract plugin {0}", path);
+					Logger.AddEntry(eSeverity.Warning, "Failed to extract plugin {0}", path);
 				}
 			}
 		}
@@ -190,7 +189,9 @@ namespace ICD.Connect.Krang.Settings
 									.GetFiles(path).Any(p => IcdPath.GetExtension(p).Equals(".sln", StringComparison.OrdinalIgnoreCase));
 
 				if (foundSln)
-					return PathUtils.RecurseFilePaths(path).Where(IsAssembly);
+					return PathUtils.RecurseFilePaths(path)
+					                .Where(p => p.Contains("bin"))
+					                .Where(IsAssembly);
 			}
 
 			return Enumerable.Empty<string>();
@@ -204,6 +205,17 @@ namespace ICD.Connect.Krang.Settings
 		{
 			return s_LibDirectories.SelectMany(d => PathUtils.RecurseFilePaths(d))
 								   .Where(IsArchive);
+		}
+
+		/// <summary>
+		/// Returns true if the given path represents a .CPZ file in a program directory.
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		private static bool IsProgramCpz(string path)
+		{
+			return IcdPath.GetExtension(path).Equals(".CPZ", StringComparison.OrdinalIgnoreCase) &&
+			       path.Contains(IcdDirectory.GetApplicationDirectory());
 		}
 
 		/// <summary>
@@ -248,8 +260,8 @@ namespace ICD.Connect.Krang.Settings
 			{
 				return ReflectionUtils.LoadAssemblyFromPath(path);
 			}
-				// Happens with some crestron libraries
 #if SIMPLSHARP
+			// Happens with some crestron libraries
 			catch (RestrictionViolationException)
 			{
 				return null;
@@ -257,8 +269,7 @@ namespace ICD.Connect.Krang.Settings
 #endif
 			catch (Exception e)
 			{
-				ServiceProvider.TryGetService<ILoggerService>()
-							   .AddEntry(eSeverity.Warning, e, "Failed to load plugin {0} - {1}", path, e.Message);
+				Logger.AddEntry(eSeverity.Warning, e, "Failed to load plugin {0} - {1}", path, e.Message);
 				return null;
 			}
 		}

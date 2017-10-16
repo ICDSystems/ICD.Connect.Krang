@@ -5,11 +5,15 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Core;
+using ICD.Connect.Krang.Settings.Migration;
+using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
+using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Reflection;
 #else
 using System;
+using System.IO;
 #endif
 
 namespace ICD.Connect.Krang.Settings
@@ -25,6 +29,8 @@ namespace ICD.Connect.Krang.Settings
 		public static string IcdConfigPath { get { return PathUtils.GetProgramConfigPath(CONFIG_LOCAL_PATH); } }
 		public static string LicensePath { get { return PathUtils.GetProgramConfigPath(LICENSE_LOCAL_PATH); } }
 
+		public static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
+
 		/// <summary>
 		/// Applies the settings to Krang.
 		/// </summary>
@@ -32,16 +38,20 @@ namespace ICD.Connect.Krang.Settings
 			where TSettings : ICoreSettings
 			where TCore : ICore
 		{
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Applying settings.");
+
+			Logger.AddEntry(eSeverity.Notice, "Applying settings");
+
 			IDeviceFactory factory = new CoreDeviceFactory(settings);
 			core.ApplySettings(settings, factory);
+
+			Logger.AddEntry(eSeverity.Notice, "Finished applying settings");
 		}
 
 		/// <summary>
 		/// Serializes the settings to disk.
 		/// </summary>
 		/// <param name="settings"></param>
-		public static void SaveSettings(ICoreSettings settings)
+		public static void SaveSettings(ISettings settings)
 		{
 			SaveSettings(settings, false);
 		}
@@ -51,18 +61,18 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <param name="backup"></param>
-		public static void SaveSettings(ICoreSettings settings, bool backup)
+		public static void SaveSettings(ISettings settings, bool backup)
 		{
 			if (backup)
 				BackupSettings();
-
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Saving settings.");
 
 			string path = IcdConfigPath;
 			string directory = IcdPath.GetDirectoryName(path);
 			IcdDirectory.CreateDirectory(directory);
 
-			using (IcdFileStream stream = IcdFileStream.OpenWrite(path))
+			Logger.AddEntry(eSeverity.Notice, "Saving settings to {0}", path);
+
+			using (IcdFileStream stream = IcdFile.Open(path, FileMode.Create))
 			{
 				using (IcdXmlTextWriter writer = new IcdXmlTextWriter(stream, new UTF8Encoding(false)))
 				{
@@ -70,6 +80,8 @@ namespace ICD.Connect.Krang.Settings
 					settings.ToXml(writer);
 				}
 			}
+
+			Logger.AddEntry(eSeverity.Notice, "Finished saving settings");
 		}
 
 		/// <summary>
@@ -80,14 +92,16 @@ namespace ICD.Connect.Krang.Settings
 			if (!IcdFile.Exists(IcdConfigPath))
 				return;
 
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Creating settings backup.");
-
 			string name = IcdPath.GetFileNameWithoutExtension(IcdConfigPath);
 			string date = IcdEnvironment.GetLocalTime().ToString("MM-dd-yyyy_HH-mm");
 			string newName = string.Format("{0}_Backup_{1}", name, date);
 			string newPath = PathUtils.ChangeFilenameWithoutExt(IcdConfigPath, newName);
 
+			Logger.AddEntry(eSeverity.Notice, "Creating settings backup of {0} at {1}", IcdConfigPath, newPath);
+
 			IcdFile.Copy(IcdConfigPath, newPath);
+
+			Logger.AddEntry(eSeverity.Notice, "Finished settings backup");
 		}
 
 		/// <summary>
@@ -123,9 +137,9 @@ namespace ICD.Connect.Krang.Settings
 			where TSettings : ICoreSettings
 			where TCore : ICore
 		{
-			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Notice, "Loading settings.");
-
 			string path = IcdConfigPath;
+
+			Logger.AddEntry(eSeverity.Notice, "Loading settings from {0}", path);
 
 			// Load XML config into string
 			string configXml = null;
@@ -137,29 +151,49 @@ namespace ICD.Connect.Krang.Settings
 			if (!string.IsNullOrEmpty(configXml))
 			{
 				// TODO Temporary - V5 release
-				//if (LegacySettingsMigration.IsSingleRoom(configXml))
-				//{
-				//    //configXml = LegacySettingsMigration.Migrate(configXml);
-				//    save = true;
-				//}
+				if (LegacySettingsMigration.IsSingleRoom(configXml))
+				{
+				    configXml = LegacySettingsMigration.Migrate(configXml);
+				    save = true;
+				}
 
 				// TODO Temporary - adding routing element to existing configs
-				//if (!ConnectionsRoutingMigration.HasRoutingElement(configXml))
-				//{
-				//    //configXml = ConnectionsRoutingMigration.Migrate(configXml);
-				//    save = true;
-				//}
+				if (!ConnectionsRoutingMigration.HasRoutingElement(configXml))
+				{
+				    configXml = ConnectionsRoutingMigration.Migrate(configXml);
+				    save = true;
+				}
 
 				// TODO Temporary - Source.Output and Destination.Input becomes Source.Address and Destination.Address
-				//SourceDestinationAddressMigration.Migrate(configXml);
+				if (SourceDestinationAddressMigration.HasOutputOrInput(configXml))
+				{
+					configXml = SourceDestinationAddressMigration.Migrate(configXml);
+					save = true;
+				}
 
 				// TODO Temporary - V5 release
-				//if (!SourceDestinationRoutingMigration.HasSourceOrDestinationRoutingElement(configXml))
-				//{
-				//    configXml = SourceDestinationRoutingMigration.Migrate(configXml);
-				//    save = true;
-				//}
+				if (!SourceDestinationRoutingMigration.HasSourceOrDestinationRoutingElement(configXml))
+				{
+				    configXml = SourceDestinationRoutingMigration.Migrate(configXml);
+				    save = true;
+				}
+
+				// TODO Temporary - Older configs didn't specify a routing graph originator
+				if (!RoutingGraphMigration.HasRoutingGraphOriginator(configXml))
+				{
+					configXml = RoutingGraphMigration.Migrate(configXml);
+					save = true;
+				}
+
+				// TODO Temporary - Older configs didn't have unique ids across all originators
+				if (!UniqueIdMigration.HasUniqueIds(configXml))
+				{
+					configXml = UniqueIdMigration.Migrate(configXml);
+					save = true;
+				}
 			}
+
+			Logger.AddEntry(eSeverity.Notice, "Finished loading settings");
 
 			// Save a stub xml file if one doesn't already exist
 			if (string.IsNullOrEmpty(configXml))
@@ -167,10 +201,10 @@ namespace ICD.Connect.Krang.Settings
 			else
 				settings.ParseXml(configXml);
 
-			if (save)
-				SaveSettings(settings, true);
-
 			ApplyCoreSettings(core, settings);
+
+			if (save)
+				SaveSettings(core.CopySettings(), true);
 		}
 	}
 }
