@@ -274,8 +274,8 @@ namespace ICD.Connect.Krang.Settings
 			{
 				try
 				{
-					AttributeUtils.CacheAssembly(assembly);
-					Logger.AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.GetName().Name);
+					if (AttributeUtils.CacheAssembly(assembly))
+						Logger.AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.GetName().Name);
 				}
 				catch (Exception e)
 				{
