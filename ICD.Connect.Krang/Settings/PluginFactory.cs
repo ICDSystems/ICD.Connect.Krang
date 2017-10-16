@@ -28,6 +28,8 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		private static readonly Dictionary<Type, string> s_SettingsFactoryNameMap;
 
+		private static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
+
 		/// <summary>
 		/// Constructor.
 		/// </summary>
@@ -42,7 +44,7 @@ namespace ICD.Connect.Krang.Settings
 			}
 			catch (Exception e)
 			{
-				IcdErrorLog.Exception(e.GetBaseException(), "Failed to cache plugins - {0}", e.GetBaseException().Message);
+				Logger.AddEntry(eSeverity.Error, e, "{0} failed to cache plugins", typeof(PluginFactory).Name);
 			}
 		}
 
@@ -81,8 +83,7 @@ namespace ICD.Connect.Krang.Settings
 				}
 				catch (Exception e)
 				{
-					ServiceProvider.TryGetService<ILoggerService>()
-								   .AddEntry(eSeverity.Error, e, "Unable to parse settings element - {0}", e.Message);
+					Logger.AddEntry(eSeverity.Error, e, "Unable to parse settings element - {0}", e.Message);
 					continue;
 				}
 
@@ -271,17 +272,23 @@ namespace ICD.Connect.Krang.Settings
 
 			foreach (Assembly assembly in assemblies)
 			{
-				AttributeUtils.CacheAssembly(assembly);
-				ServiceProvider.TryGetService<ILoggerService>()
-							   .AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.GetName().Name);
+				try
+				{
+					AttributeUtils.CacheAssembly(assembly);
+					Logger.AddEntry(eSeverity.Informational, "Loaded plugin {0}", assembly.GetName().Name);
+				}
+				catch (Exception e)
+				{
+					Logger.AddEntry(eSeverity.Error, e, "{0} failed to load plugin {1}", typeof(PluginFactory).Name,
+					                assembly.GetName().Name);
+				}
 			}
 
 			foreach (
 				XmlFactoryMethodAttribute attribute in
 					AttributeUtils.GetMethodAttributes<XmlFactoryMethodAttribute>().OrderBy(a => a.FactoryName))
 			{
-				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Informational, "Loaded type {0}", attribute.FactoryName);
+				Logger.AddEntry(eSeverity.Informational, "Loaded type {0}", attribute.FactoryName);
 
 				MethodInfo method = AttributeUtils.GetMethod(attribute);
 
