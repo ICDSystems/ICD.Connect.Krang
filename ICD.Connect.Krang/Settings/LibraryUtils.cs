@@ -34,6 +34,8 @@ namespace ICD.Connect.Krang.Settings
 
 		private static readonly string[] s_LibDirectories;
 
+		private static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
+
 		/// <summary>
 		/// Constructor.
 		/// </summary>
@@ -92,13 +94,11 @@ namespace ICD.Connect.Krang.Settings
 				try
 				{
 					IcdDirectory.Delete(outputDir, true);
-					ServiceProvider.TryGetService<ILoggerService>()
-								   .AddEntry(eSeverity.Informational, "Removed old plugin {0}", outputDir);
+					Logger.AddEntry(eSeverity.Informational, "Removed old plugin {0}", outputDir);
 				}
 				catch (Exception e)
 				{
-					ServiceProvider.TryGetService<ILoggerService>()
-								   .AddEntry(eSeverity.Warning, "Failed to remove old plugin {0} - {1}", outputDir, e.Message);
+					Logger.AddEntry(eSeverity.Warning, "Failed to remove old plugin {0} - {1}", outputDir, e.Message);
 					return false;
 				}
 			}
@@ -119,12 +119,11 @@ namespace ICD.Connect.Krang.Settings
 				if (result)
 				{
 					IcdFile.Delete(path);
-					ServiceProvider.TryGetService<ILoggerService>()
-								   .AddEntry(eSeverity.Informational, "Extracted plugin {0}", path);
+					Logger.AddEntry(eSeverity.Informational, "Extracted plugin {0}", path);
 				}
 				else
 				{
-					ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Warning, "Failed to extract plugin {0}", path);
+					Logger.AddEntry(eSeverity.Warning, "Failed to extract plugin {0}", path);
 				}
 			}
 		}
@@ -257,8 +256,7 @@ namespace ICD.Connect.Krang.Settings
 #endif
 			catch (Exception e)
 			{
-				ServiceProvider.TryGetService<ILoggerService>()
-							   .AddEntry(eSeverity.Warning, e, "Failed to load plugin {0} - {1}", path, e.Message);
+				Logger.AddEntry(eSeverity.Warning, e, "Failed to load plugin {0} - {1}", path, e.Message);
 				return null;
 			}
 		}
