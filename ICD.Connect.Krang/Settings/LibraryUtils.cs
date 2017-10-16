@@ -111,7 +111,7 @@ namespace ICD.Connect.Krang.Settings
 		/// </summary>
 		public static void UnzipLibAssemblies()
 		{
-			foreach (string path in GetArchivePaths())
+			foreach (string path in GetArchivePaths().Where(p => !IsProgramCpz(p)))
 			{
 				bool result = Unzip(path);
 
@@ -208,6 +208,17 @@ namespace ICD.Connect.Krang.Settings
 		}
 
 		/// <summary>
+		/// Returns true if the given path represents a .CPZ file in a program directory.
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		private static bool IsProgramCpz(string path)
+		{
+			return IcdPath.GetExtension(path).Equals(".CPZ", StringComparison.OrdinalIgnoreCase) &&
+			       path.Contains(IcdDirectory.GetApplicationDirectory());
+		}
+
+		/// <summary>
 		/// Returns true if the file at the given path is an assembly.
 		/// </summary>
 		/// <param name="path"></param>
@@ -249,8 +260,8 @@ namespace ICD.Connect.Krang.Settings
 			{
 				return ReflectionUtils.LoadAssemblyFromPath(path);
 			}
-				// Happens with some crestron libraries
 #if SIMPLSHARP
+			// Happens with some crestron libraries
 			catch (RestrictionViolationException)
 			{
 				return null;
