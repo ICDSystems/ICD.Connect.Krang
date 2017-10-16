@@ -189,7 +189,9 @@ namespace ICD.Connect.Krang.Settings
 									.GetFiles(path).Any(p => IcdPath.GetExtension(p).Equals(".sln", StringComparison.OrdinalIgnoreCase));
 
 				if (foundSln)
-					return PathUtils.RecurseFilePaths(path).Where(IsAssembly);
+					return PathUtils.RecurseFilePaths(path)
+					                .Where(p => p.Contains("bin"))
+					                .Where(IsAssembly);
 			}
 
 			return Enumerable.Empty<string>();
