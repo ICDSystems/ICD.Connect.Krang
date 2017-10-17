@@ -84,7 +84,8 @@ namespace ICD.Connect.Krang.Settings
 		/// Unzips the archive at the given path.
 		/// </summary>
 		/// <param name="path"></param>
-		public static bool Unzip(string path)
+		/// <param name="message"></param>
+		public static bool Unzip(string path, out string message)
 		{
 			string outputDir = PathUtils.GetPathWithoutExtension(path);
 
@@ -98,12 +99,12 @@ namespace ICD.Connect.Krang.Settings
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Warning, "Failed to remove old plugin {0} - {1}", outputDir, e.Message);
+					message = string.Format("Failed to remove old plugin {0} - {1}", outputDir, e.Message);
 					return false;
 				}
 			}
 
-			return IcdZip.Unzip(path, outputDir);
+			return IcdZip.Unzip(path, outputDir, out message);
 		}
 
 		/// <summary>
@@ -113,7 +114,8 @@ namespace ICD.Connect.Krang.Settings
 		{
 			foreach (string path in GetArchivePaths().Where(p => !IsProgramCpz(p)))
 			{
-				bool result = Unzip(path);
+				string message;
+				bool result = Unzip(path, out message);
 
 				// Delete the archive so we don't waste time extracting on next load
 				if (result)
@@ -123,7 +125,7 @@ namespace ICD.Connect.Krang.Settings
 				}
 				else
 				{
-					Logger.AddEntry(eSeverity.Warning, "Failed to extract plugin {0}", path);
+					Logger.AddEntry(eSeverity.Warning, "Failed to extract plugin {0} - {1}", path, message);
 				}
 			}
 		}
