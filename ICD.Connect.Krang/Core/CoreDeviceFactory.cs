@@ -30,6 +30,17 @@ namespace ICD.Connect.Krang.Core
 
 		#region Methods
 
+		/// <summary>
+		/// Returns true if the factory contains any settings that will resolve to the given originator type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public bool HasOriginators<T>()
+			where T : class, IOriginator
+		{
+			return m_CoreSettings.OriginatorSettings.Any(s => s.OriginatorType.IsAssignableTo(typeof(T)));
+		}
+
 		public IEnumerable<T> GetOriginators<T>()
 			where T : class, IOriginator
 		{
