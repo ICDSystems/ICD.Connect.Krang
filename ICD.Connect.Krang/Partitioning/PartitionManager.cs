@@ -613,7 +613,7 @@ namespace ICD.Connect.Krang.Partitioning
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, "Failed to instantiate {0} with id {1} - {2}", typeof(T).Name, settings.Id, e.Message);
+					Logger.AddEntry(eSeverity.Error, e, "Failed to instantiate {0} with id {1}", typeof(T).Name, settings.Id);
 					continue;
 				}
 
