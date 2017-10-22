@@ -260,11 +260,14 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 				}
 
 				// Build control to partition lookup
-				foreach (IPartition partition in m_Partitions.Values.Where(p => p.HasPartitionControl()))
+				foreach (IPartition partition in m_Partitions.Values)
 				{
-					if (!m_ControlPartitions.ContainsKey(partition.PartitionControl))
-						m_ControlPartitions.Add(partition.PartitionControl, new IcdHashSet<IPartition>());
-					m_ControlPartitions[partition.PartitionControl].Add(partition);
+					foreach (DeviceControlInfo partitionControl in partition.GetPartitionControls())
+					{
+						if (!m_ControlPartitions.ContainsKey(partitionControl))
+							m_ControlPartitions.Add(partitionControl, new IcdHashSet<IPartition>());
+						m_ControlPartitions[partitionControl].Add(partition);
+					}
 				}
 			}
 			finally

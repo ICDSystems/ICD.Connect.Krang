@@ -9,7 +9,6 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
-using ICD.Connect.Devices.Controls;
 using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Krang.Partitioning.Partitions;
 using ICD.Connect.Partitioning;
@@ -78,21 +77,17 @@ namespace ICD.Connect.Krang.Partitioning
 		#region Controls
 
 		/// <summary>
-		/// Gets the control for the given partition.
-		/// Returns null if the partition has no control specified.
+		/// Gets the controls for the given partition.
 		/// </summary>
 		/// <param name="partition"></param>
 		/// <returns></returns>
-		public IPartitionDeviceControl GetControl(IPartition partition)
+		public IEnumerable<IPartitionDeviceControl> GetControls(IPartition partition)
 		{
 			if (partition == null)
 				throw new ArgumentNullException("partition");
 
-			if (partition.PartitionControl == default(DeviceControlInfo))
-				return null;
-
-			return ServiceProvider.GetService<ICore>()
-			                      .GetControl<IPartitionDeviceControl>(partition.PartitionControl);
+			return partition.GetPartitionControls()
+			                .Select(c => Core.GetControl<IPartitionDeviceControl>(c));
 		}
 
 		#endregion
@@ -462,8 +457,7 @@ namespace ICD.Connect.Krang.Partitioning
 			if (partition == null)
 				throw new ArgumentNullException("partition");
 
-			IPartitionDeviceControl control = GetControl(partition);
-			if (control != null)
+			foreach (IPartitionDeviceControl control in GetControls(partition))
 				control.Close();
 		}
 
@@ -489,8 +483,7 @@ namespace ICD.Connect.Krang.Partitioning
 			if (partition == null)
 				throw new ArgumentNullException("partition");
 
-			IPartitionDeviceControl control = GetControl(partition);
-			if (control != null)
+			foreach (IPartitionDeviceControl control in GetControls(partition))
 				control.Open();
 		}
 
@@ -515,7 +508,7 @@ namespace ICD.Connect.Krang.Partitioning
 		{
 			UnsubscribePartitions();
 
-			m_SubscribedPartitions.AddRange(Partitions.Where(p => p.HasPartitionControl()).Select(p => GetControl(p)));
+			m_SubscribedPartitions.AddRange(Partitions.SelectMany(p => GetControls(p)));
 
 			foreach (IPartitionDeviceControl partition in m_SubscribedPartitions)
 				Subscribe(partition);
@@ -677,16 +670,15 @@ namespace ICD.Connect.Krang.Partitioning
 
 		private string PrintPartitions()
 		{
-			TableBuilder builder = new TableBuilder("Id", "Partition", "Device", "Control", "Rooms");
+			TableBuilder builder = new TableBuilder("Id", "Partition", "Controls", "Rooms");
 
 			foreach (IPartition partition in m_Partitions.OrderBy(c => c.Id))
 			{
 				int id = partition.Id;
-				int device = partition.PartitionControl.DeviceId;
-				int control = partition.PartitionControl.ControlId;
+				string controls = StringUtils.ArrayFormat(partition.GetPartitionControls().Order());
 				string rooms = StringUtils.ArrayFormat(partition.GetRooms().Order());
 
-				builder.AddRow(id, partition, device, control, rooms);
+				builder.AddRow(id, partition, controls, rooms);
 			}
 
 			return builder.ToString();
