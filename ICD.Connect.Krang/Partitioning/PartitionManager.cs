@@ -86,8 +86,7 @@ namespace ICD.Connect.Krang.Partitioning
 			if (partition == null)
 				throw new ArgumentNullException("partition");
 
-			return partition.GetPartitionControls()
-			                .Select(c => Core.GetControl<IPartitionDeviceControl>(c));
+			return Core.GetControls<IPartitionDeviceControl>(partition.GetPartitionControls());
 		}
 
 		#endregion
@@ -157,7 +156,8 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <typeparam name="TRoom"></typeparam>
 		/// <param name="partition"></param>
 		/// <param name="func"></param>
-		public void ToggleCombineRooms<TRoom>(IPartition partition, Func<TRoom> func) where TRoom : IRoom
+		public void ToggleCombineRooms<TRoom>(IPartition partition, Func<TRoom> func)
+			where TRoom : IRoom
 		{
 			IRoom room = GetCombineRoom(partition);
 
