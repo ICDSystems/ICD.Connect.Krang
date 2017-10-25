@@ -219,6 +219,26 @@ namespace ICD.Connect.Krang.Partitioning
 		}
 
 		/// <summary>
+		/// Creates a new room instance, or expands an existing room instance, to contain the partitions
+		/// tied to the control.
+		/// </summary>
+		/// <typeparam name="TRoom"></typeparam>
+		/// <param name="partitionControl"></param>
+		/// <param name="constructor"></param>
+		public void CombineRooms<TRoom>(IPartitionDeviceControl partitionControl, Func<TRoom> constructor)
+			where TRoom : IRoom
+		{
+			if (partitionControl == null)
+				throw new ArgumentNullException("partitionControl");
+
+			if (constructor == null)
+				throw new ArgumentNullException("constructor");
+
+			IEnumerable<IPartition> partitions = Partitions.GetPartitions(partitionControl);
+			CombineRooms(partitions, constructor);
+		}
+
+		/// <summary>
 		/// Removes the partitions from existing rooms.
 		/// </summary>
 		/// <param name="partitions"></param>
@@ -259,6 +279,24 @@ namespace ICD.Connect.Krang.Partitioning
 
 			foreach (IRoom room in rooms)
 				UncombineRoom(room, partition, constructor);
+		}
+
+		/// <summary>
+		/// Removes the partitions tied to the given control from existing rooms.
+		/// </summary>
+		/// <typeparam name="TRoom"></typeparam>
+		/// <param name="partitionControl"></param>
+		/// <param name="constructor"></param>
+		public void UncombineRooms<TRoom>(IPartitionDeviceControl partitionControl, Func<TRoom> constructor) where TRoom : IRoom
+		{
+			if (partitionControl == null)
+				throw new ArgumentNullException("partitionControl");
+
+			if (constructor == null)
+				throw new ArgumentNullException("constructor");
+
+			IEnumerable<IPartition> partitions = Partitions.GetPartitions(partitionControl);
+			UncombineRooms(partitions, constructor);
 		}
 
 		#endregion

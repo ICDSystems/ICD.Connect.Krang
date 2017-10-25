@@ -6,6 +6,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Devices.Controls;
+using ICD.Connect.Partitioning.Controls;
 using ICD.Connect.Partitioning.Partitions;
 using ICD.Connect.Partitioning.Rooms;
 
@@ -109,6 +110,19 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 			{
 				m_PartitionsSection.Leave();
 			}
+		}
+
+		/// <summary>
+		/// Gets the partitions related to the given control.
+		/// </summary>
+		/// <param name="deviceControl"></param>
+		/// <returns></returns>
+		public IEnumerable<IPartition> GetPartitions(IPartitionDeviceControl deviceControl)
+		{
+			if (deviceControl == null)
+				throw new ArgumentNullException("deviceControl");
+
+			return GetPartitions(deviceControl.DeviceControlInfo);
 		}
 
 		/// <summary>
