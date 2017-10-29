@@ -1,10 +1,10 @@
 ﻿#if !SIMPLSHARP
 using System;
 using System.Runtime.Loader;
-using ICD.Connect.Krang.Core;
 using ICD.Connect.API;
+using ICD.Connect.Krang.Core;
 
-namespace ICD.NetStandard.Core
+namespace ICD.Connect.Core
 {
 	internal static class Program
     {
