@@ -191,11 +191,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IPort>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IDevice>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IPanelDevice>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IRoom>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<ITheme>());
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
 
 			RoutingGraph routingGraph = RoutingGraph;
 			RoutingGraphSettings routingSettings = routingGraph == null || !routingGraph.Serialize
@@ -224,10 +220,9 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
 		}
 
-		private IEnumerable<ISettings> GetSerializableOriginators<T>()
-			where T : IOriginator
+		private IEnumerable<ISettings> GetSerializableOriginators()
 		{
-			return m_Originators.GetChildren<T>()
+			return m_Originators.GetChildren()
 			                    .Where(c => c.Serialize)
 			                    .Select(p => p.CopySettings());
 		}
