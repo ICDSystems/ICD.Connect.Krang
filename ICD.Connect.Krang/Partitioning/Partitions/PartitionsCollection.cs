@@ -126,6 +126,19 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 		}
 
 		/// <summary>
+		/// Gets the partitions related to the given controls.
+		/// </summary>
+		/// <param name="deviceControls"></param>
+		/// <returns></returns>
+		public IEnumerable<IPartition> GetPartitions(IEnumerable<IPartitionDeviceControl> deviceControls)
+		{
+			if (deviceControls == null)
+				throw new ArgumentNullException("deviceControls");
+
+			return deviceControls.SelectMany(d => GetPartitions(d)).Distinct();
+		}
+
+		/// <summary>
 		/// Gets the immediately adjacent partitions for the given partition.
 		/// </summary>
 		/// <param name="partition"></param>

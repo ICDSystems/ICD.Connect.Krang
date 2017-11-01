@@ -189,6 +189,25 @@ namespace ICD.Connect.Krang.Partitioning
 		}
 
 		/// <summary>
+		/// Creates a new room instance, or expands an existing room instance, to contain the given partition controls.
+		/// </summary>
+		/// <typeparam name="TRoom"></typeparam>
+		/// <param name="controls"></param>
+		/// <param name="constructor"></param>
+		public void CombineRooms<TRoom>(IEnumerable<IPartitionDeviceControl> controls, Func<TRoom> constructor)
+			where TRoom : IRoom
+		{
+			if (controls == null)
+				throw new ArgumentNullException("controls");
+
+			if (constructor == null)
+				throw new ArgumentNullException("constructor");
+
+			IEnumerable<IPartition> partitions = Partitions.GetPartitions(controls);
+			CombineRooms(partitions, constructor);
+		}
+
+		/// <summary>
 		/// Creates a new room instance, or expands an existing room instance, to contain the given partition.
 		/// </summary>
 		/// <typeparam name="TRoom"></typeparam>
