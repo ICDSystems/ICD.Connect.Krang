@@ -146,6 +146,7 @@ namespace ICD.Connect.Krang.Settings
 
 			bool save = false;
 
+			/*
 			if (!string.IsNullOrEmpty(configXml))
 			{
 				// TODO Temporary - V5 release
@@ -190,6 +191,7 @@ namespace ICD.Connect.Krang.Settings
 					save = true;
 				}
 			}
+			 */
 
 			Logger.AddEntry(eSeverity.Notice, "Finished loading settings");
 
