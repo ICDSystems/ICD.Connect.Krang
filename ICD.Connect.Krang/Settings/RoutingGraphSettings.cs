@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Settings;
@@ -99,11 +98,8 @@ namespace ICD.Connect.Krang.Settings
 
 		public override IEnumerable<int> GetDeviceDependencies()
 		{
-			return m_ConnectionSettings.Union(m_StaticRouteSettings)
-			                           .Union(m_SourceSettings)
-			                           .Union(m_DestinationSettings)
-			                           .Union(m_DestinationGroupSettings)
-			                           .Select(s => s.Id);
+			// The room can exist even if the dependencies do not.
+			yield break;
 		}
 
 		#endregion
