@@ -98,7 +98,7 @@ namespace ICD.Connect.Krang.Settings
 
 		public override IEnumerable<int> GetDeviceDependencies()
 		{
-			// The room can exist even if the dependencies do not.
+			// The routing graph can exist even if the dependencies do not.
 			yield break;
 		}
 
