@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
-using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.Settings.Migration
 {
@@ -55,7 +55,7 @@ namespace ICD.Connect.Krang.Settings.Migration
 			{
 				foreach (int id in originatorIds[originator].Where(i => !uniqueIds.Contains(i)))
 				{
-					int uniqueId = MathUtils.GetNewId(allIds.Concat(usedIds));
+					int uniqueId = IdUtils.GetNewId(allIds.Concat(usedIds));
 					usedIds.Add(uniqueId);
 
 					if (!remap.ContainsKey(originator))

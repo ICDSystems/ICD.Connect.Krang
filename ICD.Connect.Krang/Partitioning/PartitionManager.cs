@@ -381,9 +381,10 @@ namespace ICD.Connect.Krang.Partitioning
 				throw new ArgumentNullException("constructor");
 
 			TRoom room = constructor();
-			room.Originators.AddRange(partitions.Select(p => p.Id));
+			room.Id = IdUtils.GetNewRoomId(Core.Originators.GetChildren<IRoom>().Select(r => r.Id));
+			Core.Originators.AddChild(room);
 
-			Core.Originators.AddChildAssignId(room);
+			room.Originators.AddRange(partitions.Select(p => p.Id));
 
 			OpenPartitions(room.Originators.GetInstances<IPartition>());
 
