@@ -186,7 +186,7 @@ namespace ICD.Connect.Krang.Core
         public override int DependencyCount
         {
             get { return m_OriginatorSettings.Count; }
-        } 
+        }
 
         /// <summary>
         /// Writes property elements to xml.
@@ -289,17 +289,8 @@ namespace ICD.Connect.Krang.Core
         /// <param name="eventArgs"></param>
         private void DeviceSettingsOnItemRemoved(object sender, EventArgs eventArgs)
         {
-            var watch = IcdStopwatch.StartNew();
-            IcdConsole.PrintLine("GET IDS TIME START");
             int[] ids = m_OriginatorSettings.Select(s => s.Id).ToArray();
-            IcdConsole.PrintLine("GET IDS COMPLETE: {0}ms", watch.ElapsedMilliseconds);
-            watch.Stop();
-
-            watch.Restart();
-            IcdConsole.PrintLine("REMOVE SETTINGS START");
             RemoveSettingsWithBadDeviceDependency(m_OriginatorSettings, ids);
-            IcdConsole.PrintLine("REMOVE SETTINGS COMPLETE: {0}ms", watch.ElapsedMilliseconds);
-            watch.Stop();
         }
 
         /// <summary>
