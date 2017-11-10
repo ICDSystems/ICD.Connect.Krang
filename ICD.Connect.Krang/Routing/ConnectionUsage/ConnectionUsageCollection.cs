@@ -71,7 +71,10 @@ namespace ICD.Connect.Krang.Routing.ConnectionUsage
 
 			try
 			{
-				m_ConnectionsUsage.RemoveAll(kvp => !m_RoutingGraph.Connections.ContainsConnection(kvp.Key));
+				foreach (
+					KeyValuePair<Connection, ConnectionUsageInfo> item in
+						m_ConnectionsUsage.Where(kvp => !m_RoutingGraph.Connections.ContainsConnection(kvp.Key)).ToArray())
+					m_ConnectionsUsage.Remove(item.Key);
 			}
 			finally
 			{
