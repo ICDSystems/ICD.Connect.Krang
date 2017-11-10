@@ -301,7 +301,9 @@ namespace ICD.Connect.Krang.Remote.Direct
 				var remove = connections.Where(c => c.Source == source.Endpoint && (c.Destination.Device != switcher.Id || c.Destination.Control != switcher.SwitcherControl.Id))
 				                        .ToList();
 
-				connections.RemoveAll(remove);
+				foreach (var item in remove)
+					connections.Remove(item);
+
 				connections.AddRange(remove.Select(c => new Connection(
 					c.Id,
 					c.Source,
@@ -331,7 +333,9 @@ namespace ICD.Connect.Krang.Remote.Direct
 				var remove = connections.Where(c => c.Destination == destination.Endpoint && (c.Source.Device != switcher.Id ||
 										c.Source.Control != switcher.SwitcherControl.Id)).ToList();
 
-				connections.RemoveAll(remove);
+				foreach (var item in remove)
+					connections.Remove(item);
+
 				connections.AddRange(remove.Select(c => new Connection(
 					c.Id,
 					new EndpointInfo(switcher.Id,
