@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
+using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Timers;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Partitioning;
@@ -17,298 +19,319 @@ using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core
 {
-	/// <summary>
-	/// Settings for the Krang core.
-	/// </summary>
-	[PublicAPI]
-	public sealed class KrangCoreSettings : AbstractSettings, ICoreSettings
-	{
-		public const string ROOT_ELEMENT = "IcdConfig";
+    /// <summary>
+    /// Settings for the Krang core.
+    /// </summary>
+    [PublicAPI]
+    public sealed class KrangCoreSettings : AbstractSettings, ICoreSettings
+    {
+        public const string ROOT_ELEMENT = "IcdConfig";
 
-		public const string FACTORY_NAME = "Krang";
+        public const string FACTORY_NAME = "Krang";
 
-		private const string HEADER_ELEMENT = "Header";
-		private const string THEMES_ELEMENT = "Themes";
-		public const string PANELS_ELEMENT = "Panels";
-		public const string PORTS_ELEMENT = "Ports";
-		public const string DEVICES_ELEMENT = "Devices";
-		public const string ROOMS_ELEMENT = "Rooms";
-		private const string ROUTING_ELEMENT = "Routing";
-		private const string PARTITIONING_ELEMENT = "Partitioning";
-		private const string BROADCAST_ELEMENT = "Broadcast";
+        private const string HEADER_ELEMENT = "Header";
+        private const string THEMES_ELEMENT = "Themes";
+        public const string PANELS_ELEMENT = "Panels";
+        public const string PORTS_ELEMENT = "Ports";
+        public const string DEVICES_ELEMENT = "Devices";
+        public const string ROOMS_ELEMENT = "Rooms";
+        private const string ROUTING_ELEMENT = "Routing";
+        private const string PARTITIONING_ELEMENT = "Partitioning";
+        private const string BROADCAST_ELEMENT = "Broadcast";
 
-		private readonly SettingsCollection m_OriginatorSettings;
-		private readonly ConfigurationHeader m_Header;
+        private readonly SettingsCollection m_OriginatorSettings;
+        private readonly ConfigurationHeader m_Header;
 
-		#region Properties
+        #region Properties
 
-		public SettingsCollection OriginatorSettings
-		{
-			get { return m_OriginatorSettings; }
-		}
+        public SettingsCollection OriginatorSettings
+        {
+            get { return m_OriginatorSettings; }
+        }
 
-		/// <summary>
-		/// Gets the theme settings.
-		/// </summary>
-		public SettingsCollection ThemeSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IThemeSettings))));
-			}
-		}
+        /// <summary>
+        /// Gets the theme settings.
+        /// </summary>
+        public SettingsCollection ThemeSettings
+        {
+            get
+            {
+                return new SettingsCollection(m_OriginatorSettings.Where(s =>
+                        s.GetType().IsAssignableTo(typeof(IThemeSettings))));
+            }
+        }
 
-		/// <summary>
-		/// Gets the device settings.
-		/// </summary>
-		public SettingsCollection DeviceSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IDeviceSettings))));
-			}
-		}
+        /// <summary>
+        /// Gets the device settings.
+        /// </summary>
+        public SettingsCollection DeviceSettings
+        {
+            get
+            {
+                return new SettingsCollection(m_OriginatorSettings.Where(s =>
+                        s.GetType().IsAssignableTo(typeof(IDeviceSettings))));
+            }
+        }
 
-		/// <summary>
-		/// Gets the port settings.
-		/// </summary>
-		public SettingsCollection PortSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IPortSettings))));
-			}
-		}
+        /// <summary>
+        /// Gets the port settings.
+        /// </summary>
+        public SettingsCollection PortSettings
+        {
+            get
+            {
+                return new SettingsCollection(m_OriginatorSettings.Where(s =>
+                        s.GetType().IsAssignableTo(typeof(IPortSettings))));
+            }
+        }
 
-		/// <summary>
-		/// Gets the panel settings.
-		/// </summary>
-		public SettingsCollection PanelSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IPanelDeviceSettings))));
-			}
-		}
+        /// <summary>
+        /// Gets the panel settings.
+        /// </summary>
+        public SettingsCollection PanelSettings
+        {
+            get
+            {
+                return new SettingsCollection(m_OriginatorSettings.Where(s =>
+                        s.GetType().IsAssignableTo(typeof(IPanelDeviceSettings))));
+            }
+        }
 
-		/// <summary>
-		/// Gets the room settings.
-		/// </summary>
-		public SettingsCollection RoomSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IRoomSettings))));
-			}
-		}
-		
-		public RoutingGraphSettings RoutingGraphSettings
-		{
-			get
-			{
-				return m_OriginatorSettings.OfType<RoutingGraphSettings>().SingleOrDefault();
-			}
-		}
+        /// <summary>
+        /// Gets the room settings.
+        /// </summary>
+        public SettingsCollection RoomSettings
+        {
+            get
+            {
+                return new SettingsCollection(m_OriginatorSettings.Where(s =>
+                        s.GetType().IsAssignableTo(typeof(IRoomSettings))));
+            }
+        }
 
-		public PartitionManagerSettings PartitionManagerSettings
-		{
-			get
-			{
-				return m_OriginatorSettings.OfType<PartitionManagerSettings>().SingleOrDefault();
-			}
-		}
+        public RoutingGraphSettings RoutingGraphSettings
+        {
+            get
+            {
+                return m_OriginatorSettings.OfType<RoutingGraphSettings>().SingleOrDefault();
+            }
+        }
 
-		/// <summary>
-		/// Gets the header info.
-		/// </summary>
-		public ConfigurationHeader Header
-		{
-			get { return m_Header; }
-		}
+        public PartitionManagerSettings PartitionManagerSettings
+        {
+            get
+            {
+                return m_OriginatorSettings.OfType<PartitionManagerSettings>().SingleOrDefault();
+            }
+        }
 
-		/// <summary>
-		/// Gets the broadcast setting.
-		/// </summary>
-		public bool Broadcast { get; private set; }
+        /// <summary>
+        /// Gets the header info.
+        /// </summary>
+        public ConfigurationHeader Header
+        {
+            get { return m_Header; }
+        }
 
-		/// <summary>
-		/// Gets the xml element.
-		/// </summary>
-		protected override string Element
-		{
-			get { return ROOT_ELEMENT; }
-		}
+        /// <summary>
+        /// Gets the broadcast setting.
+        /// </summary>
+        public bool Broadcast { get; private set; }
 
-		public override string FactoryName
-		{
-			get { return FACTORY_NAME; }
-		}
+        /// <summary>
+        /// Gets the xml element.
+        /// </summary>
+        protected override string Element
+        {
+            get { return ROOT_ELEMENT; }
+        }
 
-		/// <summary>
-		/// Gets the type of the originator for this settings instance.
-		/// </summary>
-		public override Type OriginatorType { get { return typeof(KrangCore); } }
+        public override string FactoryName
+        {
+            get { return FACTORY_NAME; }
+        }
 
-		#endregion
+        /// <summary>
+        /// Gets the type of the originator for this settings instance.
+        /// </summary>
+        public override Type OriginatorType { get { return typeof(KrangCore); } }
 
-		/// <summary>
-		/// Constructor.
-		/// </summary>
-		public KrangCoreSettings()
-		{
-			m_OriginatorSettings = new SettingsCollection();
-			m_Header = new ConfigurationHeader();
+        #endregion
 
-			m_OriginatorSettings.OnItemRemoved += DeviceSettingsOnItemRemoved;
-		}
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public KrangCoreSettings()
+        {
+            m_OriginatorSettings = new SettingsCollection();
+            m_Header = new ConfigurationHeader();
 
-		/// <summary>
-		/// Returns the collection of ids that the settings will depend on.
-		/// For example, to instantiate an IR Port from settings, the device the physical port
-		/// belongs to will need to be instantiated first.
-		/// </summary>
-		/// <returns></returns>
-		public override IEnumerable<int> GetDeviceDependencies()
-		{
-			return m_OriginatorSettings.Select(d => d.Id);
-		}
+            m_OriginatorSettings.OnItemRemoved += DeviceSettingsOnItemRemoved;
+        }
 
-		/// <summary>
-		/// Writes property elements to xml.
-		/// </summary>
-		/// <param name="writer"></param>
-		protected override void WriteElements(IcdXmlTextWriter writer)
-		{
-			base.WriteElements(writer);
+        /// <summary>
+        /// Returns true if the settings depend on a device with the given ID.
+        /// For example, to instantiate an IR Port from settings, the device the physical port
+        /// belongs to will need to be instantiated first.
+        /// </summary>
+        /// <returns></returns>
+        public override bool HasDeviceDependency(int id)
+        {
+            return m_OriginatorSettings.Select(o => o.Id).Contains(Id);
+        }
 
-			new ConfigurationHeader(true).ToXml(writer);
+        /// <summary>
+        /// Returns the count from the collection of ids that the settings depends on.
+        /// </summary>
+        public override int DependencyCount
+        {
+            get { return m_OriginatorSettings.Count; }
+        } 
 
-			ThemeSettings.ToXml(writer, THEMES_ELEMENT);
-			PanelSettings.ToXml(writer, PANELS_ELEMENT);
-			PortSettings.ToXml(writer, PORTS_ELEMENT);
-			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
-			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
+        /// <summary>
+        /// Writes property elements to xml.
+        /// </summary>
+        /// <param name="writer"></param>
+        protected override void WriteElements(IcdXmlTextWriter writer)
+        {
+            base.WriteElements(writer);
 
-			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
-			if (routingGraphSettings != null)
-				routingGraphSettings.ToXml(writer);
+            new ConfigurationHeader(true).ToXml(writer);
 
-			PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
-			if (partitionManagerSettings != null)
-				partitionManagerSettings.ToXml(writer);
-		}
+            ThemeSettings.ToXml(writer, THEMES_ELEMENT);
+            PanelSettings.ToXml(writer, PANELS_ELEMENT);
+            PortSettings.ToXml(writer, PORTS_ELEMENT);
+            DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
+            RoomSettings.ToXml(writer, ROOMS_ELEMENT);
 
-		#region Protected Methods
+            RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
+            if (routingGraphSettings != null)
+                routingGraphSettings.ToXml(writer);
 
-		/// <summary>
-		/// Parses the xml and applies the properties to the instance.
-		/// </summary>
-		/// <param name="xml"></param>
-		public void ParseXml(string xml)
-		{
-			ParseXml(this, xml);
+            PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
+            if (partitionManagerSettings != null)
+                partitionManagerSettings.ToXml(writer);
+        }
 
-			Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
-			UpdateHeaderFromXml(xml);
+        #region Protected Methods
 
-			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
-			IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
-			IEnumerable<ISettings> ports = PluginFactory.GetSettingsFromXml(xml, PORTS_ELEMENT);
-			IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
-			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
+        /// <summary>
+        /// Parses the xml and applies the properties to the instance.
+        /// </summary>
+        /// <param name="xml"></param>
+        public void ParseXml(string xml)
+        {
+            ParseXml(this, xml);
 
-			OriginatorSettings.AddRange(themes);
-			OriginatorSettings.AddRange(panels);
-			OriginatorSettings.AddRange(ports);
-			OriginatorSettings.AddRange(devices);
-			OriginatorSettings.AddRange(rooms);
+            Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
+            UpdateHeaderFromXml(xml);
 
-			string child;
+            IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
+            IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
+            IEnumerable<ISettings> ports = PluginFactory.GetSettingsFromXml(xml, PORTS_ELEMENT);
+            IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
+            IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
 
-			if (XmlUtils.TryGetChildElementAsString(xml, ROUTING_ELEMENT, out child))
-				UpdateRoutingFromXml(child);
+            OriginatorSettings.AddRange(themes);
+            OriginatorSettings.AddRange(panels);
+            OriginatorSettings.AddRange(ports);
+            OriginatorSettings.AddRange(devices);
+            OriginatorSettings.AddRange(rooms);
 
-			if (XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child))
-				UpdatePartitioningFromXml(child);
-		}
+            string child;
 
-		private void UpdateHeaderFromXml(string xml)
-		{
-			m_Header.Clear();
+            if (XmlUtils.TryGetChildElementAsString(xml, ROUTING_ELEMENT, out child))
+                UpdateRoutingFromXml(child);
 
-			string child;
-			if (XmlUtils.TryGetChildElementAsString(xml, HEADER_ELEMENT, out child))
-				m_Header.ParseXml(child);
-		}
+            if (XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child))
+                UpdatePartitioningFromXml(child);
+        }
 
-		private void UpdateRoutingFromXml(string xml)
-		{
-			var routing = new RoutingGraphSettings();
-			routing.ParseXml(xml);
+        private void UpdateHeaderFromXml(string xml)
+        {
+            m_Header.Clear();
 
-			OriginatorSettings.Add(routing);
+            string child;
+            if (XmlUtils.TryGetChildElementAsString(xml, HEADER_ELEMENT, out child))
+                m_Header.ParseXml(child);
+        }
 
-			//add routing's child originators so they can be accessed by CoreDeviceFactory
-			OriginatorSettings.AddRange(routing.ConnectionSettings);
-			OriginatorSettings.AddRange(routing.StaticRouteSettings);
-			OriginatorSettings.AddRange(routing.SourceSettings);
-			OriginatorSettings.AddRange(routing.DestinationSettings);
-			OriginatorSettings.AddRange(routing.DestinationGroupSettings);
-		}
+        private void UpdateRoutingFromXml(string xml)
+        {
+            var routing = new RoutingGraphSettings();
+            routing.ParseXml(xml);
 
-		private void UpdatePartitioningFromXml(string xml)
-		{
-			var partitioning = new PartitionManagerSettings();
-			partitioning.ParseXml(xml);
+            OriginatorSettings.Add(routing);
 
-			OriginatorSettings.Add(partitioning);
+            //add routing's child originators so they can be accessed by CoreDeviceFactory
+            OriginatorSettings.AddRange(routing.ConnectionSettings);
+            OriginatorSettings.AddRange(routing.StaticRouteSettings);
+            OriginatorSettings.AddRange(routing.SourceSettings);
+            OriginatorSettings.AddRange(routing.DestinationSettings);
+            OriginatorSettings.AddRange(routing.DestinationGroupSettings);
+        }
 
-			//add partitioning's child originators so they can be accessed by CoreDeviceFactory
-			OriginatorSettings.AddRange(partitioning.PartitionSettings);
-		}
+        private void UpdatePartitioningFromXml(string xml)
+        {
+            var partitioning = new PartitionManagerSettings();
+            partitioning.ParseXml(xml);
 
-		/// <summary>
-		/// Called when device settings are removed. We remove any settings that depend on the device.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="eventArgs"></param>
-		private void DeviceSettingsOnItemRemoved(object sender, EventArgs eventArgs)
-		{
-			int[] ids = m_OriginatorSettings.Select(s => s.Id).ToArray();
+            OriginatorSettings.Add(partitioning);
 
-			RemoveSettingsWithBadDeviceDependency(m_OriginatorSettings, ids);
-		}
+            //add partitioning's child originators so they can be accessed by CoreDeviceFactory
+            OriginatorSettings.AddRange(partitioning.PartitionSettings);
+        }
 
-		/// <summary>
-		/// Removes settings from the settings collection where a dependency has been lost.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="deviceIds"></param>
-		private static void RemoveSettingsWithBadDeviceDependency(ICollection<ISettings> settings,
-		                                                          IEnumerable<int> deviceIds)
-		{
-			IEnumerable<ISettings> remove = settings.ToArray().Where(s => HasBadDeviceDependency(s, deviceIds));
-			settings.RemoveAll(remove);
-		}
+        /// <summary>
+        /// Called when device settings are removed. We remove any settings that depend on the device.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        private void DeviceSettingsOnItemRemoved(object sender, EventArgs eventArgs)
+        {
+            var watch = IcdStopwatch.StartNew();
+            IcdConsole.PrintLine("GET IDS TIME START");
+            int[] ids = m_OriginatorSettings.Select(s => s.Id).ToArray();
+            IcdConsole.PrintLine("GET IDS COMPLETE: {0}ms", watch.ElapsedMilliseconds);
+            watch.Stop();
 
-		/// <summary>
-		/// Returns true if the settings instance depends on a device that is not in the given device ids.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="deviceIds"></param>
-		/// <returns></returns>
-		private static bool HasBadDeviceDependency(ISettings settings, IEnumerable<int> deviceIds)
-		{
-			return settings.GetDeviceDependencies()
-			               .ToHashSet()
-			               .Subtract(deviceIds.ToHashSet()).Count > 0;
-		}
+            watch.Restart();
+            IcdConsole.PrintLine("REMOVE SETTINGS START");
+            RemoveSettingsWithBadDeviceDependency(m_OriginatorSettings, ids);
+            IcdConsole.PrintLine("REMOVE SETTINGS COMPLETE: {0}ms", watch.ElapsedMilliseconds);
+            watch.Stop();
+        }
 
-		#endregion
-	}
+        /// <summary>
+        /// Removes settings from the settings collection where a dependency has been lost.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="deviceIds"></param>
+        private static void RemoveSettingsWithBadDeviceDependency(ICollection<ISettings> settings,
+                                                                  IEnumerable<int> deviceIds)
+        {
+            IEnumerable<ISettings> remove = settings.Where(s => HasBadDeviceDependency(s, deviceIds)).ToArray();
+            foreach (ISettings item in remove)
+                settings.Remove(item);
+
+
+            //settings.RemoveAll(remove);
+        }
+
+        /// <summary>
+        /// Returns true if the settings instance depends on a device that is not in the given device ids.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="deviceIds"></param>
+        /// <returns></returns>
+        private static bool HasBadDeviceDependency(ISettings settings, IEnumerable<int> deviceIds)
+        {
+            var expectedSettingsDependencyCount = settings.DependencyCount;
+            foreach (var id in deviceIds.Where(settings.HasDeviceDependency))
+                expectedSettingsDependencyCount--;
+            return expectedSettingsDependencyCount != 0;
+        }
+
+        #endregion
+    }
 }

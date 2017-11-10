@@ -96,12 +96,6 @@ namespace ICD.Connect.Krang.Settings
 			m_DestinationGroupSettings.Clear();
 		}
 
-		public override IEnumerable<int> GetDeviceDependencies()
-		{
-			// The routing graph can exist even if the dependencies do not.
-			yield break;
-		}
-
 		#endregion
 	}
 }
