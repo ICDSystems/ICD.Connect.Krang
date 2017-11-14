@@ -542,7 +542,7 @@ namespace ICD.Connect.Krang.Routing
 
 			foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(op.ConnectionType))
 			{
-				ConnectionPath path = FindPath(op.Source, op.Destination, op.ConnectionType, op.RoomId);
+				ConnectionPath path = FindPath(op.Source, op.Destination, type, op.RoomId);
 				RouteOperation operation = new RouteOperation(op) {ConnectionType = type};
 
 				if (path == null)
