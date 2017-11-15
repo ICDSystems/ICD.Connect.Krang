@@ -5,7 +5,6 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Core;
-using ICD.Connect.Krang.Settings.Migration;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
@@ -145,53 +144,6 @@ namespace ICD.Connect.Krang.Settings
 				configXml = IcdFile.ReadToEnd(path, Encoding.UTF8);
 
 			bool save = false;
-
-			/*
-			if (!string.IsNullOrEmpty(configXml))
-			{
-				// TODO Temporary - V5 release
-				if (LegacySettingsMigration.IsSingleRoom(configXml))
-				{
-				    configXml = LegacySettingsMigration.Migrate(configXml);
-				    save = true;
-				}
-
-				// TODO Temporary - adding routing element to existing configs
-				if (!ConnectionsRoutingMigration.HasRoutingElement(configXml))
-				{
-				    configXml = ConnectionsRoutingMigration.Migrate(configXml);
-				    save = true;
-				}
-
-				// TODO Temporary - Source.Output and Destination.Input becomes Source.Address and Destination.Address
-				if (SourceDestinationAddressMigration.HasOutputOrInput(configXml))
-				{
-					configXml = SourceDestinationAddressMigration.Migrate(configXml);
-					save = true;
-				}
-
-				// TODO Temporary - V5 release
-				if (!SourceDestinationRoutingMigration.HasSourceOrDestinationRoutingElement(configXml))
-				{
-				    configXml = SourceDestinationRoutingMigration.Migrate(configXml);
-				    save = true;
-				}
-
-				// TODO Temporary - Older configs didn't specify a routing graph originator
-				if (!RoutingGraphMigration.HasRoutingGraphOriginator(configXml))
-				{
-					configXml = RoutingGraphMigration.Migrate(configXml);
-					save = true;
-				}
-
-				// TODO Temporary - Older configs didn't have unique ids across all originators
-				if (!UniqueIdMigration.HasUniqueIds(configXml))
-				{
-					configXml = UniqueIdMigration.Migrate(configXml);
-					save = true;
-				}
-			}
-			 */
 
 			Logger.AddEntry(eSeverity.Notice, "Finished loading settings");
 

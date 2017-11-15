@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
-using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Common.Utils.Timers;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Partitioning;
@@ -304,9 +302,6 @@ namespace ICD.Connect.Krang.Core
             IEnumerable<ISettings> remove = settings.Where(s => HasBadDeviceDependency(s, deviceIds)).ToArray();
             foreach (ISettings item in remove)
                 settings.Remove(item);
-
-
-            //settings.RemoveAll(remove);
         }
 
         /// <summary>

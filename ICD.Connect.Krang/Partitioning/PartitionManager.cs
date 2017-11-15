@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Properties;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
@@ -122,7 +121,6 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partition"></param>
 		/// <returns></returns>
-		[CanBeNull]
 		public IRoom GetCombineRoom(IPartition partition)
 		{
 			if (partition == null)
