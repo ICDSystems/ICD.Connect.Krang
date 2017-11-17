@@ -117,15 +117,15 @@ namespace ICD.Connect.Krang.Core
 #else
  			logger.SeverityLevel = eSeverity.Warning;
 #endif
-			ServiceProvider.AddService<ILoggerService>(logger);
+			ServiceProvider.TryAddService<ILoggerService>(logger);
 
 			m_DirectMessageManager = new DirectMessageManager();
 			ServiceProvider.AddService(m_DirectMessageManager);
 
 			m_BroadcastManager = new BroadcastManager();
-			ServiceProvider.AddService(m_BroadcastManager);
+			ServiceProvider.TryAddService(m_BroadcastManager);
 
-			ServiceProvider.AddService(new PermissionsManager());
+			ServiceProvider.TryAddService(new PermissionsManager());
 		}
 
 		#endregion
