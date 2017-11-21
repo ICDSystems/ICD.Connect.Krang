@@ -103,7 +103,7 @@ namespace ICD.Connect.Krang.Core
 			where T : IOriginator
 		{
 			if (!m_CoreSettings.OriginatorSettings.ContainsId(id))
-				throw new KeyNotFoundException(string.Format("No settings with id {0}", id));
+				throw new KeyNotFoundException(string.Format("No {0} settings with id {1}", typeof(T).Name, id));
 
 			ISettings settings = m_CoreSettings.OriginatorSettings.GetById(id);
 			if (!settings.OriginatorType.IsAssignableTo(typeof(T)))
