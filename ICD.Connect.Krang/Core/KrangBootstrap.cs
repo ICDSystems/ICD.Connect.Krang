@@ -73,7 +73,7 @@ namespace ICD.Connect.Krang.Core
 			catch (Exception e)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Error, e, "Exception in program initialization - {0}", e.Message);
+				               .AddEntry(eSeverity.Error, e, "Exception in program initialization");
 			}
 		}
 
@@ -89,7 +89,7 @@ namespace ICD.Connect.Krang.Core
 			catch (Exception e)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Error, e, "Exception in program stop - {0}", e.Message);
+				               .AddEntry(eSeverity.Error, e, "Exception in program stop");
 			}
 		}
 
