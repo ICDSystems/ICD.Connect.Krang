@@ -13,6 +13,7 @@ using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Krang.Routing;
 using ICD.Connect.Krang.Settings;
 using ICD.Connect.Panels;
+using ICD.Connect.Partitioning;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
@@ -251,6 +252,7 @@ namespace ICD.Connect.Krang.Core
 				base.ApplySettingsFinal(settings, factory);
 
 				factory.LoadOriginators<IRoutingGraph>();
+				factory.LoadOriginators<IPartitionManager>();
 				factory.LoadOriginators();
 
 				if (settings.Broadcast)
