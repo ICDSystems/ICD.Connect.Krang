@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
@@ -19,8 +17,6 @@ namespace ICD.Connect.Krang.Core
 
 		private readonly Dictionary<int, IOriginator> m_OriginatorCache;
 		private readonly ICoreSettings m_CoreSettings;
-
-		private ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
 
 		/// <summary>
 		/// Constructor.
@@ -53,14 +49,14 @@ namespace ICD.Connect.Krang.Core
 			                     .Select(s => GetOriginatorById<T>(s.Id));
 		}
 
-		[CanBeNull]
+		[NotNull]
 		public T GetOriginatorById<T>(int id)
 			where T : class, IOriginator
 		{
 			return LazyLoadOriginator<T>(id);
 		}
 
-		[CanBeNull]
+		[NotNull]
 		public IOriginator GetOriginatorById(int id)
 		{
 			return LazyLoadOriginator<IOriginator>(id);
@@ -81,29 +77,20 @@ namespace ICD.Connect.Krang.Core
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		[CanBeNull]
+		[NotNull]
 		private T LazyLoadOriginator<T>(int id)
 			where T : class, IOriginator
 		{
-			try
+			if (!m_OriginatorCache.ContainsKey(id))
 			{
-				if (!m_OriginatorCache.ContainsKey(id))
-				{
-					m_OriginatorCache[id] = InstantiateOriginatorWithId<T>(id);
+				m_OriginatorCache[id] = InstantiateOriginatorWithId<T>(id);
 
-					OriginatorLoadedCallback handler = OnOriginatorLoaded;
-					if (handler != null)
-						handler(m_OriginatorCache[id]);
-				}
-
-				return (T)m_OriginatorCache[id];
-			}
-			catch (Exception e)
-			{
-				Logger.AddEntry(eSeverity.Error, e, "{0} failed to load originator {1} id {2}", GetType().Name, typeof(T).Name, id);
+				OriginatorLoadedCallback handler = OnOriginatorLoaded;
+				if (handler != null)
+					handler(m_OriginatorCache[id]);
 			}
 
-			return default(T);
+			return (T)m_OriginatorCache[id];
 		}
 
 		/// <summary>
