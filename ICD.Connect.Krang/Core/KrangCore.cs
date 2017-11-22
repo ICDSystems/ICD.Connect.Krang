@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Services;
+using ICD.Common.Services.Logging;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
@@ -253,7 +254,7 @@ namespace ICD.Connect.Krang.Core
 
 				factory.LoadOriginators<IRoutingGraph>();
 				factory.LoadOriginators<IPartitionManager>();
-				factory.LoadOriginators();
+				LoadOriginatorsSkipExceptions(factory);
 
 				if (settings.Broadcast)
 				{
@@ -272,6 +273,23 @@ namespace ICD.Connect.Krang.Core
 			finally
 			{
 				factory.OnOriginatorLoaded -= FactoryOnOriginatorLoaded;
+			}
+		}
+
+		private void LoadOriginatorsSkipExceptions(IDeviceFactory factory)
+		{
+			foreach (int id in factory.GetOriginatorIds())
+			{
+				try
+				{
+					// Don't care about the result, loaded originators will be handled by the load event.
+					factory.GetOriginatorById(id);
+				}
+				catch (Exception e)
+				{
+					Logger.AddEntry(eSeverity.Error, "{0} failed to instantiate {1} with id {2} - {3}", this,
+					                typeof(IOriginator).Name, id, e.Message);
+				}
 			}
 		}
 
