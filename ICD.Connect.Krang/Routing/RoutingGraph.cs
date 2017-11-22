@@ -1119,7 +1119,7 @@ namespace ICD.Connect.Krang.Routing
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, "Failed to instantiate {0} with id {1} - {2}", typeof(T).Name,
+					Logger.AddEntry(eSeverity.Error, "{0} failed to instantiate {1} with id {2} - {3}", this, typeof(T).Name,
 					                settings.Id, e.Message);
 					continue;
 				}
