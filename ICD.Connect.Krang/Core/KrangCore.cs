@@ -130,18 +130,34 @@ namespace ICD.Connect.Krang.Core
 				if (!m_Originators.TryGetChild(id, out originator))
 					continue;
 
-				IDisposable disposable = originator as IDisposable;
-				if (disposable == null)
-					continue;
-
-				disposable.Dispose();
+				TryDisposeOriginator(originator);
 			}
 
 			// Now dispose the remainder
-			foreach (IDisposable originator in m_Originators.OfType<IDisposable>())
-				originator.Dispose();
+			foreach (IOriginator originator in m_Originators)
+				TryDisposeOriginator(originator);
 
 			m_Originators.Clear();
+		}
+
+		/// <summary>
+		/// Attempts to dispose the originator if it implements IDisposable. Logs any exceptions.
+		/// </summary>
+		/// <param name="originator"></param>
+		private void TryDisposeOriginator(IOriginator originator)
+		{
+			IDisposable disposable = originator as IDisposable;
+			if (disposable == null)
+				return;
+
+			try
+			{
+				disposable.Dispose();
+			}
+			catch (Exception e)
+			{
+				Logger.AddEntry(eSeverity.Error, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
+			}
 		}
 		
 		#endregion
