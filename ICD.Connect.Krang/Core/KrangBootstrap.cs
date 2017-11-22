@@ -81,10 +81,10 @@ namespace ICD.Connect.Krang.Core
 		{
 			try
 			{
-				Clear();
-
 				m_DirectMessageManager.Dispose();
 				m_BroadcastManager.Dispose();
+
+				Clear();
 			}
 			catch (Exception e)
 			{
@@ -104,7 +104,16 @@ namespace ICD.Connect.Krang.Core
 		{
 			if (m_Core != null)
 				m_Core.Dispose();
-			ServiceProvider.DisposeStatic();
+
+			// Avoid disposing the logging service
+			foreach (object service in ServiceProvider.GetServices().Where(s => !(s is ILoggerService)))
+			{
+				ServiceProvider.RemoveService(service);
+
+				IDisposable disposable = service as IDisposable;
+				if (disposable != null)
+					disposable.Dispose();
+			}
 		}
 
 		private void AddServices()
