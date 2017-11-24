@@ -83,7 +83,7 @@ namespace ICD.Connect.Krang.Settings
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, e, "Unable to parse settings element - {0}", e.Message);
+					Logger.AddEntry(eSeverity.Error, "Skipping settings element - {0}", e.Message);
 					continue;
 				}
 
