@@ -83,7 +83,10 @@ namespace ICD.Connect.Krang.Settings
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, "Skipping settings element - {0}", e.Message);
+					string name = XmlUtils.ReadElementName(element);
+					string id = XmlUtils.HasAttribute(element, "id") ? XmlUtils.GetAttributeAsString(element, "id") : "NULL";
+
+					Logger.AddEntry(eSeverity.Error, "Skipping settings element {0} id {1} - {2}", name, id, e.Message);
 					continue;
 				}
 
