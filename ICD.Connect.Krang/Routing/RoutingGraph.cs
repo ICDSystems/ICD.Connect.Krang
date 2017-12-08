@@ -37,6 +37,8 @@ namespace ICD.Connect.Krang.Routing
 	public sealed class RoutingGraph : AbstractOriginator<RoutingGraphSettings>, IConsoleNode, IRoutingGraph
 	{
 		private readonly IcdHashSet<IRouteSwitcherControl> m_SubscribedSwitchers;
+		private readonly IcdHashSet<IRouteDestinationControl> m_SubscribedDestinations;
+		private readonly IcdHashSet<IRouteSourceControl> m_SubscribedSources;
 
 		private readonly ConnectionsCollection m_Connections;
 		private readonly StaticRoutesCollection m_StaticRoutes;
@@ -59,6 +61,16 @@ namespace ICD.Connect.Krang.Routing
 		/// Raised when a switcher changes routing.
 		/// </summary>
 		public event EventHandler OnRouteChanged;
+
+		/// <summary>
+		/// Raised when a source device starts/stops sending video.
+		/// </summary>
+		public event EventHandler<EndpointStateEventArgs> OnSourceTransmissionStateChanged;
+
+		/// <summary>
+		/// Raised when a source device is connected or disconnected.
+		/// </summary>
+		public event EventHandler<EndpointStateEventArgs> OnSourceDetectionStateChanged;
 
 		#endregion
 
@@ -108,6 +120,8 @@ namespace ICD.Connect.Krang.Routing
 		public RoutingGraph()
 		{
 			m_SubscribedSwitchers = new IcdHashSet<IRouteSwitcherControl>();
+			m_SubscribedDestinations = new IcdHashSet<IRouteDestinationControl>();
+			m_SubscribedSources = new IcdHashSet<IRouteSourceControl>();
 
 			m_StaticRoutes = new StaticRoutesCollection(this);
 			m_ConnectionUsages = new ConnectionUsageCollection(this);
@@ -128,6 +142,11 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="disposing"></param>
 		protected override void DisposeFinal(bool disposing)
 		{
+			OnRouteFinished = null;
+			OnRouteChanged = null;
+			OnSourceTransmissionStateChanged = null;
+			OnSourceDetectionStateChanged = null;
+
 			base.DisposeFinal(disposing);
 
 			ServiceProvider.RemoveService<IRoutingGraph>(this);
@@ -143,6 +162,9 @@ namespace ICD.Connect.Krang.Routing
 			ConnectionUsages.RemoveInvalid();
 
 			SubscribeSwitchers();
+			SubscribeDestinations();
+			SubscribeSources();
+
 			StaticRoutes.UpdateStaticRoutes();
 		}
 
@@ -982,6 +1004,153 @@ namespace ICD.Connect.Krang.Routing
 
 		#endregion
 
+		#region Destination Callbacks
+
+		/// <summary>
+		/// Unsubscribe from the previous destination controls and subscribe to the new destination control events.
+		/// </summary>
+		private void SubscribeDestinations()
+		{
+			UnsubscribeDestinations();
+
+			m_SubscribedDestinations.AddRange(Connections.SelectMany(c => GetControls(c))
+			                                             .OfType<IRouteDestinationControl>()
+			                                             .Distinct());
+
+			foreach (IRouteDestinationControl destination in m_SubscribedDestinations)
+				Subscribe(destination);
+		}
+
+		/// <summary>
+		/// Unsubscribe from the previous destination control events.
+		/// </summary>
+		private void UnsubscribeDestinations()
+		{
+			foreach (IRouteDestinationControl destinationControl in m_SubscribedDestinations)
+				Unsubscribe(destinationControl);
+			m_SubscribedDestinations.Clear();
+		}
+
+		/// <summary>
+		/// Subscribe to the destination control events.
+		/// </summary>
+		/// <param name="destinationControl"></param>
+		private void Subscribe(IRouteDestinationControl destinationControl)
+		{
+			if (destinationControl == null)
+				return;
+
+			destinationControl.OnSourceDetectionStateChange += DestinationControlOnSourceDetectionStateChange;
+		}
+
+		/// <summary>
+		/// Unsubscribe from the destination control events.
+		/// </summary>
+		/// <param name="destinationControl"></param>
+		private void Unsubscribe(IRouteDestinationControl destinationControl)
+		{
+			if (destinationControl == null)
+				return;
+
+			destinationControl.OnSourceDetectionStateChange -= DestinationControlOnSourceDetectionStateChange;
+		}
+
+		/// <summary>
+		/// Called when a destination control source detection state changes.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="args"></param>
+		private void DestinationControlOnSourceDetectionStateChange(object sender, SourceDetectionStateChangeEventArgs args)
+		{
+			if (args == null)
+				throw new ArgumentNullException("args");
+
+			IRouteDestinationControl destination = sender as IRouteDestinationControl;
+			if (destination == null)
+				return;
+
+			int output;
+			IRouteSourceControl source = GetSourceControl(destination, args.Input, args.Type, out output);
+			if (source == null)
+				return;
+
+			EndpointInfo info = source.GetOutputEndpointInfo(output);
+			OnSourceDetectionStateChanged.Raise(this, new EndpointStateEventArgs(info, args.State));
+		}
+
+		#endregion
+
+		#region Source Callbacks
+
+		/// <summary>
+		/// Unsubscribe from the previous source controls and subscribe to the current source events.
+		/// </summary>
+		private void SubscribeSources()
+		{
+			UnsubscribeSources();
+
+			m_SubscribedSources.AddRange(Connections.SelectMany(c => GetControls(c))
+			                                        .OfType<IRouteSourceControl>()
+			                                        .Distinct());
+
+			foreach (IRouteSourceControl source in m_SubscribedSources)
+				Subscribe(source);
+		}
+
+		/// <summary>
+		/// Unsubscribe from the previous source control events.
+		/// </summary>
+		private void UnsubscribeSources()
+		{
+			foreach (IRouteSourceControl control in m_SubscribedSources)
+				Unsubscribe(control);
+			m_SubscribedSources.Clear();
+		}
+
+		/// <summary>
+		/// Subscribe to the source control events.
+		/// </summary>
+		/// <param name="sourceControl"></param>
+		private void Subscribe(IRouteSourceControl sourceControl)
+		{
+			if (sourceControl == null)
+				return;
+
+			sourceControl.OnActiveTransmissionStateChanged += SourceControlOnActiveTransmissionStateChanged;
+		}
+
+		/// <summary>
+		/// Unsubscribe from the source control events.
+		/// </summary>
+		/// <param name="sourceControl"></param>
+		private void Unsubscribe(IRouteSourceControl sourceControl)
+		{
+			if (sourceControl == null)
+				return;
+
+			sourceControl.OnActiveTransmissionStateChanged -= SourceControlOnActiveTransmissionStateChanged;
+		}
+
+		/// <summary>
+		/// Called when a source control starts/stops sending video.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="args"></param>
+		private void SourceControlOnActiveTransmissionStateChanged(object sender, TransmissionStateEventArgs args)
+		{
+			if (args == null)
+				throw new ArgumentNullException("args");
+
+			IRouteSourceControl source = sender as IRouteSourceControl;
+			if (source == null)
+				return;
+
+			EndpointInfo endpoint = source.GetOutputEndpointInfo(args.Output);
+			OnSourceTransmissionStateChanged.Raise(this, new EndpointStateEventArgs(endpoint, args.State));
+		}
+
+		#endregion
+
 		#region Switcher Callbacks
 
 		/// <summary>
@@ -1077,6 +1246,8 @@ namespace ICD.Connect.Krang.Routing
 			DestinationGroups.SetChildren(destinationGroups);
 
 			SubscribeSwitchers();
+			SubscribeDestinations();
+			SubscribeSources();
 
 			m_Connections.OnConnectionsChanged += ConnectionsOnConnectionsChanged;
 		}
