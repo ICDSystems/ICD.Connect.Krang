@@ -368,7 +368,7 @@ namespace ICD.Connect.Krang.Routing
 		private IEnumerable<Connection> GetConnectionChildren(EndpointInfo source, Connection inputConnection, eConnectionType type, int roomId)
 		{
 			if (inputConnection == null)
-				throw new ArgumentNullException("sourceConnection");
+				throw new ArgumentNullException("inputConnection");
 
 			if (EnumUtils.HasMultipleFlags(type))
 				throw new ArgumentException("ConnectionType has multiple flags", "type");
