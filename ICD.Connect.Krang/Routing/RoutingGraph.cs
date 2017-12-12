@@ -500,6 +500,19 @@ namespace ICD.Connect.Krang.Routing
 			}
 		}
 
+		/// <summary>
+		/// Returns true if there is a path from the given source to the given destination.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="destination"></param>
+		/// <param name="type"></param>
+		/// <param name="roomId"></param>
+		/// <returns></returns>
+		public bool HasPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+		{
+			return FindPath(source, destination, type, roomId) != null;
+		}
+
 		#endregion
 
 		#region Routing
