@@ -67,7 +67,7 @@ namespace ICD.Connect.Krang.Core
 		public void Start()
 		{
             // Check for cpz files that are unextracted, indicating a problem
-		    if (Directory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
+		    if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
 		    {
 		        ServiceProvider.TryGetService<ILoggerService>()
                                .AddEntry(eSeverity.Emergency, "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY. YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
