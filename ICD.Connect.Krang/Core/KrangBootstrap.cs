@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Crestron.SimplSharp.CrestronIO;
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
 #else
@@ -65,6 +66,12 @@ namespace ICD.Connect.Krang.Core
 
 		public void Start()
 		{
+            // Check for cpz files that are unextracted, indicating a problem
+		    if (Directory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
+		    {
+		        ServiceProvider.TryGetService<ILoggerService>()
+                               .AddEntry(eSeverity.Emergency, "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY. YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
+		    }
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 			try
 			{
