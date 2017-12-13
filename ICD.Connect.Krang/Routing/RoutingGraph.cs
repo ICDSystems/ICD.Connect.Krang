@@ -402,7 +402,7 @@ namespace ICD.Connect.Krang.Routing
 				if (index < 0)
 					continue;
 
-				yield return path.Take(index + 1).ToArray();
+				yield return path.Take(index + 1).ToArray(index + 1);
 			}
 		}
 
@@ -452,7 +452,7 @@ namespace ICD.Connect.Krang.Routing
 			if (outputConnection == null || !outputConnection.ConnectionType.HasFlag(type))
 			{
 				if (visited.Count > 0)
-					yield return visited.ToArray();
+					yield return visited.ToArray(visited.Count);
 				yield break;
 			}
 
@@ -463,7 +463,7 @@ namespace ICD.Connect.Krang.Routing
 				if (destination == null || !destination.GetSignalDetectedState(outputConnection.Destination.Address, type))
 				{
 					if (visited.Count > 0)
-						yield return visited.ToArray();
+						yield return visited.ToArray(visited.Count);
 					yield break;
 				}
 			}
@@ -475,7 +475,7 @@ namespace ICD.Connect.Krang.Routing
 			if (midpoint == null)
 			{
 				if (visited.Count > 0)
-					yield return visited.ToArray();
+					yield return visited.ToArray(visited.Count);
 				yield break;
 			}
 
@@ -486,7 +486,7 @@ namespace ICD.Connect.Krang.Routing
 			if (outputs.Length == 0)
 			{
 				if (visited.Count > 0)
-					yield return visited.ToArray();
+					yield return visited.ToArray(visited.Count);
 				yield break;
 			}
 
