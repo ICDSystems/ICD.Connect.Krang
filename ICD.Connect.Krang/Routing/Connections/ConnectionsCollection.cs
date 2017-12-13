@@ -108,8 +108,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				Dictionary<int, Connection> map;
 				return m_InputConnectionLookup.TryGetValue(info, out map)
-						   ? map.Values.Where(c => EnumUtils.HasFlags(c.ConnectionType, type)).ToArray()
-						   : Enumerable.Empty<Connection>();
+					       ? map.Values
+					            .Where(c => EnumUtils.HasFlags(c.ConnectionType, type))
+					            .ToArray()
+					       : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -135,8 +137,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				Dictionary<int, Connection> map;
 				return m_InputConnectionLookup.TryGetValue(info, out map)
-						   ? map.Values.Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type)).ToArray()
-						   : Enumerable.Empty<Connection>();
+					       ? map.Values
+					            .Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type))
+					            .ToArray()
+					       : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -200,7 +204,7 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				Dictionary<int, Connection> map;
 				return m_OutputConnectionLookup.TryGetValue(info, out map)
-					       ? map.Values.ToArray()
+					       ? map.Values.ToArray(map.Count)
 					       : Enumerable.Empty<Connection>();
 			}
 			finally
@@ -226,8 +230,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				Dictionary<int, Connection> map;
 				return m_OutputConnectionLookup.TryGetValue(info, out map)
-						   ? map.Values.Where(c => EnumUtils.HasFlags(c.ConnectionType, type)).ToArray()
-						   : Enumerable.Empty<Connection>();
+					       ? map.Values
+					            .Where(c => EnumUtils.HasFlags(c.ConnectionType, type))
+					            .ToArray()
+					       : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -252,8 +258,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				Dictionary<int, Connection> map;
 				return m_OutputConnectionLookup.TryGetValue(info, out map)
-						   ? map.Values.Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type)).ToArray()
-						   : Enumerable.Empty<Connection>();
+					       ? map.Values
+					            .Where(c => EnumUtils.HasAnyFlags(c.ConnectionType, type))
+					            .ToArray()
+					       : Enumerable.Empty<Connection>();
 			}
 			finally
 			{
@@ -277,7 +285,7 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <returns></returns>
 		public IEnumerable<Connection> GetConnections()
 		{
-			return m_ConnectionsSection.Execute(() => m_Connections.Values.ToList());
+			return m_ConnectionsSection.Execute(() => m_Connections.Values.ToList(m_Connections.Count));
 		}
 
 		/// <summary>
@@ -382,18 +390,8 @@ namespace ICD.Connect.Krang.Routing.Connections
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				return GetInputConnections(destinationControl.Parent.Id, destinationControl.Id, type)
-					.Select(c => c.Destination.Address)
-					.ToArray();
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
+			return GetInputConnections(destinationControl.Parent.Id, destinationControl.Id, type)
+				.Select(c => c.Destination.Address);
 		}
 
 		/// <summary>
@@ -418,18 +416,8 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <returns></returns>
 		public IEnumerable<int> GetInputsAny(int destinationDeviceId, int destinationControlId, eConnectionType type)
 		{
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				return GetInputConnectionsAny(destinationDeviceId, destinationControlId, type)
-					.Select(c => c.Destination.Address)
-					.ToArray();
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
+			return GetInputConnectionsAny(destinationDeviceId, destinationControlId, type)
+				.Select(c => c.Destination.Address);
 		}
 
 		/// <summary>
@@ -455,18 +443,8 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <returns></returns>
 		public IEnumerable<int> GetOutputs(int sourceDeviceId, int sourceControlId, eConnectionType type)
 		{
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				return GetOutputConnections(sourceDeviceId, sourceControlId, type)
-					.Select(c => c.Source.Address)
-					.ToArray();
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
+			return GetOutputConnections(sourceDeviceId, sourceControlId, type)
+				.Select(c => c.Source.Address);
 		}
 
 		/// <summary>
@@ -485,20 +463,10 @@ namespace ICD.Connect.Krang.Routing.Connections
 			if (destinationControl == null)
 				throw new ArgumentNullException("destinationControl");
 
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				return GetOutputConnections(sourceControl.Parent.Id, sourceControl.Id, type)
-					.Where(c => c.Destination.Device == destinationControl.Parent.Id &&
-					            c.Destination.Control == destinationControl.Id)
-					.Select(c => c.Source.Address)
-					.ToArray();
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
+			return GetOutputConnections(sourceControl.Parent.Id, sourceControl.Id, type)
+				.Where(c => c.Destination.Device == destinationControl.Parent.Id &&
+				            c.Destination.Control == destinationControl.Id)
+				.Select(c => c.Source.Address);
 		}
 
 		/// <summary>
@@ -524,18 +492,8 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <returns></returns>
 		public IEnumerable<int> GetOutputsAny(int sourceDeviceId, int sourceControlId, eConnectionType type)
 		{
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				return GetOutputConnectionsAny(sourceDeviceId, sourceControlId, type)
-					.Select(c => c.Source.Address)
-					.ToArray();
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
+			return GetOutputConnectionsAny(sourceDeviceId, sourceControlId, type)
+				.Select(c => c.Source.Address);
 		}
 
 		#endregion
