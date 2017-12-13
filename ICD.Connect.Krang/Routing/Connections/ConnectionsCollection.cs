@@ -277,7 +277,7 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// <returns></returns>
 		public IEnumerable<Connection> GetConnections()
 		{
-			return m_ConnectionsSection.Execute(() => m_Connections.OrderValuesByKey().ToArray());
+			return m_ConnectionsSection.Execute(() => m_Connections.Values.ToList());
 		}
 
 		/// <summary>
@@ -363,7 +363,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 				return GetInputConnections(destinationControl.Parent.Id, destinationControl.Id, type)
 					.Where(c => c.Source.Device == sourceControl.Parent.Id && c.Source.Control == sourceControl.Id)
 					.Select(c => c.Destination.Address)
-					.Order()
 					.ToArray();
 			}
 			finally
@@ -389,7 +388,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				return GetInputConnections(destinationControl.Parent.Id, destinationControl.Id, type)
 					.Select(c => c.Destination.Address)
-					.Order()
 					.ToArray();
 			}
 			finally
@@ -426,7 +424,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				return GetInputConnectionsAny(destinationDeviceId, destinationControlId, type)
 					.Select(c => c.Destination.Address)
-					.Order()
 					.ToArray();
 			}
 			finally
@@ -464,7 +461,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				return GetOutputConnections(sourceDeviceId, sourceControlId, type)
 					.Select(c => c.Source.Address)
-					.Order()
 					.ToArray();
 			}
 			finally
@@ -497,7 +493,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 					.Where(c => c.Destination.Device == destinationControl.Parent.Id &&
 					            c.Destination.Control == destinationControl.Id)
 					.Select(c => c.Source.Address)
-					.Order()
 					.ToArray();
 			}
 			finally
@@ -535,7 +530,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				return GetOutputConnectionsAny(sourceDeviceId, sourceControlId, type)
 					.Select(c => c.Source.Address)
-					.Order()
 					.ToArray();
 			}
 			finally
