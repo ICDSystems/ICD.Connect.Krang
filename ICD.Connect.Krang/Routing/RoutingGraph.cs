@@ -337,7 +337,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
 		[CanBeNull]
-		private ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+		public ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
 		{
 			if (EnumUtils.HasMultipleFlags(type))
 				throw new ArgumentException("ConnectionType has multiple flags", "type");
@@ -392,7 +392,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
 		/// <returns></returns>
-		private IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
+		public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
 		                                                 bool signalDetected)
 		{
 			foreach (Connection[] path in FindActivePaths(source, type, signalDetected))
@@ -413,7 +413,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
 		/// <returns></returns>
-		private IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected)
+		public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected)
 		{
 			return EnumUtils.HasMultipleFlags(type)
 				       ? EnumUtils.GetFlagsExceptNone(type).SelectMany(f => FindActivePaths(source, f, signalDetected))
@@ -837,29 +837,38 @@ namespace ICD.Connect.Krang.Routing
 		public void Unroute(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
 		{
 			foreach (Connection[] path in FindActivePaths(source, destination, type, false))
+				Unroute(path, type, roomId);
+		}
+
+		/// <summary>
+		/// Unroutes the given connection path.
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="type"></param>
+		/// <param name="roomId"></param>
+		public void Unroute(Connection[] path, eConnectionType type, int roomId)
+		{
+			// Loop backwards looking for switchers closest to the destination
+			for (int index = path.Length - 1; index > 0; index--)
 			{
-				// Loop backwards looking for switchers closest to the destination
-				for (int index = path.Length - 1; index > 0; index--)
-				{
-					Connection previous = path[index - 1];
-					Connection current = path[index];
+				Connection previous = path[index - 1];
+				Connection current = path[index];
 
-					IRouteMidpointControl midpoint = this.GetSourceControl(current) as IRouteMidpointControl;
-					if (midpoint == null)
-						continue;
+				IRouteMidpointControl midpoint = this.GetSourceControl(current) as IRouteMidpointControl;
+				if (midpoint == null)
+					continue;
 
-					IRouteSwitcherControl switcher = midpoint as IRouteSwitcherControl;
-					if (switcher == null)
-						continue;
+				IRouteSwitcherControl switcher = midpoint as IRouteSwitcherControl;
+				if (switcher == null)
+					continue;
 
-					if (!Unroute(previous, current, type, roomId))
-						break;
+				if (!Unroute(previous, current, type, roomId))
+					break;
 
-					// Stop unrouting if the input is routed to other outputs - we reached a fork
-					int input = previous.Destination.Address;
-					if (midpoint.GetOutputs(input, type).Any())
-						break;
-				}
+				// Stop unrouting if the input is routed to other outputs - we reached a fork
+				int input = previous.Destination.Address;
+				if (midpoint.GetOutputs(input, type).Any())
+					break;
 			}
 		}
 
