@@ -492,7 +492,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				return Enumerable.Empty<ISource>();
 
 			return graph.GetActiveSourceEndpoints(destination.Endpoint,
-			                                      destination.ConnectionType, false)
+			                                      destination.ConnectionType, false, true)
 			            .Select(e => GetSourceFromEndpoint(e))
 			            .Where(s => s != null);
 		}

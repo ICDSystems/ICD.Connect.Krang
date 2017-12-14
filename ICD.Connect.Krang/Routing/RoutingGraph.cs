@@ -188,10 +188,11 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="destinationInput"></param>
 		/// <param name="type"></param>
 		/// <param name="signalDetected">When true skips inputs where no video is detected.</param>
+		/// <param name="inputActive"></param>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <returns>The sources</returns>
 		public IEnumerable<EndpointInfo> GetActiveSourceEndpoints(EndpointInfo destinationInput, eConnectionType type,
-		                                                          bool signalDetected)
+		                                                          bool signalDetected, bool inputActive)
 		{
 			IRouteDestinationControl destination = GetDestinationControl(destinationInput.Device, destinationInput.Control);
 			if (destination == null)
@@ -199,7 +200,8 @@ namespace ICD.Connect.Krang.Routing
 
 			foreach (eConnectionType flag in EnumUtils.GetFlagsExceptNone(type))
 			{
-				EndpointInfo? endpoint = GetActiveSourceEndpoint(destination, destinationInput.Address, flag, signalDetected);
+				EndpointInfo? endpoint = GetActiveSourceEndpoint(destination, destinationInput.Address, flag, signalDetected,
+				                                                 inputActive);
 				if (endpoint.HasValue)
 					yield return endpoint.Value;
 			}
@@ -212,10 +214,11 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="input"></param>
 		/// <param name="type"></param>
 		/// <param name="signalDetected">When true skips inputs where no video is detected.</param>
+		/// <param name="inputActive"></param>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <returns>The source</returns>
 		public EndpointInfo? GetActiveSourceEndpoint(IRouteDestinationControl destination, int input,
-		                                             eConnectionType type, bool signalDetected)
+		                                             eConnectionType type, bool signalDetected, bool inputActive)
 		{
 			if (destination == null)
 				throw new ArgumentNullException("destination");
@@ -224,6 +227,9 @@ namespace ICD.Connect.Krang.Routing
 				throw new ArgumentNullException("type", "type must have a single flag");
 
 			if (signalDetected && !destination.GetSignalDetectedState(input, type))
+				return null;
+
+			if (inputActive && !destination.GetInputActiveState(input, type))
 				return null;
 
 			Connection inputConnection = Connections.GetInputConnection(destination, input);
@@ -244,7 +250,7 @@ namespace ICD.Connect.Krang.Routing
 
 			ConnectorInfo? sourceConnector = sourceAsMidpoint.GetInput(inputConnection.Source.Address, type);
 			return sourceConnector.HasValue
-				       ? GetActiveSourceEndpoint(sourceAsMidpoint, sourceConnector.Value.Address, type, signalDetected)
+				       ? GetActiveSourceEndpoint(sourceAsMidpoint, sourceConnector.Value.Address, type, signalDetected, inputActive)
 				       : null;
 		}
 
@@ -255,15 +261,17 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="sourceOutput"></param>
 		/// <param name="type"></param>
 		/// <param name="signalDetected">When true skips inputs where no video is detected.</param>
+		/// <param name="inputActive"></param>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <returns>The sources</returns>
 		public IEnumerable<EndpointInfo> GetActiveDestinationEndpoints(IRouteSourceControl sourceControl, int sourceOutput,
-		                                                               eConnectionType type, bool signalDetected)
+		                                                               eConnectionType type, bool signalDetected,
+		                                                               bool inputActive)
 		{
 			if (sourceControl == null)
 				throw new ArgumentNullException("sourceControl");
 
-			return FindActivePaths(sourceControl.GetOutputEndpointInfo(sourceOutput), type, signalDetected)
+			return FindActivePaths(sourceControl.GetOutputEndpointInfo(sourceOutput), type, signalDetected, inputActive)
 				.Select(p => p.Last().Destination);
 		}
 
@@ -336,7 +344,6 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="destination"></param>
 		/// <param name="type"></param>
 		/// <param name="roomId"></param>
-		[CanBeNull]
 		public ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
 		{
 			if (EnumUtils.HasMultipleFlags(type))
@@ -391,11 +398,12 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="destination"></param>
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
+		/// <param name="inputActive"></param>
 		/// <returns></returns>
 		public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
-		                                                 bool signalDetected)
+		                                                 bool signalDetected, bool inputActive)
 		{
-			foreach (Connection[] path in FindActivePaths(source, type, signalDetected))
+			foreach (Connection[] path in FindActivePaths(source, type, signalDetected, inputActive))
 			{
 				// It's possible the path goes through our destination
 				int index = path.FindIndex(c => c.Destination == destination);
@@ -412,12 +420,14 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="source"></param>
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
+		/// <param name="inputActive"></param>
 		/// <returns></returns>
-		public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected)
+		public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected,
+		                                                 bool inputActive)
 		{
 			return EnumUtils.HasMultipleFlags(type)
-				       ? EnumUtils.GetFlagsExceptNone(type).SelectMany(f => FindActivePaths(source, f, signalDetected))
-				       : FindActivePathsSingleFlag(source, type, signalDetected);
+				       ? EnumUtils.GetFlagsExceptNone(type).SelectMany(f => FindActivePaths(source, f, signalDetected, inputActive))
+				       : FindActivePathsSingleFlag(source, type, signalDetected, inputActive);
 		}
 
 		/// <summary>
@@ -426,11 +436,12 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="source"></param>
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
+		/// <param name="inputActive"></param>
 		/// <returns></returns>
 		private IEnumerable<Connection[]> FindActivePathsSingleFlag(EndpointInfo source, eConnectionType type,
-		                                                            bool signalDetected)
+		                                                            bool signalDetected, bool inputActive)
 		{
-			return FindActivePathsSingleFlag(source, type, signalDetected, new List<Connection>()).ToArray();
+			return FindActivePathsSingleFlag(source, type, signalDetected, inputActive, new List<Connection>()).ToArray();
 		}
 
 		/// <summary>
@@ -439,10 +450,11 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="source"></param>
 		/// <param name="type"></param>
 		/// <param name="signalDetected"></param>
+		/// <param name="inputActive"></param>
 		/// <param name="visited"></param>
 		/// <returns></returns>
 		private IEnumerable<Connection[]> FindActivePathsSingleFlag(EndpointInfo source, eConnectionType type,
-		                                                            bool signalDetected, List<Connection> visited)
+		                                                            bool signalDetected, bool inputActive, List<Connection> visited)
 		{
 			if (!EnumUtils.HasSingleFlag(type))
 				throw new ArgumentException("Type enum requires exactly 1 flag.", "type");
@@ -461,6 +473,17 @@ namespace ICD.Connect.Krang.Routing
 			if (signalDetected)
 			{
 				if (destination == null || !destination.GetSignalDetectedState(outputConnection.Destination.Address, type))
+				{
+					if (visited.Count > 0)
+						yield return visited.ToArray(visited.Count);
+					yield break;
+				}
+			}
+
+			// If we care about input active state, don't follow this path if the input isn't active on the destination.
+			if (inputActive)
+			{
+				if (destination == null || !destination.GetInputActiveState(outputConnection.Destination.Address, type))
 				{
 					if (visited.Count > 0)
 						yield return visited.ToArray(visited.Count);
@@ -495,7 +518,7 @@ namespace ICD.Connect.Krang.Routing
 			{
 				EndpointInfo newSource = midpoint.GetOutputEndpointInfo(outputAddress);
 				foreach (
-					Connection[] path in FindActivePathsSingleFlag(newSource, type, signalDetected, new List<Connection>(visited)))
+					Connection[] path in FindActivePathsSingleFlag(newSource, type, signalDetected, inputActive, new List<Connection>(visited)))
 					yield return path;
 			}
 		}
@@ -812,7 +835,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="roomId"></param>
 		private void Unroute(EndpointInfo source, eConnectionType type, int roomId)
 		{
-			foreach (Connection[] path in FindActivePaths(source, type, false))
+			foreach (Connection[] path in FindActivePaths(source, type, false, false))
 			{
 				// Loop backwards looking for switchers closest to the destination
 				for (int index = path.Length - 1; index > 0; index--)
@@ -836,7 +859,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <returns>False if the devices could not be unrouted.</returns>
 		public void Unroute(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
 		{
-			foreach (Connection[] path in FindActivePaths(source, destination, type, false))
+			foreach (Connection[] path in FindActivePaths(source, destination, type, false, false))
 				Unroute(path, type, roomId);
 		}
 
