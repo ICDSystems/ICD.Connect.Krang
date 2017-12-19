@@ -23,16 +23,16 @@ namespace ICD.Connect.Krang.Core
     [PublicAPI]
     public sealed class KrangCoreSettings : AbstractSettings, ICoreSettings
     {
-        public const string ROOT_ELEMENT = "IcdConfig";
+	    private const string ROOT_ELEMENT = "IcdConfig";
 
-        public const string FACTORY_NAME = "Krang";
+	    private const string FACTORY_NAME = "Krang";
 
         private const string HEADER_ELEMENT = "Header";
         private const string THEMES_ELEMENT = "Themes";
-        public const string PANELS_ELEMENT = "Panels";
-        public const string PORTS_ELEMENT = "Ports";
-        public const string DEVICES_ELEMENT = "Devices";
-        public const string ROOMS_ELEMENT = "Rooms";
+	    private const string PANELS_ELEMENT = "Panels";
+	    private const string PORTS_ELEMENT = "Ports";
+	    private const string DEVICES_ELEMENT = "Devices";
+	    private const string ROOMS_ELEMENT = "Rooms";
         private const string ROUTING_ELEMENT = "Routing";
         private const string PARTITIONING_ELEMENT = "Partitioning";
         private const string BROADCAST_ELEMENT = "Broadcast";
@@ -50,7 +50,7 @@ namespace ICD.Connect.Krang.Core
         /// <summary>
         /// Gets the theme settings.
         /// </summary>
-        public SettingsCollection ThemeSettings
+        private SettingsCollection ThemeSettings
         {
             get
             {
@@ -62,7 +62,7 @@ namespace ICD.Connect.Krang.Core
         /// <summary>
         /// Gets the device settings.
         /// </summary>
-        public SettingsCollection DeviceSettings
+        private SettingsCollection DeviceSettings
         {
             get
             {
@@ -74,7 +74,7 @@ namespace ICD.Connect.Krang.Core
         /// <summary>
         /// Gets the port settings.
         /// </summary>
-        public SettingsCollection PortSettings
+        private SettingsCollection PortSettings
         {
             get
             {
@@ -86,7 +86,7 @@ namespace ICD.Connect.Krang.Core
         /// <summary>
         /// Gets the panel settings.
         /// </summary>
-        public SettingsCollection PanelSettings
+        private SettingsCollection PanelSettings
         {
             get
             {
@@ -98,7 +98,7 @@ namespace ICD.Connect.Krang.Core
         /// <summary>
         /// Gets the room settings.
         /// </summary>
-        public SettingsCollection RoomSettings
+        private SettingsCollection RoomSettings
         {
             get
             {
@@ -107,7 +107,7 @@ namespace ICD.Connect.Krang.Core
             }
         }
 
-        public RoutingGraphSettings RoutingGraphSettings
+	    private RoutingGraphSettings RoutingGraphSettings
         {
             get
             {
@@ -115,7 +115,7 @@ namespace ICD.Connect.Krang.Core
             }
         }
 
-        public PartitionManagerSettings PartitionManagerSettings
+	    private PartitionManagerSettings PartitionManagerSettings
         {
             get
             {
@@ -312,8 +312,8 @@ namespace ICD.Connect.Krang.Core
         /// <returns></returns>
         private static bool HasBadDeviceDependency(ISettings settings, IEnumerable<int> deviceIds)
         {
-            var expectedSettingsDependencyCount = settings.DependencyCount;
-            foreach (var id in deviceIds.Where(settings.HasDeviceDependency))
+            int expectedSettingsDependencyCount = settings.DependencyCount;
+            foreach (int id in deviceIds.Where(settings.HasDeviceDependency))
                 expectedSettingsDependencyCount--;
             return expectedSettingsDependencyCount != 0;
         }
