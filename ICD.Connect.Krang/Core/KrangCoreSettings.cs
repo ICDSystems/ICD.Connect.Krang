@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
+using ICD.Common.Services;
+using ICD.Common.Services.Logging;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
@@ -154,6 +156,8 @@ namespace ICD.Connect.Krang.Core
         /// </summary>
         public override Type OriginatorType { get { return typeof(KrangCore); } }
 
+		private ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
+
         #endregion
 
         /// <summary>
@@ -230,11 +234,13 @@ namespace ICD.Connect.Krang.Core
             IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
             IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
 
-            OriginatorSettings.AddRange(themes);
-            OriginatorSettings.AddRange(panels);
-            OriginatorSettings.AddRange(ports);
-            OriginatorSettings.AddRange(devices);
-            OriginatorSettings.AddRange(rooms);
+	        IEnumerable<ISettings> concat =
+		        themes.Concat(panels)
+		              .Concat(ports)
+		              .Concat(devices)
+		              .Concat(rooms);
+
+			AddSettingsSkipDuplicateIds(concat);
 
             string child;
 
@@ -245,7 +251,53 @@ namespace ICD.Connect.Krang.Core
                 UpdatePartitioningFromXml(child);
         }
 
-        private void UpdateHeaderFromXml(string xml)
+		/// <summary>
+		/// Adds the given settings instances to the core settings collection.
+		/// Logs and skips any items with duplicate ids.
+		/// </summary>
+		/// <param name="settings"></param>
+	    private void AddSettingsSkipDuplicateIds(IEnumerable<ISettings> settings)
+	    {
+			if (settings == null)
+				throw new ArgumentNullException("settings");
+
+			foreach (ISettings item in settings)
+				AddSettingsSkipDuplicateId(item);
+	    }
+
+	    /// <summary>
+		/// Adds the given settings instance to the core settings collection.
+	    /// Logs and skips any item with duplicate id.
+	    /// </summary>
+	    /// <param name="settings"></param>
+	    private bool AddSettingsSkipDuplicateId(ISettings settings)
+	    {
+		    if (settings == null)
+			    throw new ArgumentNullException("settings");
+
+		    if (OriginatorSettings.Add(settings))
+			    return true;
+
+		    Logger.AddEntry(eSeverity.Error, "{0} failed to add {1} - Duplicate ID", this, settings);
+		    return false;
+	    }
+
+		/// <summary>
+		/// Adds the collection settings instances to the core settings collection.
+		/// Logs and skips any item with duplicate id.
+		/// Removes items with duplicate ids from the given collection.
+		/// </summary>
+		/// <param name="collection"></param>
+	    private void AddSettingsRemoveOnDuplicateId(ICollection<ISettings> collection)
+	    {
+			foreach (ISettings item in collection.ToArray(collection.Count))
+			{
+				if (!AddSettingsSkipDuplicateId(item))
+					collection.Remove(item);
+			}
+	    }
+
+	    private void UpdateHeaderFromXml(string xml)
         {
             m_Header.Clear();
 
@@ -256,28 +308,30 @@ namespace ICD.Connect.Krang.Core
 
         private void UpdateRoutingFromXml(string xml)
         {
-            var routing = new RoutingGraphSettings();
+            RoutingGraphSettings routing = new RoutingGraphSettings();
             routing.ParseXml(xml);
 
-            OriginatorSettings.Add(routing);
+	        if (!AddSettingsSkipDuplicateId(routing))
+		        return;
 
-            //add routing's child originators so they can be accessed by CoreDeviceFactory
-            OriginatorSettings.AddRange(routing.ConnectionSettings);
-            OriginatorSettings.AddRange(routing.StaticRouteSettings);
-            OriginatorSettings.AddRange(routing.SourceSettings);
-            OriginatorSettings.AddRange(routing.DestinationSettings);
-            OriginatorSettings.AddRange(routing.DestinationGroupSettings);
+            // Add routing's child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(routing.ConnectionSettings);
+			AddSettingsRemoveOnDuplicateId(routing.StaticRouteSettings);
+			AddSettingsRemoveOnDuplicateId(routing.SourceSettings);
+			AddSettingsRemoveOnDuplicateId(routing.DestinationSettings);
+			AddSettingsRemoveOnDuplicateId(routing.DestinationGroupSettings);
         }
 
         private void UpdatePartitioningFromXml(string xml)
         {
-            var partitioning = new PartitionManagerSettings();
+            PartitionManagerSettings partitioning = new PartitionManagerSettings();
             partitioning.ParseXml(xml);
 
-            OriginatorSettings.Add(partitioning);
+			if (!AddSettingsSkipDuplicateId(partitioning))
+				return;
 
-            //add partitioning's child originators so they can be accessed by CoreDeviceFactory
-            OriginatorSettings.AddRange(partitioning.PartitionSettings);
+            // Add partitioning's child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(partitioning.PartitionSettings);
         }
 
         /// <summary>
