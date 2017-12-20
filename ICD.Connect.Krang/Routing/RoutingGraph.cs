@@ -441,7 +441,7 @@ namespace ICD.Connect.Krang.Routing
 		private IEnumerable<Connection[]> FindActivePathsSingleFlag(EndpointInfo source, eConnectionType type,
 		                                                            bool signalDetected, bool inputActive)
 		{
-			return FindActivePathsSingleFlag(source, type, signalDetected, inputActive, new List<Connection>()).ToArray();
+			return FindActivePathsSingleFlag(source, type, signalDetected, inputActive, new List<Connection>());
 		}
 
 		/// <summary>
@@ -454,7 +454,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="visited"></param>
 		/// <returns></returns>
 		private IEnumerable<Connection[]> FindActivePathsSingleFlag(EndpointInfo source, eConnectionType type,
-		                                                            bool signalDetected, bool inputActive, List<Connection> visited)
+		                                                            bool signalDetected, bool inputActive, ICollection<Connection> visited)
 		{
 			if (!EnumUtils.HasSingleFlag(type))
 				throw new ArgumentException("Type enum requires exactly 1 flag.", "type");
@@ -596,8 +596,6 @@ namespace ICD.Connect.Krang.Routing
 			if (op == null)
 				throw new ArgumentNullException("op");
 
-			Logger.AddEntry(eSeverity.Informational, "Establishing route {0}", op);
-
 			foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(op.ConnectionType))
 			{
 				ConnectionPath path = FindPath(op.Source, op.Destination, type, op.RoomId);
@@ -625,8 +623,6 @@ namespace ICD.Connect.Krang.Routing
 
 			if (path == null)
 				throw new ArgumentNullException("path");
-
-			Logger.AddEntry(eSeverity.Informational, "{0} establishing path {1}", op, StringUtils.ArrayFormat(path));
 
 			int pendingRoutes;
 
