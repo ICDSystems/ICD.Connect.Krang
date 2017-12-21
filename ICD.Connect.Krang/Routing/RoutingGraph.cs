@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using ICD.Common.Properties;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
@@ -702,9 +701,10 @@ namespace ICD.Connect.Krang.Routing
 
                 if (pathsForOps.Count() != routeOperations.Count())
                 {
+                    // todo: Fix "\n" to better work across platforms (environment.newline doesn't work)
                     Logger.AddEntry(eSeverity.Error,
                                     "Unable to establish path for all of the following routes:{0}",
-                                    routeOperations.Aggregate(Environment.NewLine, (current, op) => current + op + Environment.NewLine));
+                                    routeOperations.Aggregate("\n", (current, op) => current + op + "\n"));
                     continue;
                 }
 
