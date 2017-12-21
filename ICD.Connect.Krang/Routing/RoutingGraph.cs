@@ -710,7 +710,8 @@ namespace ICD.Connect.Krang.Routing
 
                 foreach (var pair in pathsForOps)
                 {
-                    RoutePath(pair.Key, pair.Value);
+                    KeyValuePair<RouteOperation, ConnectionPath> pair1 = pair;
+                    ThreadingUtils.SafeInvoke(() => RoutePath(pair1.Key, pair1.Value));
                 }
             }
         }
@@ -730,31 +731,33 @@ namespace ICD.Connect.Krang.Routing
 
             int pendingRoutes;
 
+
+
+            // Configure the switchers
+            foreach (Connection[] pair in path.GetAdjacentPairs())
+            {
+                Connection connection = pair[0];
+                Connection nextConnection = pair[1];
+
+                RouteOperation switchOperation = new RouteOperation(op)
+                {
+                    LocalInput = connection.Destination.Address,
+                    LocalOutput = nextConnection.Source.Address,
+                };
+
+                // Claim the connection leading up to the switcher
+                //ConnectionUsages.ClaimConnection(connection, switchOperation);
+
+                IRouteSwitcherControl switcher = this.GetDestinationControl(connection) as IRouteSwitcherControl;
+                if (switcher == null)
+                    continue;
+
+                switcher.Route(switchOperation);
+            }
+
             try
             {
                 m_PendingRoutesSection.Enter();
-
-                // Configure the switchers
-                foreach (Connection[] pair in path.GetAdjacentPairs())
-                {
-                    Connection connection = pair[0];
-                    Connection nextConnection = pair[1];
-
-                    RouteOperation switchOperation = new RouteOperation(op)
-                    {
-                        LocalInput = connection.Destination.Address,
-                        LocalOutput = nextConnection.Source.Address,
-                    };
-
-                    // Claim the connection leading up to the switcher
-                    //ConnectionUsages.ClaimConnection(connection, switchOperation);
-
-                    IRouteSwitcherControl switcher = this.GetDestinationControl(connection) as IRouteSwitcherControl;
-                    if (switcher == null)
-                        continue;
-
-                    switcher.Route(switchOperation);
-                }
 
                 pendingRoutes = m_PendingRoutes.ContainsKey(op.Id) ? m_PendingRoutes[op.Id] : 0;
             }
