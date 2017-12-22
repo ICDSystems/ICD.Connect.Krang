@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
@@ -501,7 +502,12 @@ namespace ICD.Connect.Krang.Routing
         private IEnumerable<Connection[]> FindActivePathsSingleFlag(EndpointInfo source, eConnectionType type,
                                                                     bool signalDetected, bool inputActive)
         {
-            return FindActivePathsSingleFlag(source, type, signalDetected, inputActive, new List<Connection>());
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            IEnumerable<Connection[]> paths = FindActivePathsSingleFlag(source, type, signalDetected, inputActive, new List<Connection>());
+            stopwatch.Stop();
+            Logger.AddEntry(eSeverity.Debug, "RoutingGraph FindActivePathsSingleFlag took {0}ms", stopwatch.ElapsedMilliseconds);
+            return paths;
         }
 
         /// <summary>
@@ -577,8 +583,13 @@ namespace ICD.Connect.Krang.Routing
             foreach (int outputAddress in outputs)
             {
                 EndpointInfo newSource = midpoint.GetOutputEndpointInfo(outputAddress);
-                foreach (
-                    Connection[] path in FindActivePathsSingleFlag(newSource, type, signalDetected, inputActive, new List<Connection>(visited)))
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                IEnumerable<Connection[]> paths = FindActivePathsSingleFlag(newSource, type, signalDetected, inputActive,
+                                                                            new List<Connection>(visited));
+                stopwatch.Stop();
+                Logger.AddEntry(eSeverity.Debug, "RoutingGraph FindActivPathsSingleFlag took {0}ms", stopwatch.ElapsedMilliseconds);
+                foreach (Connection[] path in paths)
                     yield return path;
             }
         }
@@ -670,7 +681,11 @@ namespace ICD.Connect.Krang.Routing
 
             foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(op.ConnectionType))
             {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
                 ConnectionPath path = FindPath(op.Source, op.Destination, type, op.RoomId);
+                stopwatch.Stop();
+                Logger.AddEntry(eSeverity.Debug, "RoutingGraph FindPath took {0}ms", stopwatch.ElapsedMilliseconds);
                 RouteOperation operation = new RouteOperation(op) { ConnectionType = type };
 
                 if (path == null)
@@ -695,7 +710,11 @@ namespace ICD.Connect.Krang.Routing
 
             foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(routeOperations.First().ConnectionType))
             {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
                 IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, type, routeOperations.First().RoomId);
+                stopwatch.Stop();
+                Logger.AddEntry(eSeverity.Debug, "RoutingGraph FindPaths(multi) took {0}ms", stopwatch.ElapsedMilliseconds);
                 IEnumerable<RouteOperation> splitTypeOps =
                     routeOperations.Select(op => new RouteOperation(op) { ConnectionType = type });
 
