@@ -636,7 +636,6 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destination"></param>
         /// <param name="type"></param>
         /// <param name="roomId"></param>
-        /// <returns>False if route could not be established</returns>
         public void Route(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
         {
             RouteOperation operation = new RouteOperation
@@ -650,7 +649,14 @@ namespace ICD.Connect.Krang.Routing
             Route(operation);
         }
 
-        public void Route(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
+        /// <summary>
+        /// Routes the source to the destinations.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destinations"></param>
+        /// <param name="type"></param>
+        /// <param name="roomId"></param>
+        public void RouteMultiple(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
         {
             IEnumerable<RouteOperation> operations = destinations.Select(destination => new RouteOperation
             {
@@ -659,14 +665,13 @@ namespace ICD.Connect.Krang.Routing
                 ConnectionType = type,
                 RoomId = roomId
             });
-            Route(operations);
+            RouteMultiple(operations);
         }
 
         /// <summary>
         /// Configures switchers to establish the given routing operation.
         /// </summary>
-        /// <param name="op"></param>>
-        /// <returns>False if route could not be established</returns>
+        /// <param name="op"></param>
         public void Route(RouteOperation op)
         {
             if (op == null)
@@ -687,12 +692,17 @@ namespace ICD.Connect.Krang.Routing
             }
         }
 
-        public void Route(IEnumerable<RouteOperation> ops)
+        /// <summary>
+        /// Configures switchers to establish the given routing operations.
+        /// </summary>
+        /// <param name="operations"></param>
+        [PublicAPI]
+        public void RouteMultiple(IEnumerable<RouteOperation> operations)
         {
-            if (ops == null)
-                throw new ArgumentNullException("ops");
+            if (operations == null)
+                throw new ArgumentNullException("operations");
 
-            IList<RouteOperation> routeOperations = ops as IList<RouteOperation> ?? ops.ToList();
+            IList<RouteOperation> routeOperations = operations as IList<RouteOperation> ?? operations.ToList();
 
             if (!routeOperations.Any())
                 return;
@@ -702,22 +712,19 @@ namespace ICD.Connect.Krang.Routing
 
                 IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, type, routeOperations.First().RoomId);
 
-                IEnumerable<RouteOperation> splitTypeOps =
-                    routeOperations.Select(op => new RouteOperation(op) { ConnectionType = type });
-
                 if (pathsForOps.Count() != routeOperations.Count())
                 {
-                    // todo: Fix "\n" to better work across platforms (environment.newline doesn't work)
+                    // TODO: Fix "\n" to better work across platforms (environment.newline doesn't work)
                     Logger.AddEntry(eSeverity.Error,
                                     "Unable to establish path for all of the following routes:{0}",
                                     routeOperations.Aggregate("\n", (current, op) => current + op + "\n"));
                     continue;
                 }
 
-                foreach (var pair in pathsForOps)
+                foreach (var kvp in pathsForOps)
                 {
-                    KeyValuePair<RouteOperation, ConnectionPath> pair1 = pair;
-                    ThreadingUtils.SafeInvoke(() => RoutePath(pair1.Key, pair1.Value));
+                    KeyValuePair<RouteOperation, ConnectionPath> pair = kvp;
+                    ThreadingUtils.SafeInvoke(() => RoutePath(pair.Key, pair.Value));
                 }
             }
         }
