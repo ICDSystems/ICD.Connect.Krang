@@ -648,7 +648,31 @@ namespace ICD.Connect.Krang.Routing
             Route(operation);
         }
 
-        /// <summary>
+	    /// <summary>
+	    /// Configures switchers to establish the given routing operation.
+	    /// </summary>
+	    /// <param name="op"></param>
+	    public void Route(RouteOperation op)
+	    {
+		    if (op == null)
+			    throw new ArgumentNullException("op");
+
+		    foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(op.ConnectionType))
+		    {
+			    ConnectionPath path = FindPath(op.Source, op.Destination, type, op.RoomId);
+			    RouteOperation operation = new RouteOperation(op) { ConnectionType = type };
+
+			    if (path == null)
+			    {
+				    Logger.AddEntry(eSeverity.Error, "No path found for route {0}", operation);
+				    continue;
+			    }
+
+			    RoutePath(operation, path);
+		    }
+	    }
+
+	    /// <summary>
         /// Routes the source to the destinations.
         /// </summary>
         /// <param name="source"></param>
@@ -665,40 +689,15 @@ namespace ICD.Connect.Krang.Routing
                 RoomId = roomId
             });
 
-            return RouteMultiple(operations);
-
+            return RouteMultiple(operations, type);
         }
 
-        /// <summary>
-        /// Configures switchers to establish the given routing operation.
-        /// </summary>
-        /// <param name="op"></param>
-        public void Route(RouteOperation op)
-        {
-            if (op == null)
-                throw new ArgumentNullException("op");
-
-            foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(op.ConnectionType))
-            {
-                ConnectionPath path = FindPath(op.Source, op.Destination, type, op.RoomId);
-                RouteOperation operation = new RouteOperation(op) { ConnectionType = type };
-
-                if (path == null)
-                {
-                    Logger.AddEntry(eSeverity.Error, "No path found for route {0}", operation);
-                    continue;
-                }
-
-                RoutePath(operation, path);
-            }
-        }
-
-        /// <summary>
-        /// Configures switchers to establish the given routing operations.
-        /// </summary>
-        /// <param name="operations"></param>
-        [PublicAPI]
-        public IEnumerable<RouteOperation> RouteMultiple(IEnumerable<RouteOperation> operations)
+	    /// <summary>
+	    /// Configures switchers to establish the given routing operations.
+	    /// </summary>
+	    /// <param name="operations"></param>
+	    /// <param name="type"></param>
+	    private IEnumerable<RouteOperation> RouteMultiple(IEnumerable<RouteOperation> operations, eConnectionType type)
         {
             if (operations == null)
                 throw new ArgumentNullException("operations");
@@ -709,12 +708,9 @@ namespace ICD.Connect.Krang.Routing
             if (!routeOperations.Any())
                 return routeOperationsPerformed;
 
-            
-
-            foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(routeOperations.First().ConnectionType))
+            foreach (eConnectionType flag in EnumUtils.GetFlagsExceptNone(type))
             {
-
-                IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, type, routeOperations.First().RoomId);
+				IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, flag, routeOperations.First().RoomId);
 
 
                 // Disabling this error logging because local display switching is multiple destinations
