@@ -689,7 +689,7 @@ namespace ICD.Connect.Krang.Routing
                 RoomId = roomId
             });
 
-            return RouteMultiple(operations, type);
+            return RouteMultiple(operations, type, roomId);
         }
 
 	    /// <summary>
@@ -697,7 +697,8 @@ namespace ICD.Connect.Krang.Routing
 	    /// </summary>
 	    /// <param name="operations"></param>
 	    /// <param name="type"></param>
-	    private IEnumerable<RouteOperation> RouteMultiple(IEnumerable<RouteOperation> operations, eConnectionType type)
+	    /// <param name="roomId"></param>
+	    private IEnumerable<RouteOperation> RouteMultiple(IEnumerable<RouteOperation> operations, eConnectionType type, int roomId)
         {
             if (operations == null)
                 throw new ArgumentNullException("operations");
@@ -705,12 +706,9 @@ namespace ICD.Connect.Krang.Routing
             IList<RouteOperation> routeOperations = operations as IList<RouteOperation> ?? operations.ToList();
             List<RouteOperation> routeOperationsPerformed = new List<RouteOperation>();
 
-            if (!routeOperations.Any())
-                return routeOperationsPerformed;
-
             foreach (eConnectionType flag in EnumUtils.GetFlagsExceptNone(type))
             {
-				IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, flag, routeOperations.First().RoomId);
+				IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, flag, roomId);
 
                 // Disabling this error logging because local display switching is multiple destinations
 	            //if (pathsForOps.Count() != routeOperations.Count())
