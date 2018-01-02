@@ -379,7 +379,7 @@ namespace ICD.Connect.Krang.Routing
 		    int roomId)
 	    {
 		    if (destinations == null)
-			    throw new ArgumentNullException("routeOperations");
+			    throw new ArgumentNullException("destinations");
 
 		    if (EnumUtils.HasMultipleFlags(flag))
 			    throw new ArgumentException("ConnectionType has multiple flags", "flag");
