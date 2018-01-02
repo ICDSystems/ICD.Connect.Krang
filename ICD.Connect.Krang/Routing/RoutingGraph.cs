@@ -691,15 +691,6 @@ namespace ICD.Connect.Krang.Routing
 				IEnumerable<KeyValuePair<EndpointInfo, ConnectionPath>> pathsForDestinations =
 					FindPaths(source, destinationsList, flag, roomId);
 
-			    // Disabling this error logging because local display switching is multiple destinations
-			    //if (pathsForOps.Count() != routeOperations.Count())
-			    //{
-			    //    Logger.AddEntry(eSeverity.Error,
-			    //                    "Unable to establish path for all of the following routes:{0}",
-			    //                    routeOperations.Aggregate(IcdEnvironment.NewLine, (current, op) => current + op + "\n"));
-			    //    continue;
-			    //}
-
 			    foreach (KeyValuePair<EndpointInfo, ConnectionPath> kvp in pathsForDestinations)
 			    {
 					RouteOperation operation = new RouteOperation
