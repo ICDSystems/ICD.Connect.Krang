@@ -650,7 +650,7 @@ namespace ICD.Connect.Krang.Routing
             Route(operation);
         }
 
-        public void Route(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
+        public IEnumerable<RouteOperation> Route(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
         {
             IEnumerable<RouteOperation> operations = destinations.Select(destination => new RouteOperation
             {
@@ -659,7 +659,7 @@ namespace ICD.Connect.Krang.Routing
                 ConnectionType = type,
                 RoomId = roomId
             });
-            Route(operations);
+            return Route(operations);
         }
 
         /// <summary>
@@ -687,39 +687,48 @@ namespace ICD.Connect.Krang.Routing
             }
         }
 
-        public void Route(IEnumerable<RouteOperation> ops)
+        public IEnumerable<RouteOperation> Route(IEnumerable<RouteOperation> ops)
         {
             if (ops == null)
                 throw new ArgumentNullException("ops");
 
             IList<RouteOperation> routeOperations = ops as IList<RouteOperation> ?? ops.ToList();
+            List<RouteOperation> routeOperationsPerformed = new List<RouteOperation>();
 
             if (!routeOperations.Any())
-                return;
+                return routeOperationsPerformed;
+
+            
 
             foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(routeOperations.First().ConnectionType))
             {
 
                 IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, type, routeOperations.First().RoomId);
 
-                IEnumerable<RouteOperation> splitTypeOps =
-                    routeOperations.Select(op => new RouteOperation(op) { ConnectionType = type });
+                // splitTypeOps was never used - why was it here?
+                //IEnumerable<RouteOperation> splitTypeOps =
+                //    routeOperations.Select(op => new RouteOperation(op) { ConnectionType = type });
 
-                if (pathsForOps.Count() != routeOperations.Count())
-                {
+
+                // Disabling this error logging because local display switching is multiple destinations
+                //if (pathsForOps.Count() != routeOperations.Count())
+                //{
                     // todo: Fix "\n" to better work across platforms (environment.newline doesn't work)
-                    Logger.AddEntry(eSeverity.Error,
-                                    "Unable to establish path for all of the following routes:{0}",
-                                    routeOperations.Aggregate("\n", (current, op) => current + op + "\n"));
-                    continue;
-                }
+                    // Logger.AddEntry(eSeverity.Error,
+                    //                "Unable to establish path for all of the following routes:{0}",
+                    //                routeOperations.Aggregate("\n", (current, op) => current + op + "\n"));
+                    //continue;
+                //}
 
                 foreach (var pair in pathsForOps)
                 {
                     KeyValuePair<RouteOperation, ConnectionPath> pair1 = pair;
+                    routeOperationsPerformed.Add(pair1.Key);
                     ThreadingUtils.SafeInvoke(() => RoutePath(pair1.Key, pair1.Value));
                 }
             }
+
+            return routeOperationsPerformed;
         }
 
         /// <summary>
