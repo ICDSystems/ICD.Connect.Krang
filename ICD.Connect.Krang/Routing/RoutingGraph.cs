@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Services;
 using ICD.Common.Services.Logging;
@@ -413,7 +412,7 @@ namespace ICD.Connect.Krang.Routing
             }
 
             Dictionary<RouteOperation, IEnumerable<Connection>> paths = 
-                RecursionUtils.BreadthFirstSearchManyDestinations<Connection, RouteOperation>(outputConnection,
+                RecursionUtils.BreadthFirstSearchManyDestinations(outputConnection,
                 targetConnectionsMap,
                 c => GetConnectionChildren(source, c, type, roomId));
             foreach (var path in paths)
@@ -636,7 +635,6 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destination"></param>
         /// <param name="type"></param>
         /// <param name="roomId"></param>
-        /// <returns>False if route could not be established</returns>
         public void Route(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
         {
             RouteOperation operation = new RouteOperation
@@ -650,7 +648,14 @@ namespace ICD.Connect.Krang.Routing
             Route(operation);
         }
 
-        public IEnumerable<RouteOperation> Route(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
+        /// <summary>
+        /// Routes the source to the destinations.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destinations"></param>
+        /// <param name="type"></param>
+        /// <param name="roomId"></param>
+        public IEnumerable<RouteOperation> RouteMultiple(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
         {
             IEnumerable<RouteOperation> operations = destinations.Select(destination => new RouteOperation
             {
@@ -659,14 +664,15 @@ namespace ICD.Connect.Krang.Routing
                 ConnectionType = type,
                 RoomId = roomId
             });
-            return Route(operations);
+
+            return RouteMultiple(operations);
+
         }
 
         /// <summary>
         /// Configures switchers to establish the given routing operation.
         /// </summary>
-        /// <param name="op"></param>>
-        /// <returns>False if route could not be established</returns>
+        /// <param name="op"></param>
         public void Route(RouteOperation op)
         {
             if (op == null)
@@ -687,12 +693,17 @@ namespace ICD.Connect.Krang.Routing
             }
         }
 
-        public IEnumerable<RouteOperation> Route(IEnumerable<RouteOperation> ops)
+        /// <summary>
+        /// Configures switchers to establish the given routing operations.
+        /// </summary>
+        /// <param name="operations"></param>
+        [PublicAPI]
+        public IEnumerable<RouteOperation> RouteMultiple(IEnumerable<RouteOperation> operations)
         {
-            if (ops == null)
-                throw new ArgumentNullException("ops");
+            if (operations == null)
+                throw new ArgumentNullException("operations");
 
-            IList<RouteOperation> routeOperations = ops as IList<RouteOperation> ?? ops.ToList();
+            IList<RouteOperation> routeOperations = operations as IList<RouteOperation> ?? operations.ToList();
             List<RouteOperation> routeOperationsPerformed = new List<RouteOperation>();
 
             if (!routeOperations.Any())
@@ -705,10 +716,6 @@ namespace ICD.Connect.Krang.Routing
 
                 IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, type, routeOperations.First().RoomId);
 
-                // splitTypeOps was never used - why was it here?
-                //IEnumerable<RouteOperation> splitTypeOps =
-                //    routeOperations.Select(op => new RouteOperation(op) { ConnectionType = type });
-
 
                 // Disabling this error logging because local display switching is multiple destinations
                 //if (pathsForOps.Count() != routeOperations.Count())
@@ -720,11 +727,11 @@ namespace ICD.Connect.Krang.Routing
                     //continue;
                 //}
 
-                foreach (var pair in pathsForOps)
+                foreach (var kvp in pathsForOps)
                 {
-                    KeyValuePair<RouteOperation, ConnectionPath> pair1 = pair;
-                    routeOperationsPerformed.Add(pair1.Key);
-                    ThreadingUtils.SafeInvoke(() => RoutePath(pair1.Key, pair1.Value));
+                    KeyValuePair<RouteOperation, ConnectionPath> pair = kvp;
+                    routeOperationsPerformed.Add(pair.Key);
+                    ThreadingUtils.SafeInvoke(() => RoutePath(pair.Key, pair.Value));
                 }
             }
 
