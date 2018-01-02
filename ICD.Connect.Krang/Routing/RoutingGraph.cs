@@ -703,7 +703,7 @@ namespace ICD.Connect.Krang.Routing
 
 					ConnectionPath path = kvp.Value;
 
-					ThreadingUtils.SafeInvoke(() => RoutePath(operation, path));
+					RoutePath(operation, path);
 			    }
 		    }
 	    }
