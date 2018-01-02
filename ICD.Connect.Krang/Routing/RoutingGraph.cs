@@ -364,50 +364,63 @@ namespace ICD.Connect.Krang.Routing
             return path == null ? null : new ConnectionPath(path);
         }
 
-	    private IEnumerable<KeyValuePair<RouteOperation, ConnectionPath>> FindPaths(IEnumerable<RouteOperation> routeOperations,
-	                                                                                EndpointInfo source,
-	                                                                                eConnectionType flag,
-	                                                                                int roomId)
+		/// <summary>
+		/// Returns the shortest paths from the source to the given destinations.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="destinations"></param>
+		/// <param name="flag"></param>
+		/// <param name="roomId"></param>
+		/// <returns></returns>
+		private IEnumerable<KeyValuePair<EndpointInfo, ConnectionPath>> FindPaths(
+		    EndpointInfo source,
+			IEnumerable<EndpointInfo> destinations,
+		    eConnectionType flag,
+		    int roomId)
 	    {
-			if (routeOperations == null)
-				throw new ArgumentNullException("routeOperations");
+		    if (destinations == null)
+			    throw new ArgumentNullException("routeOperations");
 
 		    if (EnumUtils.HasMultipleFlags(flag))
 			    throw new ArgumentException("ConnectionType has multiple flags", "flag");
 
-			Dictionary<RouteOperation, Connection> targetConnectionsMap = new Dictionary<RouteOperation, Connection>();
+		    IcdHashSet<Connection> destionationConnections = new IcdHashSet<Connection>();
+		    Dictionary<Connection, EndpointInfo> connectionToDestinations = new Dictionary<Connection, EndpointInfo>();
 
-			Connection sourceConnection = Connections.GetOutputConnection(source);
+		    Connection sourceConnection = Connections.GetOutputConnection(source);
 
-		    foreach (RouteOperation operation in routeOperations)
+			foreach (EndpointInfo destination in destinations.Distinct())
 		    {
-				// Ensure the sources have a valid output connection. Sources should all be the same, so return dict full of nulls.
+			    // Ensure the source has a valid output connection.
 			    if (sourceConnection == null || !sourceConnection.ConnectionType.HasFlag(flag))
 			    {
-					yield return new KeyValuePair<RouteOperation, ConnectionPath>(operation, null);
+					yield return new KeyValuePair<EndpointInfo, ConnectionPath>(destination, null);
 				    continue;
 			    }
 
-			    // Ensure the destinations have a valid input connection
-			    Connection destinationConnection = Connections.GetInputConnection(operation.Destination);
+			    // Ensure the destination has a valid input connection
+			    Connection destinationConnection = Connections.GetInputConnection(destination);
 			    if (destinationConnection == null || !destinationConnection.ConnectionType.HasFlag(flag))
 			    {
-					yield return new KeyValuePair<RouteOperation, ConnectionPath>(operation, null);
+					yield return new KeyValuePair<EndpointInfo, ConnectionPath>(destination, null);
 				    continue;
 			    }
 
-				targetConnectionsMap.Add(operation, destinationConnection);
+			    destionationConnections.Add(destinationConnection);
+			    connectionToDestinations.Add(destinationConnection, destination);
 		    }
 
-		    Dictionary<RouteOperation, IEnumerable<Connection>> paths =
+		    Dictionary<Connection, IEnumerable<Connection>> paths =
 			    RecursionUtils.BreadthFirstSearchManyDestinations(sourceConnection,
-																  targetConnectionsMap,
+			                                                      destionationConnections,
 			                                                      c => GetConnectionChildren(source, c, flag, roomId));
 
-			foreach (KeyValuePair<RouteOperation, IEnumerable<Connection>> kvp in paths)
+		    foreach (KeyValuePair<Connection, IEnumerable<Connection>> kvp in paths)
 		    {
 			    ConnectionPath finalPath = kvp.Value == null ? null : new ConnectionPath(kvp.Value);
-				yield return new KeyValuePair<RouteOperation, ConnectionPath>(kvp.Key, finalPath);
+			    EndpointInfo destination = connectionToDestinations[kvp.Key];
+
+				yield return new KeyValuePair<EndpointInfo, ConnectionPath>(destination, finalPath);
 		    }
 	    }
 
@@ -666,39 +679,17 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destinations"></param>
         /// <param name="type"></param>
         /// <param name="roomId"></param>
-        public IEnumerable<RouteOperation> RouteMultiple(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
+        public void RouteMultiple(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
         {
-            IEnumerable<RouteOperation> operations = destinations.Select(destination => new RouteOperation
-            {
-                Source = source,
-                Destination = destination,
-                ConnectionType = type,
-                RoomId = roomId
-            });
+			if (destinations == null)
+				throw new ArgumentNullException("destinations");
 
-            return RouteMultiple(operations, source, type, roomId);
-        }
-
-	    /// <summary>
-	    /// Configures switchers to establish the given routing operations.
-	    /// </summary>
-	    /// <param name="operations"></param>
-	    /// <param name="source"></param>
-	    /// <param name="type"></param>
-	    /// <param name="roomId"></param>
-	    private IEnumerable<RouteOperation> RouteMultiple(IEnumerable<RouteOperation> operations, EndpointInfo source,
-	                                                      eConnectionType type, int roomId)
-	    {
-		    if (operations == null)
-			    throw new ArgumentNullException("operations");
-
-		    IList<RouteOperation> routeOperations = operations as IList<RouteOperation> ?? operations.ToList();
-		    List<RouteOperation> routeOperationsPerformed = new List<RouteOperation>();
+		    IList<EndpointInfo> destinationsList = destinations as IList<EndpointInfo> ?? destinations.ToList();
 
 		    foreach (eConnectionType flag in EnumUtils.GetFlagsExceptNone(type))
 		    {
-			    IEnumerable<KeyValuePair<RouteOperation, ConnectionPath>> pathsForOps = FindPaths(routeOperations, source, flag,
-			                                                                                      roomId);
+				IEnumerable<KeyValuePair<EndpointInfo, ConnectionPath>> pathsForDestinations =
+					FindPaths(source, destinationsList, flag, roomId);
 
 			    // Disabling this error logging because local display switching is multiple destinations
 			    //if (pathsForOps.Count() != routeOperations.Count())
@@ -709,15 +700,21 @@ namespace ICD.Connect.Krang.Routing
 			    //    continue;
 			    //}
 
-			    foreach (KeyValuePair<RouteOperation, ConnectionPath> kvp in pathsForOps)
+			    foreach (KeyValuePair<EndpointInfo, ConnectionPath> kvp in pathsForDestinations)
 			    {
-				    KeyValuePair<RouteOperation, ConnectionPath> pair = kvp;
-				    routeOperationsPerformed.Add(pair.Key);
-				    ThreadingUtils.SafeInvoke(() => RoutePath(pair.Key, pair.Value));
+					RouteOperation operation = new RouteOperation
+					{
+						Source = source,
+						Destination = kvp.Key,
+						ConnectionType = flag,
+						RoomId = roomId
+					};
+
+					ConnectionPath path = kvp.Value;
+
+					ThreadingUtils.SafeInvoke(() => RoutePath(operation, path));
 			    }
 		    }
-
-		    return routeOperationsPerformed;
 	    }
 
 	    /// <summary>
