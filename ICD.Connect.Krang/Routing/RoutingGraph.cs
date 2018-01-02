@@ -372,7 +372,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="flag"></param>
 		/// <param name="roomId"></param>
 		/// <returns></returns>
-		private IEnumerable<KeyValuePair<EndpointInfo, ConnectionPath>> FindPaths(
+		public IEnumerable<KeyValuePair<EndpointInfo, ConnectionPath>> FindPaths(
 		    EndpointInfo source,
 			IEnumerable<EndpointInfo> destinations,
 		    eConnectionType flag,
@@ -713,7 +713,7 @@ namespace ICD.Connect.Krang.Routing
         /// </summary>
         /// <param name="op"></param>
         /// <param name="path"></param>
-        private void RoutePath(RouteOperation op, IEnumerable<Connection> path)
+        public void RoutePath(RouteOperation op, IEnumerable<Connection> path)
         {
             if (op == null)
                 throw new ArgumentNullException("op");
