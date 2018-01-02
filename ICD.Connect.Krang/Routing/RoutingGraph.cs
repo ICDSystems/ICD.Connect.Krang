@@ -712,18 +712,16 @@ namespace ICD.Connect.Krang.Routing
             {
 				IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, flag, routeOperations.First().RoomId);
 
-
                 // Disabling this error logging because local display switching is multiple destinations
-                //if (pathsForOps.Count() != routeOperations.Count())
-                //{
-                    // todo: Fix "\n" to better work across platforms (environment.newline doesn't work)
-                    // Logger.AddEntry(eSeverity.Error,
-                    //                "Unable to establish path for all of the following routes:{0}",
-                    //                routeOperations.Aggregate("\n", (current, op) => current + op + "\n"));
-                    //continue;
-                //}
+	            //if (pathsForOps.Count() != routeOperations.Count())
+	            //{
+		        //    Logger.AddEntry(eSeverity.Error,
+		        //                    "Unable to establish path for all of the following routes:{0}",
+		        //                    routeOperations.Aggregate(IcdEnvironment.NewLine, (current, op) => current + op + "\n"));
+		        //    continue;
+	            //}
 
-                foreach (var kvp in pathsForOps)
+	            foreach (KeyValuePair<RouteOperation, ConnectionPath> kvp in pathsForOps)
                 {
                     KeyValuePair<RouteOperation, ConnectionPath> pair = kvp;
                     routeOperationsPerformed.Add(pair.Key);
