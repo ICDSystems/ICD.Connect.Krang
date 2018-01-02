@@ -342,25 +342,25 @@ namespace ICD.Connect.Krang.Routing
         /// </summary>
         /// <param name="source"></param>
         /// <param name="destination"></param>
-        /// <param name="type"></param>
+        /// <param name="flag"></param>
         /// <param name="roomId"></param>
-        public ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+        public ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType flag, int roomId)
         {
-            if (EnumUtils.HasMultipleFlags(type))
-                throw new ArgumentException("ConnectionType has multiple flags", "type");
+            if (EnumUtils.HasMultipleFlags(flag))
+				throw new ArgumentException("ConnectionType has multiple flags", "flag");
 
             // Ensure the source has a valid output connection
             Connection outputConnection = Connections.GetOutputConnection(source);
-            if (outputConnection == null || !outputConnection.ConnectionType.HasFlag(type))
+            if (outputConnection == null || !outputConnection.ConnectionType.HasFlag(flag))
                 return null;
 
             // Ensure the destination has a valid input connection
             Connection inputConnection = Connections.GetInputConnection(destination);
-            if (inputConnection == null || !inputConnection.ConnectionType.HasFlag(type))
+            if (inputConnection == null || !inputConnection.ConnectionType.HasFlag(flag))
                 return null;
 
             IEnumerable<Connection> path = RecursionUtils.BreadthFirstSearchPath(outputConnection, inputConnection,
-                                                                                 c => GetConnectionChildren(source, c, type, roomId));
+                                                                                 c => GetConnectionChildren(source, c, flag, roomId));
             return path == null ? null : new ConnectionPath(path);
         }
 
@@ -708,7 +708,7 @@ namespace ICD.Connect.Krang.Routing
 
             foreach (eConnectionType flag in EnumUtils.GetFlagsExceptNone(type))
             {
-				IDictionary<RouteOperation, ConnectionPath> pathsForOps = FindPaths(routeOperations, flag, roomId);
+				IEnumerable<KeyValuePair<RouteOperation, ConnectionPath>> pathsForOps = FindPaths(routeOperations, flag, roomId);
 
                 // Disabling this error logging because local display switching is multiple destinations
 	            //if (pathsForOps.Count() != routeOperations.Count())
@@ -735,7 +735,7 @@ namespace ICD.Connect.Krang.Routing
         /// </summary>
         /// <param name="op"></param>
         /// <param name="path"></param>
-        private void RoutePath(RouteOperation op, ConnectionPath path)
+        private void RoutePath(RouteOperation op, IEnumerable<Connection> path)
         {
             if (op == null)
                 throw new ArgumentNullException("op");
@@ -744,8 +744,6 @@ namespace ICD.Connect.Krang.Routing
                 throw new ArgumentNullException("path");
 
             int pendingRoutes;
-
-
 
             // Configure the switchers
             foreach (Connection[] pair in path.GetAdjacentPairs())
