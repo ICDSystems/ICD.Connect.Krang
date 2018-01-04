@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
 #else
@@ -176,7 +177,7 @@ namespace ICD.Connect.Krang.Core
 			yield return new ConsoleCommand("LoadCore", "Loads and applies the XML config.",
 			                                () => m_Core.LoadSettings());
 			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML.",
-			                                () => FileOperations.SaveSettings(m_Core.CopySettings()));
+			                                () => SaveSettings());
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.",
 			                                () => FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings()));
 
@@ -184,6 +185,17 @@ namespace ICD.Connect.Krang.Core
 											() => PrintPlugins());
 			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.",
 											() => PrintTypes());
+		}
+
+		private void SaveSettings()
+		{
+			// Saving settings involves running some console commands to get processor information.
+			// Executing console commands from a console command thread is extremely slow.
+			ThreadingUtils.SafeInvoke(() =>
+			                          {
+				                          ICoreSettings settings = m_Core.CopySettings();
+				                          FileOperations.SaveSettings(settings);
+			                          });
 		}
 
 		private static string PrintPlugins()
