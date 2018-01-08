@@ -17,30 +17,30 @@ namespace ICD.Connect.Krang.Rooms
 			Hvac
 		}
 
+		public event EventHandler OnVolumeLevelSet;
+		public event EventHandler OnVolumeLevelRamp;
+		public event EventHandler OnVolumeLevelFeedbackChange;
+		public event EventHandler OnVolumeMuteFeedbackChange;
+
 		private readonly Dictionary<ushort, eCrosspointType> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
 
 		private ushort m_VolumeLevelFeedback;
-
 		private bool m_VolumeMuteFeedback;
 
-		public event EventHandler OnVolumeLevelSet;
-
-		public event EventHandler OnVolumeLevelRamp;
-
-		public event EventHandler OnVolumeLevelFeedbackChange;
-
-		public event EventHandler OnVolumeMuteFeedbackChange;
+		#region Properties
 
 		public ushort VolumeLevelFeedback
 		{
 			get { return m_VolumeLevelFeedback; }
 			private set
 			{
+				if (value == m_VolumeLevelFeedback)
+					return;
+
 				m_VolumeLevelFeedback = value;
-				var changeEvent = OnVolumeLevelFeedbackChange;
-				if (changeEvent != null)
-					changeEvent.Raise(this);
+
+				OnVolumeLevelFeedbackChange.Raise(this);
 			}
 		}
 
@@ -49,12 +49,16 @@ namespace ICD.Connect.Krang.Rooms
 			get { return m_VolumeMuteFeedback; }
 			private set
 			{
+				if (value == m_VolumeMuteFeedback)
+					return;
+
 				m_VolumeMuteFeedback = value;
-				var changeEvent = OnVolumeMuteFeedbackChange;
-				if (changeEvent != null)
-					changeEvent.Raise(this);
+
+				OnVolumeMuteFeedbackChange.Raise(this);
 			}
 		}
+
+		#endregion
 
 		/// <summary>
 		/// Constructor.
@@ -69,9 +73,7 @@ namespace ICD.Connect.Krang.Rooms
 
 		public void SetVolumeLevel(ushort volume)
 		{
-			var changeEvent = OnVolumeLevelSet;
-			if (changeEvent != null)
-				changeEvent.Raise(this);
+			OnVolumeLevelSet.Raise(this);
 		}
 
 		public void SetVolumeFeedback(ushort volume)
