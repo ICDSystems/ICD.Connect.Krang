@@ -69,6 +69,19 @@ namespace ICD.Connect.Krang.Rooms
 			m_CrosspointsSection = new SafeCriticalSection();
 		}
 
+		/// <summary>
+		/// Release resources.
+		/// </summary>
+		protected override void DisposeFinal(bool disposing)
+		{
+			OnVolumeLevelSet = null;
+			OnVolumeLevelRamp = null;
+			OnVolumeLevelFeedbackChange = null;
+			OnVolumeMuteFeedbackChange = null;
+
+			base.DisposeFinal(disposing);
+		}
+
 		#region Methods
 
 		public void SetVolumeLevel(ushort volume)
