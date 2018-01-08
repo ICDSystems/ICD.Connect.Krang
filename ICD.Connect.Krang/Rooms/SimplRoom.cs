@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Core;
 
@@ -17,43 +19,48 @@ namespace ICD.Connect.Krang.Rooms
 			Hvac
 		}
 
+		public event EventHandler OnVolumeLevelSet;
+		public event EventHandler OnVolumeLevelRamp;
+		public event EventHandler OnVolumeLevelFeedbackChange;
+		public event EventHandler OnVolumeMuteFeedbackChange;
+
 		private readonly Dictionary<ushort, eCrosspointType> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
 
 		private ushort m_VolumeLevelFeedback;
-
 		private bool m_VolumeMuteFeedback;
 
-		public event EventHandler OnVolumeLevelSet;
-
-		public event EventHandler OnVolumeLevelRamp;
-
-		public event EventHandler OnVolumeLevelFeedbackChange;
-
-		public event EventHandler OnVolumeMuteFeedbackChange;
+		#region Properties
 
 		public ushort VolumeLevelFeedback
 		{
 			get { return m_VolumeLevelFeedback; }
 			private set
 			{
+				if (value == m_VolumeLevelFeedback)
+					return;
+
 				m_VolumeLevelFeedback = value;
-				var changeEvent = OnVolumeLevelFeedbackChange;
-				if (changeEvent != null)
-					changeEvent.Raise(this);
+
+				OnVolumeLevelFeedbackChange.Raise(this);
 			}
 		}
 
 		public bool VolumeMuteFeedback
-		{ get { return m_VolumeMuteFeedback;  }
+		{
+			get { return m_VolumeMuteFeedback; }
 			private set
 			{
+				if (value == m_VolumeMuteFeedback)
+					return;
+
 				m_VolumeMuteFeedback = value;
-				var changeEvent = OnVolumeMuteFeedbackChange;
-				if (changeEvent != null)
-					changeEvent.Raise(this);
+
+				OnVolumeMuteFeedbackChange.Raise(this);
 			}
 		}
+
+		#endregion
 
 		/// <summary>
 		/// Constructor.
@@ -64,13 +71,24 @@ namespace ICD.Connect.Krang.Rooms
 			m_CrosspointsSection = new SafeCriticalSection();
 		}
 
+		/// <summary>
+		/// Release resources.
+		/// </summary>
+		protected override void DisposeFinal(bool disposing)
+		{
+			OnVolumeLevelSet = null;
+			OnVolumeLevelRamp = null;
+			OnVolumeLevelFeedbackChange = null;
+			OnVolumeMuteFeedbackChange = null;
+
+			base.DisposeFinal(disposing);
+		}
+
 		#region Methods
 
 		public void SetVolumeLevel(ushort volume)
 		{
-			var changeEvent = OnVolumeLevelSet;
-			if (changeEvent != null)
-				changeEvent.Raise(this);
+			OnVolumeLevelSet.Raise(this);
 		}
 
 		public void SetVolumeFeedback(ushort volume)
@@ -148,6 +166,67 @@ namespace ICD.Connect.Krang.Rooms
 			base.ApplySettingsFinal(settings, factory);
 
 			SetCrosspoints(settings.GetCrosspoints());
+		}
+
+		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			base.BuildConsoleStatus(addRow);
+
+			addRow("Volume Level", m_VolumeLevelFeedback);
+			addRow("Volume Mute", m_VolumeMuteFeedback);
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			foreach (IConsoleCommand command in GetBaseConsoleCommands())
+				yield return command;
+
+			yield return new ConsoleCommand("PrintCrosspoints", "Prints the crosspoints added to the room", () => PrintCrosspoints());
+			yield return new GenericConsoleCommand<ushort>("SetVolumeLevel", "SetVolumeLevel <LEVEL>", l => SetVolumeLevel(l));
+		}
+
+		/// <summary>
+		/// Workaround for "unverifiable code" warning.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
+		{
+			return base.GetConsoleCommands();
+		}
+
+		/// <summary>
+		/// Returns a table of the crosspoints in the room.
+		/// </summary>
+		/// <returns></returns>
+		private string PrintCrosspoints()
+		{
+			m_CrosspointsSection.Enter();
+
+			try
+			{
+				TableBuilder builder = new TableBuilder("Id", "Type");
+
+				foreach (KeyValuePair<ushort, eCrosspointType> kvp in m_Crosspoints)
+					builder.AddRow(kvp.Key, kvp.Value);
+
+				return builder.ToString();
+			}
+			finally
+			{
+				m_CrosspointsSection.Leave();
+			}
 		}
 
 		#endregion
