@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Routing;
+using ICD.Connect.Routing.Connections;
+using ICD.Connect.Routing.Endpoints;
+using ICD.Connect.Routing.Endpoints.Destinations;
+using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Rooms
@@ -29,6 +36,7 @@ namespace ICD.Connect.Krang.Rooms
 
 		private ushort m_VolumeLevelFeedback;
 		private bool m_VolumeMuteFeedback;
+		private IRoutingGraph m_SubscribedRoutingGraph;
 
 		#region Properties
 
@@ -129,7 +137,198 @@ namespace ICD.Connect.Krang.Rooms
 			}
 		}
 
-		//todo: Add routing methods here?
+		/// <summary>
+		/// Routes the source with the given id to all destinations in the current room.
+		/// Unroutes if no source found with the given id.
+		/// </summary>
+		/// <param name="sourceId"></param>
+		public void SetSource(ushort sourceId)
+		{
+			ISource source = GetSource(sourceId);
+			if (source == null)
+				Unroute();
+			else
+				Route(source);
+		}
+
+		#endregion
+
+		#region Routing
+
+		/// <summary>
+		/// Routes the source to the destination.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="destination"></param>
+		private void Route(ISource source, IDestination destination)
+		{
+			if (m_SubscribedRoutingGraph == null)
+				return;
+
+			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
+			m_SubscribedRoutingGraph.Route(source.Endpoint, destination.Endpoint, connectionType, Id);
+		}
+
+		/// <summary>
+		/// Routes the source to all destinations in the current room.
+		/// </summary>
+		/// <param name="source"></param>
+		private void Route(ISource source)
+		{
+			GetRoomDestinations().ForEach(d => Route(source, d));
+		}
+
+		/// <summary>
+		/// Unroutes the source from the destination.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="destination"></param>
+		private void Unroute(ISource source, IDestination destination)
+		{
+			if (m_SubscribedRoutingGraph == null)
+				return;
+
+			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
+			m_SubscribedRoutingGraph.Unroute(source.Endpoint, destination.Endpoint, connectionType, Id);
+		}
+
+		/// <summary>
+		/// Unroutes all sources from the destination.
+		/// </summary>
+		/// <param name="destination"></param>
+		private void Unroute(IDestination destination)
+		{
+			GetActiveSources(destination).ForEach(s => Unroute(s, destination));
+		}
+
+		/// <summary>
+		/// Unroutes all the destinations in the room.
+		/// </summary>
+		private void Unroute()
+		{
+			GetRoomDestinations().ForEach(Unroute);
+		}
+
+		#endregion
+
+		#region Private Methods
+
+		/// <summary>
+		/// Gets the source with the given id.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		[CanBeNull]
+		private ISource GetSource(ushort id)
+		{
+			if (m_SubscribedRoutingGraph == null)
+				return null;
+
+			ISource source;
+			m_SubscribedRoutingGraph.Sources.TryGetChild(id, out source);
+			return source;
+		}
+
+		/// <summary>
+		/// Gets the sources currently routed to the room destinations.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<ISource> GetActiveRoomSources()
+		{
+			return GetRoomDestinations().SelectMany(d => GetActiveSources(d));
+		}
+
+		/// <summary>
+		/// Gets the sources currently routed to the given destination.
+		/// </summary>
+		/// <param name="destination"></param>
+		/// <returns></returns>
+		private IEnumerable<ISource> GetActiveSources(IDestination destination)
+		{
+			if (destination == null)
+				throw new ArgumentNullException("destination");
+
+			if (m_SubscribedRoutingGraph == null)
+				return Enumerable.Empty<ISource>();
+
+			return m_SubscribedRoutingGraph.GetActiveSourceEndpoints(destination.Endpoint,
+																	 destination.ConnectionType, false, true)
+										   .Select(e => GetSourceFromEndpoint(e))
+										   .Where(s => s != null);
+		}
+
+		/// <summary>
+		/// Gets the source for the given endpoint info.
+		/// </summary>
+		/// <param name="endpoint"></param>
+		/// <returns></returns>
+		[CanBeNull]
+		private ISource GetSourceFromEndpoint(EndpointInfo endpoint)
+		{
+			return m_SubscribedRoutingGraph == null
+				       ? null
+				       : m_SubscribedRoutingGraph.Sources.FirstOrDefault(s => s.Endpoint == endpoint);
+		}
+
+		/// <summary>
+		/// Gets the destinations for the current room.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<IDestination> GetRoomDestinations()
+		{
+			return Originators.GetInstancesRecursive<IDestination>();
+		}
+
+		#endregion
+
+		#region RoutingGraph Callbacks
+
+		/// <summary>
+		/// Subscribe to the routing graph events.
+		/// </summary>
+		/// <param name="routingGraph"></param>
+		private void Subscribe(IRoutingGraph routingGraph)
+		{
+			m_SubscribedRoutingGraph = routingGraph;
+
+			if (routingGraph == null)
+				return;
+
+			routingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+		}
+
+		/// <summary>
+		/// Unsubscribe from the routing graph events.
+		/// </summary>
+		/// <param name="routingGraph"></param>
+		private void Unsubscribe(IRoutingGraph routingGraph)
+		{
+			if (routingGraph == null)
+				return;
+
+			routingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
+		}
+
+		private void RoutingGraphOnRouteChanged(object sender, EventArgs eventArgs)
+		{
+			/*
+			SourceInfoCallback handler = OnSourceChanged;
+			if (handler == null)
+				return;
+			 */
+
+			foreach (ISource source in GetActiveRoomSources())
+			{
+				ushort id = source == null ? (ushort)0 : (ushort)source.Id;
+				string name = source == null
+								  ? string.Empty
+								  : source.GetNameOrDeviceName();
+				ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
+				ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
+
+				//handler(id, new SimplSharpString(name), crosspointId, crosspointType);
+			}
+		}
 
 		#endregion
 
@@ -194,7 +393,8 @@ namespace ICD.Connect.Krang.Rooms
 				yield return command;
 
 			yield return new ConsoleCommand("PrintCrosspoints", "Prints the crosspoints added to the room", () => PrintCrosspoints());
-			yield return new GenericConsoleCommand<ushort>("SetVolumeLevel", "SetVolumeLevel <LEVEL>", l => SetVolumeLevel(l));
+			yield return new GenericConsoleCommand<ushort>("SetSource", "SetSource <Source Id>", i => SetSource(i));
+			yield return new GenericConsoleCommand<ushort>("SetVolumeLevel", "SetVolumeLevel <Level>", l => SetVolumeLevel(l));
 		}
 
 		/// <summary>
