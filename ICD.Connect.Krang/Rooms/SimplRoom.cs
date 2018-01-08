@@ -45,7 +45,8 @@ namespace ICD.Connect.Krang.Rooms
 		}
 
 		public bool VolumeMuteFeedback
-		{ get { return m_VolumeMuteFeedback;  }
+		{
+			get { return m_VolumeMuteFeedback; }
 			private set
 			{
 				m_VolumeMuteFeedback = value;
