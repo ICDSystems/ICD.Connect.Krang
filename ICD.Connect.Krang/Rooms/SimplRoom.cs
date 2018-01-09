@@ -173,6 +173,15 @@ namespace ICD.Connect.Krang.Rooms
 		#region Routing
 
 		/// <summary>
+		/// Routes the source to all destinations in the current room.
+		/// </summary>
+		/// <param name="source"></param>
+		private void Route(ISource source)
+		{
+			GetRoomDestinations().ForEach(d => Route(source, d));
+		}
+
+		/// <summary>
 		/// Routes the source to the destination.
 		/// </summary>
 		/// <param name="source"></param>
@@ -187,12 +196,20 @@ namespace ICD.Connect.Krang.Rooms
 		}
 
 		/// <summary>
-		/// Routes the source to all destinations in the current room.
+		/// Unroutes all the destinations in the room.
 		/// </summary>
-		/// <param name="source"></param>
-		private void Route(ISource source)
+		private void Unroute()
 		{
-			GetRoomDestinations().ForEach(d => Route(source, d));
+			GetRoomDestinations().ForEach(Unroute);
+		}
+
+		/// <summary>
+		/// Unroutes all sources from the destination.
+		/// </summary>
+		/// <param name="destination"></param>
+		private void Unroute(IDestination destination)
+		{
+			GetActiveSources(destination).ForEach(s => Unroute(s, destination));
 		}
 
 		/// <summary>
@@ -207,23 +224,6 @@ namespace ICD.Connect.Krang.Rooms
 
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
 			m_SubscribedRoutingGraph.Unroute(source.Endpoint, destination.Endpoint, connectionType, Id);
-		}
-
-		/// <summary>
-		/// Unroutes all sources from the destination.
-		/// </summary>
-		/// <param name="destination"></param>
-		private void Unroute(IDestination destination)
-		{
-			GetActiveSources(destination).ForEach(s => Unroute(s, destination));
-		}
-
-		/// <summary>
-		/// Unroutes all the destinations in the room.
-		/// </summary>
-		private void Unroute()
-		{
-			GetRoomDestinations().ForEach(Unroute);
 		}
 
 		#endregion

@@ -1,14 +1,16 @@
-﻿using ICD.Connect.Routing.Endpoints;
-#if SIMPLSHARP
+﻿#if SIMPLSHARP
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
+using ICD.Common.Services;
+using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Rooms;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
+using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
 
@@ -168,12 +170,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[PublicAPI("S+")]
 		public void SetSourceIndex(ushort sourceList, ushort sourceIndex)
 		{
-			SimplSource source;
 
 			Dictionary<ushort, SimplSource> listDict;
 			if (!m_SourceListDictionary.TryGetValue(sourceList, out listDict))
 				return;
 
+			SimplSource source;
 			if (!listDict.TryGetValue(sourceIndex, out source))
 				return;
 
@@ -318,7 +320,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					handlerListSize(AUDIO_LIST_INDEX, (ushort)(audioListIndexCounter - 1));
 					handlerListSize(VIDEO_LIST_INDEX, (ushort)(videoListIndexCounter - 1));
 				}
-
 			}
 
 			m_SourceListDictionary = sourceListDictionary;
