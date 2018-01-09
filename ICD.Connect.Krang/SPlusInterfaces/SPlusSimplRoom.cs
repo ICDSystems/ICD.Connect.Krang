@@ -1,8 +1,8 @@
 ﻿#if SIMPLSHARP
-using ICD.Connect.Krang.Rooms;
 using System;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
+using ICD.Connect.Krang.Rooms;
 using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.SPlusInterfaces
@@ -112,7 +112,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		}
 
 		/// <summary>
-		/// Gets the room for the current room id.
+		/// Gets the room for the given room id.
 		/// </summary>
 		/// <returns></returns>
 		[CanBeNull]
