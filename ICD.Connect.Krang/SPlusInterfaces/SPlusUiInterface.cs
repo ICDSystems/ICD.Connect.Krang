@@ -228,21 +228,20 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private void RaiseRoomInfo()
 		{
 			RoomInfoCallback handler = OnRoomChanged;
-			if (handler == null)
-				return;
 
 			if (m_Room == null)
 			{
-				handler(0, new SimplSharpString(string.Empty), INDEX_NOT_FOUND);
+				if (handler != null)
+					handler(0, new SimplSharpString(string.Empty), INDEX_NOT_FOUND);
 				return;
 			}
 
 			ushort index;
-
 			if (!m_RoomListDictionaryReverse.TryGetValue(m_Room, out index))
 				index = INDEX_NOT_FOUND;
 
-			handler((ushort)m_Room.Id, new SimplSharpString(m_Room.Name ?? string.Empty), index);
+			if (handler != null)
+				handler((ushort)m_Room.Id, new SimplSharpString(m_Room.Name ?? string.Empty), index);
 
 			RaiseSourceList();
 		}
