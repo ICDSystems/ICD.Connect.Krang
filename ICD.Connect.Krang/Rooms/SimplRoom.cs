@@ -365,6 +365,8 @@ namespace ICD.Connect.Krang.Rooms
 			base.ClearSettingsFinal();
 
 			m_CrosspointsSection.Execute(() => m_Crosspoints.Clear());
+
+			Unsubscribe(m_SubscribedRoutingGraph);
 		}
 
 		/// <summary>
@@ -385,10 +387,14 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="factory"></param>
 		protected override void ApplySettingsFinal(SimplRoomSettings settings, IDeviceFactory factory)
 		{
+			// Ensure the routing graph loads first
+			IRoutingGraph graph = factory.GetOriginators<IRoutingGraph>().FirstOrDefault();
+
 			base.ApplySettingsFinal(settings, factory);
 
 			SetCrosspoints(settings.GetCrosspoints());
 
+			Subscribe(graph);
 			UpdateCachedActiveSources();
 		}
 
