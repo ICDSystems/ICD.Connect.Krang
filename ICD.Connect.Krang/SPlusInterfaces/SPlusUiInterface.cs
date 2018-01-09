@@ -35,7 +35,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		public delegate void RoomListSizeCallback(ushort size);
 
 		public delegate void SourceListCallback(
-			ushort listIndex, ushort index, ushort sourceId, SimplSharpString sourceName, ushort crosspointId, ushort crosspointType);
+			ushort listIndex, ushort index, ushort sourceId, SimplSharpString sourceName, ushort crosspointId,
+			ushort crosspointType);
 
 		public delegate void SourceListSizeCallback(ushort listIndex, ushort size);
 
@@ -72,7 +73,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private SimplRoom m_Room;
 
-	    private int m_RoomId;
+		private int m_RoomId;
 
 		/// <summary>
 		/// List of index to room
@@ -104,7 +105,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			}
 			catch (Exception e)
 			{
-				IcdErrorLog.Exception(e.GetBaseException(), "Failed to create Krang SPlusUiInterface - {0}", e.GetBaseException().Message);
+				IcdErrorLog.Exception(e.GetBaseException(), "Failed to create Krang SPlusUiInterface - {0}",
+				                      e.GetBaseException().Message);
 			}
 		}
 
@@ -139,7 +141,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[PublicAPI("S+")]
 		public void SetRoom(ushort roomId)
 		{
-		    m_RoomId = roomId;
+			m_RoomId = roomId;
 			SimplRoom room = GetRoom(roomId);
 			SetRoom(room);
 		}
@@ -211,10 +213,10 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 			Unsubscribe(m_Room);
 
-		    if (room != null)
-		        m_RoomId = room.Id;
-			
-            m_Room = room;
+			if (room != null)
+				m_RoomId = room.Id;
+
+			m_Room = room;
 			Subscribe(m_Room);
 
 			RaiseRoomInfo();
@@ -264,7 +266,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				roomListDictionary[i] = room;
 				roomListDictionaryReverse[room] = i;
 				if (handler != null)
-					handler(i,(ushort)room.Id, new SimplSharpString(room.Name));
+					handler(i, (ushort)room.Id, new SimplSharpString(room.Name));
 				i++;
 			}
 
@@ -282,7 +284,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private void RaiseSourceList()
 		{
 			Dictionary<ushort, Dictionary<ushort, SimplSource>> sourceListDictionary =
-				new Dictionary<ushort, Dictionary<ushort,   SimplSource>>();
+				new Dictionary<ushort, Dictionary<ushort, SimplSource>>();
 			sourceListDictionary[AUDIO_LIST_INDEX] = new Dictionary<ushort, SimplSource>();
 			sourceListDictionary[VIDEO_LIST_INDEX] = new Dictionary<ushort, SimplSource>();
 			Dictionary<ISource, ushort[]> sourceListDictionaryReverse = new Dictionary<ISource, ushort[]>();
@@ -307,7 +309,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					sourceListDictionary[AUDIO_LIST_INDEX][audioListIndexCounter] = ss;
 					sourceListDictionaryReverse[ss][AUDIO_LIST_INDEX] = audioListIndexCounter;
 					if (handler != null)
-						handler(AUDIO_LIST_INDEX, audioListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
+						handler(AUDIO_LIST_INDEX, audioListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId,
+						        ss.CrosspointType);
 					audioListIndexCounter++;
 				}
 
@@ -316,7 +319,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					sourceListDictionary[VIDEO_LIST_INDEX][videoListIndexCounter] = ss;
 					sourceListDictionaryReverse[ss][VIDEO_LIST_INDEX] = videoListIndexCounter;
 					if (handler != null)
-						handler(VIDEO_LIST_INDEX, videoListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId, ss.CrosspointType);
+						handler(VIDEO_LIST_INDEX, videoListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId,
+						        ss.CrosspointType);
 					videoListIndexCounter++;
 				}
 
@@ -334,7 +338,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
 		{
-            SetRoom((ushort)m_RoomId);
+			SetRoom((ushort)m_RoomId);
 			RaiseRoomList();
 		}
 
@@ -381,8 +385,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 			ushort id = source == null ? (ushort)0 : (ushort)source.Id;
 			string name = source == null
-								  ? string.Empty
-								  : source.GetNameOrDeviceName();
+				              ? string.Empty
+				              : source.GetNameOrDeviceName();
 			ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
 			ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
 
