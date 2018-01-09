@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
+using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
@@ -178,6 +179,8 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="source"></param>
 		private void Route(ISource source)
 		{
+			Logger.AddEntry(eSeverity.Informational, "{0} routing {1}", this, source);
+
 			GetRoomDestinations().ForEach(d => Route(source, d));
 		}
 
@@ -200,6 +203,8 @@ namespace ICD.Connect.Krang.Rooms
 		/// </summary>
 		private void Unroute()
 		{
+			Logger.AddEntry(eSeverity.Informational, "{0} unrouting all", this);
+
 			GetRoomDestinations().ForEach(Unroute);
 		}
 
@@ -209,6 +214,8 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="destination"></param>
 		private void Unroute(IDestination destination)
 		{
+			Logger.AddEntry(eSeverity.Informational, "{0} unrouting {1}", this, destination);
+
 			GetActiveSources(destination).ForEach(s => Unroute(s, destination));
 		}
 
@@ -219,6 +226,8 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="destination"></param>
 		private void Unroute(ISource source, IDestination destination)
 		{
+			Logger.AddEntry(eSeverity.Informational, "{0} unrouting {1} from {2}", this, source, destination);
+
 			if (m_SubscribedRoutingGraph == null)
 				return;
 
@@ -301,6 +310,8 @@ namespace ICD.Connect.Krang.Rooms
 		/// </summary>
 		private void UpdateCachedActiveSources()
 		{
+			Logger.AddEntry(eSeverity.Informational, "{0} updating active source cache", this);
+
 			IcdHashSet<ISource> active = GetActiveRoomSources().ToIcdHashSet();
 
 			bool change = active.NonIntersection(m_CachedActiveSources).Any();
@@ -310,6 +321,7 @@ namespace ICD.Connect.Krang.Rooms
 			m_CachedActiveSources.Clear();
 			m_CachedActiveSources.AddRange(active);
 
+			Logger.AddEntry(eSeverity.Informational, "{0} active sources changed", this);
 			OnActiveSourcesChange.Raise(this);
 		}
 
