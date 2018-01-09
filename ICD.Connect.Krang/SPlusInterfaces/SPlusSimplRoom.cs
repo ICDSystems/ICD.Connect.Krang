@@ -1,4 +1,7 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Connect.Krang.Routing.Endpoints.Sources;
+using ICD.Connect.Routing.Endpoints;
+using ICD.Connect.Routing.Endpoints.Sources;
+#if SIMPLSHARP
 using System;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
@@ -149,6 +152,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		{
 			if (room == null)
 				return;
+
+			room.OnActiveSourcesChange += RoomOnActiveSourcesChange;
 		}
 
 		/// <summary>
@@ -159,6 +164,31 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		{
 			if (room == null)
 				return;
+
+			room.OnActiveSourcesChange -= RoomOnActiveSourcesChange;
+		}
+
+		/// <summary>
+		/// Raised when source/s become actively/inactively routed.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
+		private void RoomOnActiveSourcesChange(object sender, EventArgs eventArgs)
+		{
+			SourceInfoCallback handler = OnSourceChanged;
+			if (handler == null)
+				return;
+
+			ISource source = m_Room == null ? null : m_Room.GetSource();
+
+			ushort id = source == null ? (ushort)0 : (ushort)source.Id;
+			string name = source == null
+								  ? string.Empty
+								  : source.GetNameOrDeviceName();
+			ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
+			ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
+
+			handler(id, new SimplSharpString(name), crosspointId, crosspointType);
 		}
 
 		#endregion

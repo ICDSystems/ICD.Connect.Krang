@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
-using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
@@ -30,9 +30,12 @@ namespace ICD.Connect.Krang.Rooms
 		public event EventHandler OnVolumeLevelRamp;
 		public event EventHandler OnVolumeLevelFeedbackChange;
 		public event EventHandler OnVolumeMuteFeedbackChange;
+		public event EventHandler OnActiveSourcesChange;
 
 		private readonly Dictionary<ushort, eCrosspointType> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
+
+		private readonly IcdHashSet<ISource> m_CachedActiveSources;
 
 		private ushort m_VolumeLevelFeedback;
 		private bool m_VolumeMuteFeedback;
@@ -77,6 +80,8 @@ namespace ICD.Connect.Krang.Rooms
 		{
 			m_Crosspoints = new Dictionary<ushort, eCrosspointType>();
 			m_CrosspointsSection = new SafeCriticalSection();
+
+			m_CachedActiveSources = new IcdHashSet<ISource>();
 		}
 
 		/// <summary>
@@ -88,6 +93,9 @@ namespace ICD.Connect.Krang.Rooms
 			OnVolumeLevelRamp = null;
 			OnVolumeLevelFeedbackChange = null;
 			OnVolumeMuteFeedbackChange = null;
+			OnActiveSourcesChange = null;
+
+			m_CachedActiveSources.Clear();
 
 			base.DisposeFinal(disposing);
 		}
@@ -149,6 +157,15 @@ namespace ICD.Connect.Krang.Rooms
 				Unroute();
 			else
 				Route(source);
+		}
+
+		/// <summary>
+		/// Gets the current, actively routed source.
+		/// </summary>
+		[CanBeNull]
+		public ISource GetSource()
+		{
+			return m_CachedActiveSources.OrderBy(s => s.Id).FirstOrDefault();
 		}
 
 		#endregion
@@ -309,25 +326,23 @@ namespace ICD.Connect.Krang.Rooms
 			routingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
 		}
 
+		/// <summary>
+		/// Called when the routing changes.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
 		private void RoutingGraphOnRouteChanged(object sender, EventArgs eventArgs)
 		{
-			/*
-			SourceInfoCallback handler = OnSourceChanged;
-			if (handler == null)
+			IcdHashSet<ISource> active = GetActiveRoomSources().ToIcdHashSet();
+
+			bool change = active.NonIntersection(m_CachedActiveSources).Any();
+			if (!change)
 				return;
-			 */
 
-			foreach (ISource source in GetActiveRoomSources())
-			{
-				ushort id = source == null ? (ushort)0 : (ushort)source.Id;
-				string name = source == null
-								  ? string.Empty
-								  : source.GetNameOrDeviceName();
-				ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
-				ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
+			m_CachedActiveSources.Clear();
+			m_CachedActiveSources.AddRange(active);
 
-				//handler(id, new SimplSharpString(name), crosspointId, crosspointType);
-			}
+			OnActiveSourcesChange.Raise(this);
 		}
 
 		#endregion
