@@ -296,6 +296,23 @@ namespace ICD.Connect.Krang.Rooms
 			return Originators.GetInstancesRecursive<IDestination>();
 		}
 
+		/// <summary>
+		/// Looks up the current actively routed sources and caches them.
+		/// </summary>
+		private void UpdateCachedActiveSources()
+		{
+			IcdHashSet<ISource> active = GetActiveRoomSources().ToIcdHashSet();
+
+			bool change = active.NonIntersection(m_CachedActiveSources).Any();
+			if (!change)
+				return;
+
+			m_CachedActiveSources.Clear();
+			m_CachedActiveSources.AddRange(active);
+
+			OnActiveSourcesChange.Raise(this);
+		}
+
 		#endregion
 
 		#region RoutingGraph Callbacks
@@ -333,16 +350,7 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="eventArgs"></param>
 		private void RoutingGraphOnRouteChanged(object sender, EventArgs eventArgs)
 		{
-			IcdHashSet<ISource> active = GetActiveRoomSources().ToIcdHashSet();
-
-			bool change = active.NonIntersection(m_CachedActiveSources).Any();
-			if (!change)
-				return;
-
-			m_CachedActiveSources.Clear();
-			m_CachedActiveSources.AddRange(active);
-
-			OnActiveSourcesChange.Raise(this);
+			UpdateCachedActiveSources();
 		}
 
 		#endregion
@@ -380,6 +388,8 @@ namespace ICD.Connect.Krang.Rooms
 			base.ApplySettingsFinal(settings, factory);
 
 			SetCrosspoints(settings.GetCrosspoints());
+
+			UpdateCachedActiveSources();
 		}
 
 		#endregion

@@ -112,7 +112,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 			handler((ushort)m_Room.Id, new SimplSharpString(m_Room.Name ?? string.Empty));
 
-			//RoutingGraphOnRouteChanged(this, new EventArgs());
+			// Hack to raise the current routed source as well
+			RoomOnActiveSourcesChange(null, EventArgs.Empty);
 		}
 
 		/// <summary>
