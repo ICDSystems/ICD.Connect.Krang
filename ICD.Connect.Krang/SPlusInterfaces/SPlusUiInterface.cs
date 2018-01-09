@@ -124,6 +124,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			m_SourceListDictionaryReverse.Clear();
 
 			SPlusKrangBootstrap.OnKrangLoaded -= SPlusKrangBootstrapOnKrangLoaded;
+
+			SetRoom(null);
 		}
 
 		/// <summary>

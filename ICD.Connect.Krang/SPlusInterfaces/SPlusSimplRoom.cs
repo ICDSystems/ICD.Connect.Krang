@@ -41,7 +41,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		public SPlusSimplRoom()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
-			//SPlusKrangBootstrap.OnKrangCleared += SPlusKrangBootstrapOnKrangCleared;
 		}
 
 		#region Methods
@@ -51,8 +50,10 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// </summary>
 		public void Dispose()
 		{
+			OnRoomChanged = null;
+			OnSourceChanged = null;
+
 			SPlusKrangBootstrap.OnKrangLoaded -= SPlusKrangBootstrapOnKrangLoaded;
-			//SPlusKrangBootstrap.OnKrangCleared -= SPlusKrangBootstrapOnKrangCleared;
 
 			SetRoom(null);
 		}
