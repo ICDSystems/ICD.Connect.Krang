@@ -215,7 +215,7 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 
 				IcdHashSet<IPartition> adjacent = partitionsArray.Except(partition)
 				                                                 .Where(p => p.IsAdjacent(localEnclosurePartition))
-				                                                 .ToHashSet();
+				                                                 .ToIcdHashSet();
 				adjacency.Add(partition, adjacent);
 			}
 
