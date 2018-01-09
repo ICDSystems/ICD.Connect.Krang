@@ -72,6 +72,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private SimplRoom m_Room;
 
+	    private int m_RoomId;
+
 		/// <summary>
 		/// List of index to room
 		/// </summary>
@@ -137,6 +139,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[PublicAPI("S+")]
 		public void SetRoom(ushort roomId)
 		{
+		    m_RoomId = roomId;
 			SimplRoom room = GetRoom(roomId);
 			SetRoom(room);
 		}
@@ -207,7 +210,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 				return;
 
 			Unsubscribe(m_Room);
-			m_Room = room;
+
+		    if (room != null)
+		        m_RoomId = room.Id;
+			
+            m_Room = room;
 			Subscribe(m_Room);
 
 			RaiseRoomInfo();
@@ -327,6 +334,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
 		{
+            SetRoom((ushort)m_RoomId);
 			RaiseRoomList();
 		}
 
