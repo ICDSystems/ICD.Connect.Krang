@@ -187,6 +187,13 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 			               .AddEntry(eSeverity.Informational, "{0} setting source list {1} index to {2}", this, sourceList,
 			                         sourceIndex);
 
+			// sourceIndex of 0 is used for "Off" - pass it along w/o lookup
+			if (sourceIndex == 0)
+			{
+				SetSourceId(0);
+				return;
+			}
+
 			Dictionary<ushort, SimplSource> listDict;
 			if (!m_SourceListDictionary.TryGetValue(sourceList, out listDict))
 				return;
