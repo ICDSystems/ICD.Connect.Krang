@@ -95,11 +95,11 @@ namespace ICD.Connect.Krang.Settings
 				try
 				{
 					IcdDirectory.Delete(outputDir, true);
-					Logger.AddEntry(eSeverity.Informational, "Removed old plugin {0}", outputDir);
+					Logger.AddEntry(eSeverity.Informational, "Removed old archive {0}", outputDir);
 				}
 				catch (Exception e)
 				{
-					message = string.Format("Failed to remove old plugin {0} - {1}", outputDir, e.Message);
+					message = string.Format("Failed to remove old archive {0} - {1}", outputDir, e.Message);
 					return false;
 				}
 			}
@@ -121,11 +121,11 @@ namespace ICD.Connect.Krang.Settings
 				if (result)
 				{
 					IcdFile.Delete(path);
-					Logger.AddEntry(eSeverity.Informational, "Extracted plugin {0}", path);
+					Logger.AddEntry(eSeverity.Informational, "Extracted archive {0}", path);
 				}
 				else
 				{
-					Logger.AddEntry(eSeverity.Warning, "Failed to extract plugin {0} - {1}", path, message);
+					Logger.AddEntry(eSeverity.Warning, "Failed to extract archive {0} - {1}", path, message);
 				}
 			}
 		}
