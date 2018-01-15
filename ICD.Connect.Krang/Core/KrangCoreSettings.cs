@@ -8,7 +8,7 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Partitioning;
-using ICD.Connect.Krang.Settings;
+using ICD.Connect.Krang.Routing;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
@@ -308,8 +308,7 @@ namespace ICD.Connect.Krang.Core
 
         private void UpdateRoutingFromXml(string xml)
         {
-            RoutingGraphSettings routing = new RoutingGraphSettings();
-            routing.ParseXml(xml);
+            RoutingGraphSettings routing = RoutingGraphSettings.FromXml(xml);
 
 	        if (!AddSettingsSkipDuplicateId(routing))
 		        return;

@@ -13,7 +13,6 @@ using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Krang.Routing.Connections;
 using ICD.Connect.Krang.Routing.ConnectionUsage;
 using ICD.Connect.Krang.Routing.StaticRoutes;
-using ICD.Connect.Krang.Settings;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.ConnectionUsage;

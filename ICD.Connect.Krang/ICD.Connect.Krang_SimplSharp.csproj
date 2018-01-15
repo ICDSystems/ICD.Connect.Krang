@@ -106,7 +106,7 @@
     <Compile Include="Core\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings\RoutingGraphSettings.cs" />
+    <Compile Include="Routing\RoutingGraphSettings.cs" />
     <Compile Include="SPlusInterfaces\SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusInterfaces\SPlusOnKrangLoadedEventRelay.cs" />
     <Compile Include="SPlusInterfaces\SPlusPanelInterface.cs" />

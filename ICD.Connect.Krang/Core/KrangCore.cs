@@ -12,7 +12,6 @@ using ICD.Connect.Krang.Partitioning;
 using ICD.Connect.Krang.Remote.Broadcast;
 using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Krang.Routing;
-using ICD.Connect.Krang.Settings;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning;
 using ICD.Connect.Partitioning.Rooms;
