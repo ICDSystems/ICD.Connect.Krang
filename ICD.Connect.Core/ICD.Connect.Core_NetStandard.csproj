@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
 	<RootNamespace>ICD.Connect.Core</RootNamespace>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	<Deterministic>false</Deterministic>
 	<StartupObject>ICD.Connect.Core.Program</StartupObject>
 	<ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
@@ -25,7 +27,7 @@
 
   <ItemGroup>
     <Compile Remove="ObfuscationSettings.cs" />
-    <Compile Remove="Properties\AssemblyInfo.cs" />
+    
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +35,7 @@
     <None Remove="ICD.Connect.Core_SimplSharp.suo" />
     <None Remove="ICD.Connect.projectinfo" />
     <None Remove="ICD.SimplSharp.projectinfo" />
+    <None Remove="Properties\ControlSystem.cfg" />
   </ItemGroup>
 
   <ItemGroup>
