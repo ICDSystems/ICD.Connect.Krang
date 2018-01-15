@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils;
+using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
-using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices.Extensions;
-using ICD.Connect.Krang.Partitioning.Partitions;
 using ICD.Connect.Partitioning;
 using ICD.Connect.Partitioning.Controls;
 using ICD.Connect.Partitioning.Partitions;
@@ -20,12 +18,12 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Partitioning
 {
-	public sealed class PartitionManager : AbstractOriginator<PartitionManagerSettings>, IConsoleNode, IPartitionManager
+	public sealed class PartitionManager : AbstractPartitionManager<PartitionManagerSettings>
 	{
 		/// <summary>
 		/// Raised when a parition control opens/closes.
 		/// </summary>
-		public event PartitionControlOpenStateCallback OnPartitionOpenStateChange;
+		public override event PartitionControlOpenStateCallback OnPartitionOpenStateChange;
 
 		private readonly PartitionsCollection m_Partitions;
 		private readonly IcdHashSet<IPartitionDeviceControl> m_SubscribedPartitions;
@@ -34,19 +32,7 @@ namespace ICD.Connect.Krang.Partitioning
 
 		private static ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
 
-		public PartitionsCollection Partitions { get { return m_Partitions; } }
-
-		IPartitionsCollection IPartitionManager.Partitions { get { return Partitions; } }
-
-		/// <summary>
-		/// Gets the name of the node.
-		/// </summary>
-		public string ConsoleName { get { return "PartitionManager"; } }
-
-		/// <summary>
-		/// Gets the help information for the node.
-		/// </summary>
-		public string ConsoleHelp { get { return "Tracks the opening and closing of partition walls."; } }
+		public override IPartitionsCollection Partitions { get { return m_Partitions; } }
 
 		#endregion
 
@@ -81,7 +67,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partition"></param>
 		/// <returns></returns>
-		public IEnumerable<IPartitionDeviceControl> GetControls(IPartition partition)
+		public override IEnumerable<IPartitionDeviceControl> GetControls(IPartition partition)
 		{
 			if (partition == null)
 				throw new ArgumentNullException("partition");
@@ -98,7 +84,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partition"></param>
 		/// <returns></returns>
-		public bool CombinesRoom(IPartition partition)
+		public override bool CombinesRoom(IPartition partition)
 		{
 			if (partition == null)
 				throw new ArgumentNullException("partition");
@@ -111,7 +97,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partitionId"></param>
 		/// <returns></returns>
-		public bool CombinesRoom(int partitionId)
+		public override bool CombinesRoom(int partitionId)
 		{
 			return GetRooms().Any(r => r.Originators.ContainsRecursive(partitionId));
 		}
@@ -121,7 +107,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partition"></param>
 		/// <returns></returns>
-		public IRoom GetCombineRoom(IPartition partition)
+		public override IRoom GetCombineRoom(IPartition partition)
 		{
 			if (partition == null)
 				throw new ArgumentNullException("partition");
@@ -133,7 +119,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// Returns combine rooms and any individual rooms that are not part of a combined space.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<IRoom> GetTopLevelRooms()
+		public override IEnumerable<IRoom> GetTopLevelRooms()
 		{
 			IRoom[] rooms = GetRooms().OrderByDescending(r => r.Originators.GetInstances<IPartition>().Count()).ToArray();
 			IcdHashSet<IRoom> visited = new IcdHashSet<IRoom>();
@@ -156,8 +142,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <typeparam name="TRoom"></typeparam>
 		/// <param name="partition"></param>
 		/// <param name="func"></param>
-		public void ToggleCombineRooms<TRoom>(IPartition partition, Func<TRoom> func)
-			where TRoom : IRoom
+		public override void ToggleCombineRooms<TRoom>(IPartition partition, Func<TRoom> func)
 		{
 			IRoom room = GetCombineRoom(partition);
 
@@ -173,8 +158,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <typeparam name="TRoom"></typeparam>
 		/// <param name="partitions"></param>
 		/// <param name="constructor"></param>
-		public void CombineRooms<TRoom>(IEnumerable<IPartition> partitions, Func<TRoom> constructor)
-			where TRoom : IRoom
+		public override void CombineRooms<TRoom>(IEnumerable<IPartition> partitions, Func<TRoom> constructor)
 		{
 			if (partitions == null)
 				throw new ArgumentNullException("partitions");
@@ -192,8 +176,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <typeparam name="TRoom"></typeparam>
 		/// <param name="controls"></param>
 		/// <param name="constructor"></param>
-		public void CombineRooms<TRoom>(IEnumerable<IPartitionDeviceControl> controls, Func<TRoom> constructor)
-			where TRoom : IRoom
+		public override void CombineRooms<TRoom>(IEnumerable<IPartitionDeviceControl> controls, Func<TRoom> constructor)
 		{
 			if (controls == null)
 				throw new ArgumentNullException("controls");
@@ -211,8 +194,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <typeparam name="TRoom"></typeparam>
 		/// <param name="partition"></param>
 		/// <param name="constructor"></param>
-		public void CombineRooms<TRoom>(IPartition partition, Func<TRoom> constructor)
-			where TRoom : IRoom
+		public override void CombineRooms<TRoom>(IPartition partition, Func<TRoom> constructor)
 		{
 			if (partition == null)
 				throw new ArgumentNullException("partition");
@@ -248,8 +230,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <typeparam name="TRoom"></typeparam>
 		/// <param name="partitionControl"></param>
 		/// <param name="constructor"></param>
-		public void CombineRooms<TRoom>(IPartitionDeviceControl partitionControl, Func<TRoom> constructor)
-			where TRoom : IRoom
+		public override void CombineRooms<TRoom>(IPartitionDeviceControl partitionControl, Func<TRoom> constructor)
 		{
 			if (partitionControl == null)
 				throw new ArgumentNullException("partitionControl");
@@ -266,8 +247,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partitions"></param>
 		/// <param name="constructor"></param>
-		public void UncombineRooms<TRoom>(IEnumerable<IPartition> partitions, Func<TRoom> constructor)
-			where TRoom : IRoom
+		public override void UncombineRooms<TRoom>(IEnumerable<IPartition> partitions, Func<TRoom> constructor)
 		{
 			if (partitions == null)
 				throw new ArgumentNullException("partitions");
@@ -284,8 +264,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// </summary>
 		/// <param name="partition"></param>
 		/// <param name="constructor"></param>
-		public void UncombineRooms<TRoom>(IPartition partition, Func<TRoom> constructor)
-			where TRoom : IRoom
+		public override void UncombineRooms<TRoom>(IPartition partition, Func<TRoom> constructor)
 		{
 			if (partition == null)
 				throw new ArgumentNullException("partition");
@@ -310,7 +289,7 @@ namespace ICD.Connect.Krang.Partitioning
 		/// <typeparam name="TRoom"></typeparam>
 		/// <param name="partitionControl"></param>
 		/// <param name="constructor"></param>
-		public void UncombineRooms<TRoom>(IPartitionDeviceControl partitionControl, Func<TRoom> constructor) where TRoom : IRoom
+		public override void UncombineRooms<TRoom>(IPartitionDeviceControl partitionControl, Func<TRoom> constructor)
 		{
 			if (partitionControl == null)
 				throw new ArgumentNullException("partitionControl");
@@ -638,16 +617,16 @@ namespace ICD.Connect.Krang.Partitioning
 
 		protected override void ApplySettingsFinal(PartitionManagerSettings settings, IDeviceFactory factory)
 		{
-			m_Partitions.OnPartitionsChanged -= PartitionsOnChildrenChanged;
+			m_Partitions.OnChildrenChanged -= PartitionsOnChildrenChanged;
 
 			base.ApplySettingsFinal(settings, factory);
 
 			IEnumerable<IPartition> partitions = GetPartitions(settings, factory);
-			Partitions.SetPartitions(partitions);
+			Partitions.SetChildren(partitions);
 
 			SubscribePartitions();
 
-			m_Partitions.OnPartitionsChanged += PartitionsOnChildrenChanged;
+			m_Partitions.OnChildrenChanged += PartitionsOnChildrenChanged;
 		}
 
 		private IEnumerable<IPartition> GetPartitions(PartitionManagerSettings settings, IDeviceFactory factory)
@@ -688,31 +667,20 @@ namespace ICD.Connect.Krang.Partitioning
 		#region Console
 
 		/// <summary>
-		/// Gets the child console nodes.
-		/// </summary>
-		/// <returns></returns>
-		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
-		{
-			yield break;
-		}
-
-		/// <summary>
-		/// Calls the delegate for each console status item.
-		/// </summary>
-		/// <param name="addRow"></param>
-		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
-		{
-			addRow("Partitions Count", Partitions.Count);
-		}
-
-		/// <summary>
 		/// Gets the child console commands.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<IConsoleCommand> GetConsoleCommands()
+		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
-			yield return new ConsoleCommand("PrintPartitions", "Prints the list of all partitions.", () => PrintPartitions());
+			foreach (IConsoleCommand command in GetBaseConsoleCommands())
+				yield return command;
+
 			yield return new ConsoleCommand("PrintRooms", "Prints the list of rooms and their children.", () => PrintRooms());
+		}
+
+		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
+		{
+			return base.GetConsoleCommands();
 		}
 
 		private string PrintRooms()
@@ -725,22 +693,6 @@ namespace ICD.Connect.Krang.Partitioning
 				string children = StringUtils.ArrayFormat(room.GetRooms().Select(r => r.Id).Order());
 
 				builder.AddRow(id, room, children, room.CombinePriority, room.CombineState);
-			}
-
-			return builder.ToString();
-		}
-
-		private string PrintPartitions()
-		{
-			TableBuilder builder = new TableBuilder("Id", "Partition", "Controls", "Rooms");
-
-			foreach (IPartition partition in m_Partitions.OrderBy(c => c.Id))
-			{
-				int id = partition.Id;
-				string controls = StringUtils.ArrayFormat(partition.GetPartitionControls().Order());
-				string rooms = StringUtils.ArrayFormat(partition.GetRooms().Order());
-
-				builder.AddRow(id, partition, controls, rooms);
 			}
 
 			return builder.ToString();

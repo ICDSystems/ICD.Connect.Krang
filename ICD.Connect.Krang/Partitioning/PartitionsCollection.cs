@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
@@ -9,28 +8,18 @@ using ICD.Connect.Devices.Controls;
 using ICD.Connect.Partitioning.Controls;
 using ICD.Connect.Partitioning.Partitions;
 using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.Partitioning.Partitions
+namespace ICD.Connect.Krang.Partitioning
 {
-	public sealed class PartitionsCollection : IPartitionsCollection
+	public sealed class PartitionsCollection : AbstractOriginatorCollection<IPartition>, IPartitionsCollection
 	{
-		/// <summary>
-		/// Raised when the contained partitions change.
-		/// </summary>
-		public event EventHandler OnPartitionsChanged;
-
-		private readonly Dictionary<int, IPartition> m_Partitions;
 		private readonly Dictionary<DeviceControlInfo, IcdHashSet<IPartition>> m_ControlPartitions;
 		private readonly Dictionary<int, IcdHashSet<IPartition>> m_RoomAdjacentPartitions;
 
 		private readonly SafeCriticalSection m_PartitionsSection;
 
 		private readonly PartitionManager m_Manager;
-
-		/// <summary>
-		/// Gets the number of partitions.
-		/// </summary>
-		public int Count { get { return m_PartitionsSection.Execute(() => m_Partitions.Count); } }
 
 		/// <summary>
 		/// Constructor.
@@ -40,7 +29,6 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 		{
 			m_Manager = manager;
 
-			m_Partitions = new Dictionary<int, IPartition>();
 			m_RoomAdjacentPartitions = new Dictionary<int, IcdHashSet<IPartition>>();
 			m_ControlPartitions = new Dictionary<DeviceControlInfo, IcdHashSet<IPartition>>();
 
@@ -49,47 +37,11 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 
 		#region Methods
 
-		/// <summary>
-		/// Clears the partitions.
-		/// </summary>
-		public void Clear()
+		protected override void ChildAdded(IPartition child)
 		{
-			SetPartitions(Enumerable.Empty<IPartition>());
-		}
+			base.ChildAdded(child);
 
-		/// <summary>
-		/// Gets all of the partitions.
-		/// </summary>
-		/// <returns></returns>
-		public IEnumerable<IPartition> GetPartitions()
-		{
-			return m_PartitionsSection.Execute(() => m_Partitions.OrderValuesByKey().ToArray());
-		}
-
-		/// <summary>
-		/// Clears and sets the partitions.
-		/// </summary>
-		/// <param name="partitions"></param>
-		public void SetPartitions(IEnumerable<IPartition> partitions)
-		{
-			if (partitions == null)
-				throw new ArgumentNullException("partitions");
-
-			m_PartitionsSection.Enter();
-
-			try
-			{
-				m_Partitions.Clear();
-				m_Partitions.AddRange(partitions, p => p.Id);
-
-				UpdateLookups();
-			}
-			finally
-			{
-				m_PartitionsSection.Leave();
-			}
-
-			OnPartitionsChanged.Raise(this);
+			UpdateLookups();
 		}
 
 		/// <summary>
@@ -276,7 +228,7 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 				m_ControlPartitions.Clear();
 
 				// Build room adjacency lookup
-				foreach (IPartition partition in m_Partitions.Values)
+				foreach (IPartition partition in GetChildren())
 				{
 					foreach (int room in partition.GetRooms())
 					{
@@ -287,7 +239,7 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 				}
 
 				// Build control to partition lookup
-				foreach (IPartition partition in m_Partitions.Values)
+				foreach (IPartition partition in GetChildren())
 				{
 					foreach (DeviceControlInfo partitionControl in partition.GetPartitionControls())
 					{
@@ -302,19 +254,5 @@ namespace ICD.Connect.Krang.Partitioning.Partitions
 				m_PartitionsSection.Leave();
 			}
 		}
-
-		#region IEnumerable Methods
-
-		public IEnumerator<IPartition> GetEnumerator()
-		{
-			return GetPartitions().GetEnumerator();
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-
-		#endregion
 	}
 }

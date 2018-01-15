@@ -323,8 +323,7 @@ namespace ICD.Connect.Krang.Core
 
         private void UpdatePartitioningFromXml(string xml)
         {
-            PartitionManagerSettings partitioning = new PartitionManagerSettings();
-            partitioning.ParseXml(xml);
+            PartitionManagerSettings partitioning = PartitionManagerSettings.FromXml(xml);
 
 			if (!AddSettingsSkipDuplicateId(partitioning))
 				return;
