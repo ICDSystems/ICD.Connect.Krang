@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils.Xml;
-using ICD.Connect.Krang.Settings;
 using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.Partitioning

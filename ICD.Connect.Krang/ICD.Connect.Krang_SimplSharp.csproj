@@ -69,7 +69,6 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\CoreDeviceFactory.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
     <Compile Include="Partitioning\PartitionManager.cs" />
@@ -103,9 +102,6 @@
     <Compile Include="Routing\RoutingGraph.cs" />
     <Compile Include="Routing\RoutingGraphTableBuilder.cs" />
     <Compile Include="Routing\StaticRoutes\StaticRoutesCollection.cs" />
-    <Compile Include="Settings\LibraryUtils.cs" />
-    <Compile Include="Settings\PluginFactory.cs" />
-    <Compile Include="Settings\FileOperations.cs" />
     <Compile Include="Core\KrangCore.cs" />
     <Compile Include="Core\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
