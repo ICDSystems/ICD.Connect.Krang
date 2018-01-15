@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Core;

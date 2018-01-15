@@ -1,11 +1,11 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
+#if SIMPLSHARP
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Rooms;

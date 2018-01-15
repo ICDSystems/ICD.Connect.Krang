@@ -1,8 +1,8 @@
 ﻿using System.Text;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Settings;

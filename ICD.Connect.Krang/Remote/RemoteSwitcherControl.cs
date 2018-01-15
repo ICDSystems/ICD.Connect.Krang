@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Services;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Services;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Krang.Routing;
