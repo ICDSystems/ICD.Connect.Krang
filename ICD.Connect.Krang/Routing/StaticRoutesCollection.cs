@@ -9,7 +9,7 @@ using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.StaticRoutes;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.Routing.StaticRoutes
+namespace ICD.Connect.Krang.Routing
 {
 	public sealed class StaticRoutesCollection : AbstractOriginatorCollection<StaticRoute>, IStaticRoutesCollection
 	{

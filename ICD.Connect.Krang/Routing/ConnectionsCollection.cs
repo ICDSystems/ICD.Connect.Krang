@@ -10,7 +10,7 @@ using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.Routing.Connections
+namespace ICD.Connect.Krang.Routing
 {
 	public sealed class ConnectionsCollection : AbstractOriginatorCollection<Connection>, IConnectionsCollection
 	{

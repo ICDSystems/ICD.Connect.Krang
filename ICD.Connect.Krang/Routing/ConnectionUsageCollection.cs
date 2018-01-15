@@ -11,7 +11,7 @@ using ICD.Connect.Routing.ConnectionUsage;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.Endpoints;
 
-namespace ICD.Connect.Krang.Routing.ConnectionUsage
+namespace ICD.Connect.Krang.Routing
 {
 	public sealed class ConnectionUsageCollection : IConnectionUsageCollection
 	{

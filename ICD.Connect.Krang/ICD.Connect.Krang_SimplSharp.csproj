@@ -95,12 +95,12 @@
     <Compile Include="Remote\RemoteSwitcherSettings.cs" />
     <Compile Include="Rooms\SimplRoom.cs" />
     <Compile Include="Rooms\SimplRoomSettings.cs" />
-    <Compile Include="Routing\Connections\ConnectionsCollection.cs" />
-    <Compile Include="Routing\ConnectionUsage\ConnectionUsageCollection.cs" />
+    <Compile Include="Routing\ConnectionsCollection.cs" />
+    <Compile Include="Routing\ConnectionUsageCollection.cs" />
     <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />
     <Compile Include="Routing\Endpoints\Sources\SimplSourceSettings.cs" />
     <Compile Include="Routing\RoutingGraph.cs" />
-    <Compile Include="Routing\StaticRoutes\StaticRoutesCollection.cs" />
+    <Compile Include="Routing\StaticRoutesCollection.cs" />
     <Compile Include="Core\KrangCore.cs" />
     <Compile Include="Core\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
