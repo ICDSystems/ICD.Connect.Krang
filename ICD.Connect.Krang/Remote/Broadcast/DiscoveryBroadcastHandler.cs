@@ -41,7 +41,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		{
 			int[] remoteSwitchers =
 				m_Core.Originators.GetChildren<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
-			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetConnections().ToList();
+			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
 
 			Dictionary<int, int> devices = new Dictionary<int, int>();
 			Dictionary<int, IEnumerable<Connection>> deviceConnections = new Dictionary<int, IEnumerable<Connection>>();
@@ -99,7 +99,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 					if (connections.All(c => c.Id != tieline1.Id))
 						connections.Add(tieline);
 				}
-				m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				HostInfo hostInfo = m_DirectMessageManager.GetHostInfo();
 				ServiceProvider.TryGetService<ILoggerService>()

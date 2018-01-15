@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
@@ -8,12 +7,12 @@ using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.StaticRoutes;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.Routing.StaticRoutes
 {
-	public sealed class StaticRoutesCollection : IStaticRoutesCollection
+	public sealed class StaticRoutesCollection : AbstractOriginatorCollection<StaticRoute>, IStaticRoutesCollection
 	{
-		private readonly Dictionary<int, StaticRoute> m_StaticRoutes;
 		private readonly SafeCriticalSection m_StaticRoutesSection;
 
 		/// <summary>
@@ -24,11 +23,6 @@ namespace ICD.Connect.Krang.Routing.StaticRoutes
 		private readonly RoutingGraph m_RoutingGraph;
 
 		/// <summary>
-		/// Gets the number of static routes in the collection.
-		/// </summary>
-		public int Count { get { return m_StaticRoutesSection.Execute(() => m_StaticRoutes.Count); } }
-
-		/// <summary>
 		/// Constructor.
 		/// </summary>
 		/// <param name="routingGraph"></param>
@@ -36,7 +30,6 @@ namespace ICD.Connect.Krang.Routing.StaticRoutes
 		{
 			m_RoutingGraph = routingGraph;
 
-			m_StaticRoutes = new Dictionary<int, StaticRoute>();
 			m_StaticRoutesSection = new SafeCriticalSection();
 			m_SwitcherStaticRoutes = new Dictionary<IRouteSwitcherControl, IcdHashSet<StaticRoute>>();
 		}
@@ -44,41 +37,14 @@ namespace ICD.Connect.Krang.Routing.StaticRoutes
 		#region Methods
 
 		/// <summary>
-		/// Gets all of the static routes.
+		/// Called each time a child is added to the collection before any events are raised.
 		/// </summary>
-		/// <returns></returns>
-		public IEnumerable<StaticRoute> GetStaticRoutes()
+		/// <param name="child"></param>
+		protected override void ChildAdded(StaticRoute child)
 		{
-			return m_StaticRoutesSection.Execute(() => m_StaticRoutes.OrderValuesByKey().ToArray());
-		}
+			base.ChildAdded(child);
 
-		/// <summary>
-		/// Clears and sets the static routes.
-		/// </summary>
-		/// <param name="staticRoutes"></param>
-		public void SetStaticRoutes(IEnumerable<StaticRoute> staticRoutes)
-		{
-			m_StaticRoutesSection.Enter();
-
-			try
-			{
-				m_StaticRoutes.Clear();
-				m_StaticRoutes.AddRange(staticRoutes, c => c.Id);
-
-				UpdateStaticRoutes();
-			}
-			finally
-			{
-				m_StaticRoutesSection.Leave();
-			}
-		}
-
-		/// <summary>
-		/// Clears the static routes.
-		/// </summary>
-		public void Clear()
-		{
-			SetStaticRoutes(Enumerable.Empty<StaticRoute>());
+			UpdateStaticRoutes();
 		}
 
 		/// <summary>
@@ -96,7 +62,7 @@ namespace ICD.Connect.Krang.Routing.StaticRoutes
 					m_SwitcherStaticRoutes.Remove(switcher);
 
 				// Build the new lookup
-				foreach (StaticRoute staticRoute in GetStaticRoutes())
+				foreach (StaticRoute staticRoute in GetChildren())
 				{
 					foreach (IRouteSwitcherControl switcher in GetSwitcherDevices(staticRoute))
 					{
@@ -229,7 +195,7 @@ namespace ICD.Connect.Krang.Routing.StaticRoutes
 			try
 			{
 				return staticRoute.GetConnections()
-				                  .Select(c => m_RoutingGraph.Connections.GetConnection(c))
+				                  .Select(c => m_RoutingGraph.Connections.GetChild(c))
 				                  .ToArray();
 			}
 			finally
@@ -239,26 +205,5 @@ namespace ICD.Connect.Krang.Routing.StaticRoutes
 		}
 
 		#endregion
-
-		public IEnumerator<StaticRoute> GetEnumerator()
-		{
-			m_StaticRoutesSection.Enter();
-
-			try
-			{
-				return m_StaticRoutes.OrderValuesByKey()
-				                     .ToList()
-				                     .GetEnumerator();
-			}
-			finally
-			{
-				m_StaticRoutesSection.Leave();
-			}
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
 	}
 }

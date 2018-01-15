@@ -100,7 +100,6 @@
     <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />
     <Compile Include="Routing\Endpoints\Sources\SimplSourceSettings.cs" />
     <Compile Include="Routing\RoutingGraph.cs" />
-    <Compile Include="Routing\RoutingGraphTableBuilder.cs" />
     <Compile Include="Routing\StaticRoutes\StaticRoutesCollection.cs" />
     <Compile Include="Core\KrangCore.cs" />
     <Compile Include="Core\KrangCoreSettings.cs" />

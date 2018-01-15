@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
@@ -9,13 +8,12 @@ using ICD.Connect.Devices.Controls;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.Endpoints;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.Routing.Connections
 {
-	public sealed class ConnectionsCollection : IConnectionsCollection
+	public sealed class ConnectionsCollection : AbstractOriginatorCollection<Connection>, IConnectionsCollection
 	{
-		public event EventHandler OnConnectionsChanged;
-
 		private readonly Dictionary<int, Connection> m_Connections;
 		private readonly SafeCriticalSection m_ConnectionsSection;
 
@@ -28,11 +26,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 		/// Maps Device -> Control -> Address -> incoming connections.
 		/// </summary>
 		private readonly Dictionary<DeviceControlInfo, Dictionary<int, Connection>> m_InputConnectionLookup;
-
-		/// <summary>
-		/// Gets the number of connections.
-		/// </summary>
-		public int Count { get { return m_ConnectionsSection.Execute(() => m_Connections.Count); } }
 
 		/// <summary>
 		/// Constructor.
@@ -269,79 +262,11 @@ namespace ICD.Connect.Krang.Routing.Connections
 			}
 		}
 
-		/// <summary>
-		/// Gets the connection with the given id.
-		/// </summary>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		public Connection GetConnection(int id)
+		protected override void ChildAdded(Connection child)
 		{
-			return m_ConnectionsSection.Execute(() => m_Connections[id]);
-		}
+			base.ChildAdded(child);
 
-		/// <summary>
-		/// Gets all of the connections.
-		/// </summary>
-		/// <returns></returns>
-		public IEnumerable<Connection> GetConnections()
-		{
-			return m_ConnectionsSection.Execute(() => m_Connections.Values.ToList(m_Connections.Count));
-		}
-
-		/// <summary>
-		/// Clears and sets the connections.
-		/// </summary>
-		/// <param name="connections"></param>
-		public void SetConnections(IEnumerable<Connection> connections)
-		{
-			if (connections == null)
-				throw new ArgumentNullException("connections");
-
-			m_ConnectionsSection.Enter();
-
-			try
-			{
-				m_Connections.Clear();
-				m_Connections.AddRange(connections, c => c.Id);
-
-				UpdateLookups();
-			}
-			finally
-			{
-				m_ConnectionsSection.Leave();
-			}
-
-			OnConnectionsChanged.Raise(this);
-		}
-
-		/// <summary>
-		/// Clears the connections.
-		/// </summary>
-		public void Clear()
-		{
-			SetConnections(Enumerable.Empty<Connection>());
-		}
-
-		/// <summary>
-		/// Returns true if the collection contains a connection with the given id.
-		/// </summary>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		public bool ContainsConnection(int id)
-		{
-			return m_ConnectionsSection.Execute(() => m_Connections.ContainsKey(id));
-		}
-
-		/// <summary>
-		/// Returns true if the collection contains the given connection.
-		/// </summary>
-		/// <param name="connection"></param>
-		/// <returns></returns>
-		public bool ContainsConnection(Connection connection)
-		{
-			return connection != null &&
-			       ContainsConnection(connection.Id) &&
-			       GetConnection(connection.Id) == connection;
+			UpdateLookups();
 		}
 
 		#endregion
@@ -528,16 +453,6 @@ namespace ICD.Connect.Krang.Routing.Connections
 			{
 				m_ConnectionsSection.Leave();
 			}
-		}
-
-		public IEnumerator<Connection> GetEnumerator()
-		{
-			return GetConnections().GetEnumerator();
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
 		}
 	}
 }

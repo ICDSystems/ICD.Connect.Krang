@@ -7,8 +7,6 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
-using ICD.Connect.API.Commands;
-using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Krang.Routing.Connections;
 using ICD.Connect.Krang.Routing.ConnectionUsage;
@@ -33,7 +31,7 @@ namespace ICD.Connect.Krang.Routing
     /// Maps devices to each other via connections.
     /// </summary>
     [PublicAPI]
-    public sealed class RoutingGraph : AbstractOriginator<RoutingGraphSettings>, IConsoleNode, IRoutingGraph
+    public sealed class RoutingGraph : AbstractRoutingGraph<RoutingGraphSettings>
     {
         private readonly IcdHashSet<IRouteSwitcherControl> m_SubscribedSwitchers;
         private readonly IcdHashSet<IRouteDestinationControl> m_SubscribedDestinations;
@@ -54,60 +52,38 @@ namespace ICD.Connect.Krang.Routing
         /// <summary>
         /// Raised when a route operation fails or succeeds.
         /// </summary>
-        public event EventHandler<RouteFinishedEventArgs> OnRouteFinished;
+        public override event EventHandler<RouteFinishedEventArgs> OnRouteFinished;
 
         /// <summary>
         /// Raised when a switcher changes routing.
         /// </summary>
-        public event EventHandler OnRouteChanged;
+		public override event EventHandler OnRouteChanged;
 
         /// <summary>
         /// Raised when a source device starts/stops sending video.
         /// </summary>
-        public event EventHandler<EndpointStateEventArgs> OnSourceTransmissionStateChanged;
+		public override event EventHandler<EndpointStateEventArgs> OnSourceTransmissionStateChanged;
 
         /// <summary>
         /// Raised when a source device is connected or disconnected.
         /// </summary>
-        public event EventHandler<EndpointStateEventArgs> OnSourceDetectionStateChanged;
+		public override event EventHandler<EndpointStateEventArgs> OnSourceDetectionStateChanged;
 
         #endregion
 
         #region Properties
 
-        public ConnectionsCollection Connections { get { return m_Connections; } }
+        public override IConnectionsCollection Connections { get { return m_Connections; } }
 
-        IConnectionsCollection IRoutingGraph.Connections { get { return Connections; } }
+		public override IOriginatorCollection<StaticRoute> StaticRoutes { get { return m_StaticRoutes; } }
 
-        public StaticRoutesCollection StaticRoutes { get { return m_StaticRoutes; } }
+		public override IConnectionUsageCollection ConnectionUsages { get { return m_ConnectionUsages; } }
 
-        IStaticRoutesCollection IRoutingGraph.StaticRoutes { get { return StaticRoutes; } }
+		public override IOriginatorCollection<ISource> Sources { get { return m_Sources; } }
 
-        public ConnectionUsageCollection ConnectionUsages { get { return m_ConnectionUsages; } }
+		public override IOriginatorCollection<IDestination> Destinations { get { return m_Destinations; } }
 
-        IConnectionUsageCollection IRoutingGraph.ConnectionUsages { get { return ConnectionUsages; } }
-
-        public CoreSourceCollection Sources { get { return m_Sources; } }
-
-        IOriginatorCollection<ISource> IRoutingGraph.Sources { get { return Sources; } }
-
-        public CoreDestinationCollection Destinations { get { return m_Destinations; } }
-
-        IOriginatorCollection<IDestination> IRoutingGraph.Destinations { get { return Destinations; } }
-
-        public CoreDestinationGroupCollection DestinationGroups { get { return m_DestinationGroups; } }
-
-        IOriginatorCollection<IDestinationGroup> IRoutingGraph.DestinationGroups { get { return DestinationGroups; } }
-
-        /// <summary>
-        /// Gets the name of the node.
-        /// </summary>
-        public string ConsoleName { get { return "RoutingGraph"; } }
-
-        /// <summary>
-        /// Gets the help information for the node.
-        /// </summary>
-        public string ConsoleHelp { get { return "Maps the routing of device outputs to inputs."; } }
+		public override IOriginatorCollection<IDestinationGroup> DestinationGroups { get { return m_DestinationGroups; } }
 
         #endregion
 
@@ -131,8 +107,6 @@ namespace ICD.Connect.Krang.Routing
 
             m_PendingRoutes = new Dictionary<Guid, int>();
             m_PendingRoutesSection = new SafeCriticalSection();
-
-            ServiceProvider.AddService<IRoutingGraph>(this);
         }
 
         /// <summary>
@@ -147,8 +121,6 @@ namespace ICD.Connect.Krang.Routing
             OnSourceDetectionStateChanged = null;
 
             base.DisposeFinal(disposing);
-
-            ServiceProvider.RemoveService<IRoutingGraph>(this);
         }
 
         /// <summary>
@@ -164,19 +136,10 @@ namespace ICD.Connect.Krang.Routing
             SubscribeDestinations();
             SubscribeSources();
 
-            StaticRoutes.UpdateStaticRoutes();
+            m_StaticRoutes.UpdateStaticRoutes();
         }
 
         #endregion
-
-        /// <summary>
-        /// Clears the RoutingGraph of any connections and static routes.
-        /// </summary>
-        public void Clear()
-        {
-            StaticRoutes.Clear();
-            Connections.Clear();
-        }
 
         #region Recursion
 
@@ -190,7 +153,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="inputActive"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <returns>The sources</returns>
-        public IEnumerable<EndpointInfo> GetActiveSourceEndpoints(EndpointInfo destinationInput, eConnectionType type,
+        public override IEnumerable<EndpointInfo> GetActiveSourceEndpoints(EndpointInfo destinationInput, eConnectionType type,
                                                                   bool signalDetected, bool inputActive)
         {
             IRouteDestinationControl destination = GetDestinationControl(destinationInput.Device, destinationInput.Control);
@@ -216,7 +179,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="inputActive"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <returns>The source</returns>
-        public EndpointInfo? GetActiveSourceEndpoint(IRouteDestinationControl destination, int input,
+		public override EndpointInfo? GetActiveSourceEndpoint(IRouteDestinationControl destination, int input,
                                                      eConnectionType type, bool signalDetected, bool inputActive)
         {
             if (destination == null)
@@ -231,7 +194,7 @@ namespace ICD.Connect.Krang.Routing
             if (inputActive && !destination.GetInputActiveState(input, type))
                 return null;
 
-            Connection inputConnection = Connections.GetInputConnection(destination, input);
+            Connection inputConnection = m_Connections.GetInputConnection(destination, input);
             if (inputConnection == null)
                 return null;
 
@@ -263,7 +226,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="inputActive"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <returns>The sources</returns>
-        public IEnumerable<EndpointInfo> GetActiveDestinationEndpoints(IRouteSourceControl sourceControl, int sourceOutput,
+		public override IEnumerable<EndpointInfo> GetActiveDestinationEndpoints(IRouteSourceControl sourceControl, int sourceOutput,
                                                                        eConnectionType type, bool signalDetected,
                                                                        bool inputActive)
         {
@@ -280,7 +243,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destinationControl"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public IEnumerable<IRouteSourceControl> GetSourceControlsRecursive(IRouteDestinationControl destinationControl,
+		public override IEnumerable<IRouteSourceControl> GetSourceControlsRecursive(IRouteDestinationControl destinationControl,
                                                                            eConnectionType type)
         {
             if (destinationControl == null)
@@ -310,7 +273,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <returns></returns>
         [PublicAPI]
-        public bool SourceDetected(IRouteSourceControl sourceControl, eConnectionType type)
+		public override bool SourceDetected(IRouteSourceControl sourceControl, eConnectionType type)
         {
             if (sourceControl == null)
                 throw new ArgumentNullException("sourceControl");
@@ -326,7 +289,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <returns></returns>
         [PublicAPI]
-        public bool SourceDetected(IRouteSourceControl sourceControl, int output, eConnectionType type)
+		public override bool SourceDetected(IRouteSourceControl sourceControl, int output, eConnectionType type)
         {
             if (sourceControl == null)
                 throw new ArgumentNullException("sourceControl");
@@ -343,18 +306,18 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destination"></param>
         /// <param name="flag"></param>
         /// <param name="roomId"></param>
-        public ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType flag, int roomId)
+		public override ConnectionPath FindPath(EndpointInfo source, EndpointInfo destination, eConnectionType flag, int roomId)
         {
             if (EnumUtils.HasMultipleFlags(flag))
 				throw new ArgumentException("ConnectionType has multiple flags", "flag");
 
             // Ensure the source has a valid output connection
-            Connection outputConnection = Connections.GetOutputConnection(source);
+            Connection outputConnection = m_Connections.GetOutputConnection(source);
             if (outputConnection == null || !outputConnection.ConnectionType.HasFlag(flag))
                 return null;
 
             // Ensure the destination has a valid input connection
-            Connection inputConnection = Connections.GetInputConnection(destination);
+            Connection inputConnection = m_Connections.GetInputConnection(destination);
             if (inputConnection == null || !inputConnection.ConnectionType.HasFlag(flag))
                 return null;
 
@@ -371,7 +334,7 @@ namespace ICD.Connect.Krang.Routing
 		/// <param name="flag"></param>
 		/// <param name="roomId"></param>
 		/// <returns></returns>
-		public IEnumerable<KeyValuePair<EndpointInfo, ConnectionPath>> FindPaths(
+		public override IEnumerable<KeyValuePair<EndpointInfo, ConnectionPath>> FindPaths(
 		    EndpointInfo source,
 			IEnumerable<EndpointInfo> destinations,
 		    eConnectionType flag,
@@ -386,7 +349,7 @@ namespace ICD.Connect.Krang.Routing
 		    IcdHashSet<Connection> destionationConnections = new IcdHashSet<Connection>();
 		    Dictionary<Connection, EndpointInfo> connectionToDestinations = new Dictionary<Connection, EndpointInfo>();
 
-		    Connection sourceConnection = Connections.GetOutputConnection(source);
+		    Connection sourceConnection = m_Connections.GetOutputConnection(source);
 
 			foreach (EndpointInfo destination in destinations.Distinct())
 		    {
@@ -398,7 +361,7 @@ namespace ICD.Connect.Krang.Routing
 			    }
 
 			    // Ensure the destination has a valid input connection
-			    Connection destinationConnection = Connections.GetInputConnection(destination);
+			    Connection destinationConnection = m_Connections.GetInputConnection(destination);
 			    if (destinationConnection == null || !destinationConnection.ConnectionType.HasFlag(flag))
 			    {
 					yield return new KeyValuePair<EndpointInfo, ConnectionPath>(destination, null);
@@ -440,7 +403,7 @@ namespace ICD.Connect.Krang.Routing
                 throw new ArgumentException("ConnectionType has multiple flags", "type");
 
             return
-                Connections.GetOutputConnections(inputConnection.Destination.Device,
+                m_Connections.GetOutputConnections(inputConnection.Destination.Device,
                                                  inputConnection.Destination.Control,
                                                  type)
                            .Where(c =>
@@ -459,7 +422,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="signalDetected"></param>
         /// <param name="inputActive"></param>
         /// <returns></returns>
-        public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
+		public override IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, EndpointInfo destination, eConnectionType type,
                                                          bool signalDetected, bool inputActive)
         {
             foreach (Connection[] path in FindActivePaths(source, type, signalDetected, inputActive))
@@ -481,7 +444,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="signalDetected"></param>
         /// <param name="inputActive"></param>
         /// <returns></returns>
-        public IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected,
+		public override IEnumerable<Connection[]> FindActivePaths(EndpointInfo source, eConnectionType type, bool signalDetected,
                                                          bool inputActive)
         {
             return EnumUtils.HasMultipleFlags(type)
@@ -520,7 +483,7 @@ namespace ICD.Connect.Krang.Routing
                 throw new ArgumentException("Type enum requires exactly 1 flag.", "type");
 
             // If there is no output connection from this source then we are done.
-            Connection outputConnection = Connections.GetOutputConnection(source);
+            Connection outputConnection = m_Connections.GetOutputConnection(source);
             if (outputConnection == null || !outputConnection.ConnectionType.HasFlag(type))
             {
                 if (visited.Count > 0)
@@ -593,7 +556,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="roomId"></param>
         /// <returns></returns>
-        public bool HasPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+		public override bool HasPath(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
         {
             return FindPath(source, destination, type, roomId) != null;
         }
@@ -612,7 +575,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="roomId"></param>
         /// <returns>False if route could not be established</returns>
-        public void Route(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
+        public override void Route(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
                           int destinationAddress, eConnectionType type, int roomId)
         {
             if (sourceControl == null)
@@ -634,7 +597,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destination"></param>
         /// <param name="type"></param>
         /// <param name="roomId"></param>
-        public void Route(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+		public override void Route(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
         {
             RouteOperation operation = new RouteOperation
             {
@@ -651,7 +614,7 @@ namespace ICD.Connect.Krang.Routing
 	    /// Configures switchers to establish the given routing operation.
 	    /// </summary>
 	    /// <param name="op"></param>
-	    public void Route(RouteOperation op)
+		public override void Route(RouteOperation op)
 	    {
 		    if (op == null)
 			    throw new ArgumentNullException("op");
@@ -678,7 +641,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destinations"></param>
         /// <param name="type"></param>
         /// <param name="roomId"></param>
-        public void RouteMultiple(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
+		public override void RouteMultiple(EndpointInfo source, IEnumerable<EndpointInfo> destinations, eConnectionType type, int roomId)
         {
 			if (destinations == null)
 				throw new ArgumentNullException("destinations");
@@ -712,7 +675,7 @@ namespace ICD.Connect.Krang.Routing
         /// </summary>
         /// <param name="op"></param>
         /// <param name="path"></param>
-        public void RoutePath(RouteOperation op, IEnumerable<Connection> path)
+		public override void RoutePath(RouteOperation op, IEnumerable<Connection> path)
         {
             if (op == null)
                 throw new ArgumentNullException("op");
@@ -828,12 +791,12 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="roomId"></param>
         /// <returns></returns>
-        public void Unroute(IRouteSourceControl sourceControl, eConnectionType type, int roomId)
+		public override void Unroute(IRouteSourceControl sourceControl, eConnectionType type, int roomId)
         {
             if (sourceControl == null)
                 throw new ArgumentNullException("sourceControl");
 
-            Connections.GetOutputsAny(sourceControl, type)
+            m_Connections.GetOutputsAny(sourceControl, type)
                        .ForEach(output => Unroute(sourceControl, output, type, roomId));
         }
 
@@ -844,7 +807,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="sourceAddress"></param>
         /// <param name="type"></param>
         /// <param name="roomId"></param>
-        public void Unroute(IRouteSourceControl sourceControl, int sourceAddress, eConnectionType type, int roomId)
+		public override void Unroute(IRouteSourceControl sourceControl, int sourceAddress, eConnectionType type, int roomId)
         {
             if (sourceControl == null)
                 throw new ArgumentNullException("sourceControl");
@@ -862,7 +825,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="roomId"></param>
         /// <returns>False if the devices could not be unrouted.</returns>
-        public void Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
+		public override void Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
                             int destinationAddress, eConnectionType type, int roomId)
         {
             if (sourceControl == null)
@@ -885,7 +848,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="roomId"></param>
         /// <returns>False if the devices could not be unrouted.</returns>
-        public void Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
+		public override void Unroute(IRouteSourceControl sourceControl, int sourceAddress, IRouteDestinationControl destinationControl,
                             eConnectionType type, int roomId)
         {
             if (sourceControl == null)
@@ -894,7 +857,7 @@ namespace ICD.Connect.Krang.Routing
             if (destinationControl == null)
                 throw new ArgumentNullException("destinationControl");
 
-            Connections.GetInputsAny(destinationControl, type)
+            m_Connections.GetInputsAny(destinationControl, type)
                        .ForEach(input => Unroute(sourceControl, sourceAddress, destinationControl, input, type, roomId));
         }
 
@@ -906,7 +869,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="roomId"></param>
         /// <returns>False if the devices could not be unrouted.</returns>
-        public void Unroute(IRouteSourceControl sourceControl, IRouteDestinationControl destinationControl,
+		public override void Unroute(IRouteSourceControl sourceControl, IRouteDestinationControl destinationControl,
                             eConnectionType type, int roomId)
         {
             if (sourceControl == null)
@@ -915,7 +878,7 @@ namespace ICD.Connect.Krang.Routing
             if (destinationControl == null)
                 throw new ArgumentNullException("destinationControl");
 
-            Connections.GetOutputsAny(sourceControl, type)
+            m_Connections.GetOutputsAny(sourceControl, type)
                        .ForEach(output => Unroute(sourceControl, output, destinationControl, type, roomId));
         }
 
@@ -949,7 +912,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="roomId"></param>
         /// <returns>False if the devices could not be unrouted.</returns>
-        public void Unroute(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
+		public override void Unroute(EndpointInfo source, EndpointInfo destination, eConnectionType type, int roomId)
         {
             foreach (Connection[] path in FindActivePaths(source, destination, type, false, false))
                 Unroute(path, type, roomId);
@@ -961,7 +924,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="path"></param>
         /// <param name="type"></param>
         /// <param name="roomId"></param>
-        public void Unroute(Connection[] path, eConnectionType type, int roomId)
+		public override void Unroute(Connection[] path, eConnectionType type, int roomId)
         {
             // Loop backwards looking for switchers closest to the destination
             for (int index = path.Length - 1; index > 0; index--)
@@ -1036,7 +999,7 @@ namespace ICD.Connect.Krang.Routing
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public IEnumerable<IRouteControl> GetControls(Connection connection)
+		public override IEnumerable<IRouteControl> GetControls(Connection connection)
         {
             if (connection == null)
                 throw new ArgumentNullException("connection");
@@ -1057,7 +1020,7 @@ namespace ICD.Connect.Krang.Routing
             return ServiceProvider.GetService<ICore>().GetControl<T>(device, control);
         }
 
-        public IRouteDestinationControl GetDestinationControl(int device, int control)
+		public override IRouteDestinationControl GetDestinationControl(int device, int control)
         {
             return GetControl<IRouteDestinationControl>(device, control);
         }
@@ -1070,7 +1033,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="destinationInput"></param>
         /// <returns></returns>
-        public IRouteDestinationControl GetDestinationControl(IRouteSourceControl sourceControl, int address,
+		public override IRouteDestinationControl GetDestinationControl(IRouteSourceControl sourceControl, int address,
                                                               eConnectionType type, out int destinationInput)
         {
             destinationInput = 0;
@@ -1078,7 +1041,7 @@ namespace ICD.Connect.Krang.Routing
             if (sourceControl == null)
                 throw new ArgumentNullException("sourceControl");
 
-            Connection connection = Connections.GetOutputConnections(sourceControl.Parent.Id, sourceControl.Id, type)
+            Connection connection = m_Connections.GetOutputConnections(sourceControl.Parent.Id, sourceControl.Id, type)
                                                .FirstOrDefault(c => c.Source.Address == address);
             if (connection == null)
                 return null;
@@ -1093,7 +1056,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="device"></param>
         /// <param name="control"></param>
         /// <returns></returns>
-        public IRouteSourceControl GetSourceControl(int device, int control)
+		public override IRouteSourceControl GetSourceControl(int device, int control)
         {
             return GetControl<IRouteSourceControl>(device, control);
         }
@@ -1104,7 +1067,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="destination"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public IEnumerable<IRouteSourceControl> GetSourceControls(IRouteDestinationControl destination, eConnectionType type)
+		public override IEnumerable<IRouteSourceControl> GetSourceControls(IRouteDestinationControl destination, eConnectionType type)
         {
             if (destination == null)
                 throw new ArgumentNullException("destination");
@@ -1122,7 +1085,7 @@ namespace ICD.Connect.Krang.Routing
         /// <param name="type"></param>
         /// <param name="sourceOutput"></param>
         /// <returns></returns>
-        public IRouteSourceControl GetSourceControl(IRouteDestinationControl destination, int address, eConnectionType type,
+		public override IRouteSourceControl GetSourceControl(IRouteDestinationControl destination, int address, eConnectionType type,
                                                     out int sourceOutput)
         {
             sourceOutput = 0;
@@ -1130,7 +1093,7 @@ namespace ICD.Connect.Krang.Routing
             if (destination == null)
                 throw new ArgumentNullException("destination");
 
-            Connection connection = Connections.GetInputConnections(destination.Parent.Id, destination.Id, type)
+            Connection connection = m_Connections.GetInputConnections(destination.Parent.Id, destination.Id, type)
                                                .FirstOrDefault(c => c.Destination.Address == address);
             if (connection == null)
                 return null;
@@ -1355,7 +1318,7 @@ namespace ICD.Connect.Krang.Routing
             //ConnectionUsages.UpdateConnectionsUsage(switcher, args.Output, args.Type);
 
             // Re-enforce static routes
-            StaticRoutes.ReApplyStaticRoutesForSwitcher(switcher);
+            m_StaticRoutes.ReApplyStaticRoutesForSwitcher(switcher);
 
             OnRouteChanged.Raise(this);
         }
@@ -1366,7 +1329,7 @@ namespace ICD.Connect.Krang.Routing
 
         protected override void ApplySettingsFinal(RoutingGraphSettings settings, IDeviceFactory factory)
         {
-            m_Connections.OnConnectionsChanged -= ConnectionsOnConnectionsChanged;
+            m_Connections.OnChildrenChanged -= ConnectionsOnConnectionsChanged;
 
             base.ApplySettingsFinal(settings, factory);
 
@@ -1376,17 +1339,17 @@ namespace ICD.Connect.Krang.Routing
             IEnumerable<IDestination> destinations = GetDestinations(settings, factory);
             IEnumerable<IDestinationGroup> destinationGroups = GetDestinationGroups(settings, factory);
 
-            Connections.SetConnections(connections);
-            StaticRoutes.SetStaticRoutes(staticRoutes);
-            Sources.SetChildren(sources);
-            Destinations.SetChildren(destinations);
-            DestinationGroups.SetChildren(destinationGroups);
+            m_Connections.SetChildren(connections);
+			m_StaticRoutes.SetChildren(staticRoutes);
+            m_Sources.SetChildren(sources);
+            m_Destinations.SetChildren(destinations);
+            m_DestinationGroups.SetChildren(destinationGroups);
 
             SubscribeSwitchers();
             SubscribeDestinations();
             SubscribeSources();
 
-            m_Connections.OnConnectionsChanged += ConnectionsOnConnectionsChanged;
+            m_Connections.OnChildrenChanged += ConnectionsOnConnectionsChanged;
         }
 
         private IEnumerable<StaticRoute> GetStaticRoutes(RoutingGraphSettings settings, IDeviceFactory factory)
@@ -1445,165 +1408,6 @@ namespace ICD.Connect.Krang.Routing
             settings.SourceSettings.SetRange(Sources.Where(c => c.Serialize).Select(r => r.CopySettings()));
             settings.DestinationSettings.SetRange(Destinations.Where(c => c.Serialize).Select(r => r.CopySettings()));
             settings.DestinationGroupSettings.SetRange(DestinationGroups.Where(c => c.Serialize).Select(r => r.CopySettings()));
-        }
-
-        #endregion
-
-        #region Console
-
-        /// <summary>
-        /// Gets the child console nodes.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
-        {
-            yield break;
-        }
-
-        /// <summary>
-        /// Calls the delegate for each console status item.
-        /// </summary>
-        /// <param name="addRow"></param>
-        public void BuildConsoleStatus(AddStatusRowDelegate addRow)
-        {
-            addRow("Connections Count", Connections.Count);
-        }
-
-        /// <summary>
-        /// Gets the child console commands.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<IConsoleCommand> GetConsoleCommands()
-        {
-            yield return
-                new ConsoleCommand("PrintTable", "Prints a table of the routed devices and their input/output information.",
-                                   () => PrintTable());
-            yield return new ConsoleCommand("PrintConnections", "Prints the list of all connections.", () => PrintConnections());
-            yield return new ConsoleCommand("PrintSources", "Prints the list of Sources", () => PrintSources());
-            yield return new ConsoleCommand("PrintDestinations", "Prints the list of Destinations", () => PrintDestinations());
-            yield return new ConsoleCommand("PrintUsages", "Prints a table of the connection usages.", () => PrintUsages());
-
-            yield return new GenericConsoleCommand<int, int, eConnectionType, int>("Route",
-    "Routes source to destination. Usage: Route <sourceId> <destId> <connType> <roomId>",
-    (a, b, c, d) => RouteConsoleCommand(a, b, c, d));
-            yield return new GenericConsoleCommand<int, int, eConnectionType, int>("RouteGroup",
-                "Routes source to destination group. Usage: Route <sourceId> <destGrpId> <connType> <roomId>",
-                (a, b, c, d) => RouteGroupConsoleCommand(a, b, c, d));
-        }
-
-        private string PrintSources()
-        {
-            TableBuilder builder = new TableBuilder("Id", "Source");
-
-            foreach (var source in m_Sources.GetChildren().OrderBy(c => c.Id))
-                builder.AddRow(source.Id, source);
-
-            return builder.ToString();
-        }
-
-        private string PrintDestinations()
-        {
-            TableBuilder builder = new TableBuilder("Id", "Destination");
-
-            foreach (var destination in m_Destinations.GetChildren().OrderBy(c => c.Id))
-                builder.AddRow(destination.Id, destination);
-
-            return builder.ToString();
-        }
-
-        /// <summary>
-        /// Loop over the devices, build a table of inputs, outputs, and their statuses.
-        /// </summary>
-        private string PrintTable()
-        {
-            RoutingGraphTableBuilder builder = new RoutingGraphTableBuilder(this);
-            return builder.ToString();
-        }
-
-        private string PrintConnections()
-        {
-            TableBuilder builder = new TableBuilder("Source", "Output", "Destination", "Input", "Type");
-
-            foreach (var con in m_Connections.GetConnections().OrderBy(c => c.Source.Device).ThenBy(c => c.Source.Address))
-                builder.AddRow(con.Source, con.Source.Address, con.Destination, con.Destination.Address, con.ConnectionType);
-
-            return builder.ToString();
-        }
-
-        /// <summary>
-        /// Loop over the connections and build a table of usages.
-        /// </summary>
-        private string PrintUsages()
-        {
-            TableBuilder builder = new TableBuilder("Connection", "Type", "Source", "Rooms");
-
-            Connection[] connections = Connections.ToArray();
-
-            for (int index = 0; index < connections.Length; index++)
-            {
-                Connection connection = connections[index];
-                ConnectionUsageInfo info = ConnectionUsages.GetConnectionUsageInfo(connection);
-                int row = 0;
-
-                foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(connection.ConnectionType))
-                {
-                    string connectionString = row == 0 ? string.Format("{0} - {1}", connection.Id, connection.Name) : string.Empty;
-                    EndpointInfo? source = info.GetSource(type);
-                    int[] rooms = info.GetRooms(type).ToArray();
-                    string roomsString = rooms.Length == 0 ? string.Empty : StringUtils.ArrayFormat(rooms);
-
-                    builder.AddRow(connectionString, type, source, roomsString);
-
-                    row++;
-                }
-
-                if (index < connections.Length - 1)
-                    builder.AddSeparator();
-            }
-
-            return builder.ToString();
-        }
-
-        private string RouteConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
-        {
-            if (!Sources.ContainsChild(source) || !Destinations.ContainsChild(destination))
-                return "Krang does not contains a source or destination with that id";
-
-            Route(Sources.GetChild(source), Destinations.GetChild(destination), connectionType, roomId);
-
-            return "Sucessfully executed route command";
-        }
-
-        private string RouteGroupConsoleCommand(int source, int destination, eConnectionType connectionType, int roomId)
-        {
-            if (!Sources.ContainsChild(source) || !DestinationGroups.ContainsChild(destination))
-                return "Krang does not contains a source or destination group with that id";
-
-            Route(Sources.GetChild(source), DestinationGroups.GetChild(destination), connectionType, roomId);
-
-            return "Sucessfully executed route command";
-        }
-
-        private void Route(ISource source, IDestination destination, eConnectionType connectionType, int roomId)
-        {
-            RouteOperation operation = new RouteOperation
-            {
-                Source = source.Endpoint,
-                Destination = destination.Endpoint,
-                ConnectionType = connectionType,
-                RoomId = roomId
-            };
-
-            Route(operation);
-        }
-
-        private void Route(ISource source, IDestinationGroup destinationGroup, eConnectionType connectionType, int roomId)
-        {
-            foreach (var destination in destinationGroup.Destinations.Where(Destinations.ContainsChild).Select(d => Destinations.GetChild(d)))
-            {
-                IDestination destination1 = destination;
-                ThreadingUtils.SafeInvoke(() => Route(source, destination1, connectionType, roomId));
-            }
         }
 
         #endregion

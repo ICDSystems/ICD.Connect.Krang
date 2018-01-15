@@ -103,7 +103,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					}
 				}
 
-				m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				// Set outputs on MockSource if applicable
 				MockSourceDevice mockSource = sourceDevice as MockSourceDevice;
@@ -111,9 +111,11 @@ namespace ICD.Connect.Krang.Remote.Direct
 				{
 					mockSource.Controls.Clear();
 					mockSource.AddSourceControl(source.Endpoint.Control);
-					mockSource.Controls
-					          .GetControl<MockRouteSourceControl>(source.Endpoint.Control)
-					          .SetOutputs(message.SourceConnections[source.Id]);
+
+					// MockRouteSourceControl pulls outputs from the routing graph
+					//mockSource.Controls
+					//          .GetControl<MockRouteSourceControl>(source.Endpoint.Control)
+					//          .SetOutputs(message.SourceConnections[source.Id]);
 				}
 			}
 		}
@@ -177,7 +179,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					}
 				}
 
-				m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				// Set inputs on MockDestination if applicable
 				MockDestinationDevice mockDestination = destinationDevice as MockDestinationDevice;

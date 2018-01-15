@@ -341,13 +341,6 @@ namespace ICD.Connect.Krang.Core
 			addRow("Panel count", m_Originators.GetChildren<IPanelDevice>().Count());
 			addRow("Device count", m_Originators.GetChildren<IDevice>().Count());
 			addRow("Port count", m_Originators.GetChildren<IPort>().Count());
-
-			if (RoutingGraph != null)
-			{
-				addRow("Connection count", RoutingGraph.Connections.Count);
-				addRow("Static Routes count", RoutingGraph.StaticRoutes.Count);
-			}
-
 			addRow("Room count", m_Originators.GetChildren<IRoom>().Count());
 		}
 

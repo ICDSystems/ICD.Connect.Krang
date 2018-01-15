@@ -230,7 +230,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 		{
 			var source = m_Core.GetRoutingGraph().Sources.GetChild(id);
 			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Error, "Removing remote Source(Device={0}, Output={1}) due to timeout", source.Endpoint.Device, source.Endpoint.Address);
-			var connections = m_Core.GetRoutingGraph().Connections.GetConnections();
+			var connections = m_Core.GetRoutingGraph().Connections.GetChildren();
 			
 			// list of connections minus the ones connected to the source
 			var connectionsLeft = connections.Where(c => c.Source != source.Endpoint)
@@ -243,7 +243,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 				m_Core.Originators.RemoveChild(device);
 			}
 
-			m_Core.GetRoutingGraph().Connections.SetConnections(connectionsLeft);
+			m_Core.GetRoutingGraph().Connections.SetChildren(connectionsLeft);
 			m_Core.GetRoutingGraph().Sources.RemoveChild(source);
 		}
 
@@ -251,7 +251,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 		{
 			var destination = m_Core.GetRoutingGraph().Destinations.GetChild(id);
 			ServiceProvider.TryGetService<ILoggerService>().AddEntry(eSeverity.Error, "Removing remote Destination(Device={0}, Input={1}) due to timeout", destination.Endpoint.Device, destination.Endpoint.Address);
-			var connections = m_Core.GetRoutingGraph().Connections.GetConnections().ToList();
+			var connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
 			
 			// list of connections minus the ones connected to the destination
 			var connectionsLeft =
@@ -265,7 +265,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 				m_Core.Originators.RemoveChild(device);
 			}
 
-			m_Core.GetRoutingGraph().Connections.SetConnections(connectionsLeft);
+			m_Core.GetRoutingGraph().Connections.SetChildren(connectionsLeft);
 			m_Core.GetRoutingGraph().Destinations.RemoveChild(destination);
 		}
 
@@ -285,7 +285,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 
 		private void ReplaceSourceConnections(IEnumerable<KeyValuePair<int, Row>> changes)
 		{
-			var connections = m_Core.GetRoutingGraph().Connections.GetConnections().ToList();
+			var connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
 			foreach (var entry in changes)
 			{
 				var source = m_Core.GetRoutingGraph().Sources.GetChild(entry.Key);
@@ -312,12 +312,12 @@ namespace ICD.Connect.Krang.Remote.Direct
 									 c.Destination.Address),
 					c.ConnectionType)));
 			}
-			m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+			m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 		}
 
 		private void ReplaceDestinationConnections(IEnumerable<KeyValuePair<int, Row>> changes)
 		{
-			var connections = m_Core.GetRoutingGraph().Connections.GetConnections().ToList();
+			var connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
 			foreach (var entry in changes)
 			{
 				var destination = m_Core.GetRoutingGraph().Destinations.GetChild(entry.Key);
@@ -344,7 +344,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					c.Destination,
 					c.ConnectionType)));
 			}
-			m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+			m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 		}
 
 		#region Output Processing
