@@ -5,7 +5,7 @@ using ICD.Connect.Routing.Connections;
 namespace ICD.Connect.Krang.Remote.Broadcast
 {
 	[Serializable]
-	public class KrangDiscoveryBroadcast
+	public sealed class KrangDiscoveryBroadcast
 	{
 		public Dictionary<int, int> DeviceIds { get; set; }
 		public Dictionary<int, IEnumerable<Connection>> Tielines { get; set; }

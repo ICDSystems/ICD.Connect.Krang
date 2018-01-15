@@ -5,7 +5,7 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public class InitiateConnectionHandler : AbstractMessageHandler<InitiateConnectionMessage>
+	public sealed class InitiateConnectionHandler : AbstractMessageHandler<InitiateConnectionMessage>
 	{
 		public override AbstractMessage HandleMessage(InitiateConnectionMessage message)
 		{

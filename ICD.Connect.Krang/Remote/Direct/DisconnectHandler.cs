@@ -7,7 +7,7 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public class DisconnectHandler : AbstractMessageHandler<DisconnectMessage>
+	public sealed class DisconnectHandler : AbstractMessageHandler<DisconnectMessage>
 	{
 		public override AbstractMessage HandleMessage(DisconnectMessage message)
 		{
@@ -31,7 +31,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 		}
 	}
 
-	public class DisconnectMessage : AbstractMessage
+	public sealed class DisconnectMessage : AbstractMessage
 	{
 	}
 }
