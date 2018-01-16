@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-	<RootNamespace>ICD.Connect.Krang.Tests</RootNamespace>
+	<RootNamespace>ICD.Connect.Core.Tests</RootNamespace>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<Deterministic>false</Deterministic>
   </PropertyGroup>
@@ -24,7 +24,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_NetStandard.csproj" />
+    <ProjectReference Include="..\ICD.Connect.Core\ICD.Connect.Core_NetStandard.csproj" />
   </ItemGroup>
 
   <ItemGroup>
