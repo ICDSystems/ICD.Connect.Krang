@@ -141,10 +141,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[PublicAPI("S+")]
 		public void SetRoom(ushort roomId)
 		{
-			ServiceProvider.GetService<ILoggerService>().AddEntry(eSeverity.Informational, "{0} setting room to {1}", this, roomId);
-			
+			ServiceProvider.GetService<ILoggerService>()
+			               .AddEntry(eSeverity.Informational, "{0} setting room to {1}", this, roomId);
+
 			m_RoomId = roomId;
-			
+
 			SimplRoom room = GetRoom(roomId);
 			SetRoom(room);
 		}
@@ -156,7 +157,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[PublicAPI("S+")]
 		public void SetRoomIndex(ushort roomIndex)
 		{
-			ServiceProvider.GetService<ILoggerService>().AddEntry(eSeverity.Informational, "{0} setting room index to {1}", this, roomIndex);
+			ServiceProvider.GetService<ILoggerService>()
+			               .AddEntry(eSeverity.Informational, "{0} setting room index to {1}", this, roomIndex);
 
 			SimplRoom room;
 			if (!m_RoomListDictionary.TryGetValue(roomIndex, out room))
@@ -173,7 +175,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[PublicAPI("S+")]
 		public void SetSource(ushort sourceId)
 		{
-			ServiceProvider.GetService<ILoggerService>().AddEntry(eSeverity.Informational, "{0} setting source to {1}", this, sourceId);
+			ServiceProvider.GetService<ILoggerService>()
+			               .AddEntry(eSeverity.Informational, "{0} setting source to {1}", this, sourceId);
 
 			if (m_Room != null)
 				m_Room.SetSource(sourceId);
@@ -182,7 +185,9 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		[PublicAPI("S+")]
 		public void SetSourceIndex(ushort sourceList, ushort sourceIndex)
 		{
-			ServiceProvider.GetService<ILoggerService>().AddEntry(eSeverity.Informational, "{0} setting source list {1} index to {2}", this, sourceList, sourceIndex);
+			ServiceProvider.GetService<ILoggerService>()
+			               .AddEntry(eSeverity.Informational, "{0} setting source list {1} index to {2}", this, sourceList,
+			                         sourceIndex);
 
 			Dictionary<ushort, SimplSource> listDict;
 			if (!m_SourceListDictionary.TryGetValue(sourceList, out listDict))
@@ -319,8 +324,10 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					sourceListDictionary[AUDIO_LIST_INDEX][audioListIndexCounter] = ss;
 					sourceListDictionaryReverse[ss][AUDIO_LIST_INDEX] = audioListIndexCounter;
 					if (handler != null)
+					{
 						handler(AUDIO_LIST_INDEX, audioListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId,
 						        ss.CrosspointType);
+					}
 					audioListIndexCounter++;
 				}
 
@@ -329,8 +336,10 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 					sourceListDictionary[VIDEO_LIST_INDEX][videoListIndexCounter] = ss;
 					sourceListDictionaryReverse[ss][VIDEO_LIST_INDEX] = videoListIndexCounter;
 					if (handler != null)
+					{
 						handler(VIDEO_LIST_INDEX, videoListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId,
 						        ss.CrosspointType);
+					}
 					videoListIndexCounter++;
 				}
 

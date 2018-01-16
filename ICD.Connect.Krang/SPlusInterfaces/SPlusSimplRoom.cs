@@ -185,8 +185,8 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 
 			ushort id = source == null ? (ushort)0 : (ushort)source.Id;
 			string name = source == null
-								  ? string.Empty
-								  : source.GetNameOrDeviceName();
+				              ? string.Empty
+				              : source.GetNameOrDeviceName();
 			ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
 			ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
 

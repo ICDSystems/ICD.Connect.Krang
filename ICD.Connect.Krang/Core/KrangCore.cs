@@ -10,15 +10,12 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote.Broadcast;
 using ICD.Connect.Krang.Remote.Direct;
-using ICD.Connect.Krang.Routing;
 using ICD.Connect.Panels;
-using ICD.Connect.Partitioning;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Routing;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
@@ -41,7 +38,7 @@ namespace ICD.Connect.Krang.Core
 
 		#region Properties
 
-		public IOriginatorCollection<IOriginator> Originators {get { return m_Originators; } } 
+		public IOriginatorCollection<IOriginator> Originators { get { return m_Originators; } }
 
 		/// <summary>
 		/// Gets the name of the node in the console.
@@ -63,7 +60,10 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the partition manager for the program.
 		/// </summary>
 		[CanBeNull]
-		public PartitionManager PartitionManager { get { return m_Originators.GetChildren<PartitionManager>().SingleOrDefault(); } }
+		public PartitionManager PartitionManager
+		{
+			get { return m_Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
+		}
 
 		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
 
@@ -159,7 +159,7 @@ namespace ICD.Connect.Krang.Core
 				Logger.AddEntry(eSeverity.Error, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
 			}
 		}
-		
+
 		#endregion
 
 		#region Settings

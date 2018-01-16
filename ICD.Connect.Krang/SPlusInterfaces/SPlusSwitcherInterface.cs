@@ -225,7 +225,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private IEnumerable<ConnectorInfo> SwitcherControlGetOutputsCallback()
 		{
 			int outputCount = GetOutputCountCallback == null ? 0 : GetOutputCountCallback();
-			for (int index=0; index < outputCount; index++)
+			for (int index = 0; index < outputCount; index++)
 				yield return new ConnectorInfo(index + 1, eConnectionType.Video | eConnectionType.Audio);
 		}
 
@@ -239,9 +239,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private bool SwitcherControlGetSignalDetectedStateCallback(int input, eConnectionType type)
 		{
 			if (EnumUtils.HasMultipleFlags(type))
+			{
 				return EnumUtils.GetFlagsExceptNone(type)
 				                .SelectMulti(f => SwitcherControlGetSignalDetectedStateCallback(input, f))
 				                .Unanimous(false);
+			}
 
 			switch (type)
 			{
@@ -256,4 +258,5 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		#endregion
 	}
 }
+
 #endif

@@ -52,11 +52,11 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 				int id1 = id;
 
 				List<Connection> tielines = connections.Where(c => c.Source.Device == id1 || c.Destination.Device == id1).ToList();
-				
+
 				int deviceId = tielines.Select(c => c.Source.Device == id1 ? c.Destination.Device : c.Source.Device)
 				                       .Where(c =>
-											  !(m_Core.Originators.GetChild(c) is MockSourceDevice) &&
-											  !(m_Core.Originators.GetChild(c) is MockDestinationDevice))
+				                              !(m_Core.Originators.GetChild(c) is MockSourceDevice) &&
+				                              !(m_Core.Originators.GetChild(c) is MockDestinationDevice))
 				                       .Unanimous(-1);
 
 				tielines = tielines.Where(c => c.Source.Device == deviceId || c.Destination.Device == deviceId).ToList();

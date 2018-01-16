@@ -9,7 +9,6 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Partitioning.Rooms;
-using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;
@@ -279,9 +278,9 @@ namespace ICD.Connect.Krang.Rooms
 				return Enumerable.Empty<ISource>();
 
 			return m_SubscribedRoutingGraph.GetActiveSourceEndpoints(destination.Endpoint,
-																	 destination.ConnectionType, false, true)
-										   .Select(e => GetSourceFromEndpoint(e))
-										   .Where(s => s != null);
+			                                                         destination.ConnectionType, false, true)
+			                               .Select(e => GetSourceFromEndpoint(e))
+			                               .Where(s => s != null);
 		}
 
 		/// <summary>

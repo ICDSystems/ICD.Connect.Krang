@@ -1,4 +1,5 @@
-﻿#if !SIMPLSHARP
+﻿
+#if !SIMPLSHARP
 using System;
 using System.Runtime.Loader;
 using ICD.Connect.API;

@@ -1,8 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Logging.Console;
+using ICD.Common.Logging.Console.Loggers;
+using ICD.Common.Permissions;
+using ICD.Common.Utils;
+using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
+using ICD.Connect.API;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
+using ICD.Connect.Protocol.Network.Broadcast;
+using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
@@ -10,17 +21,6 @@ using Crestron.SimplSharp.Reflection;
 #else
 using System.Reflection;
 #endif
-using ICD.Common.Logging.Console;
-using ICD.Common.Logging.Console.Loggers;
-using ICD.Common.Permissions;
-using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
-using ICD.Connect.API;
-using ICD.Connect.API.Commands;
-using ICD.Connect.API.Nodes;
-using ICD.Connect.Protocol.Network.Broadcast;
-using ICD.Connect.Protocol.Network.Direct;
-using ICD.Common.Utils.IO;
 
 namespace ICD.Connect.Krang.Core
 {
@@ -57,7 +57,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			AddServices();
 
-			m_Core = new KrangCore { Serialize = true };
+			m_Core = new KrangCore {Serialize = true};
 
 			ApiConsole.RegisterChild(this);
 		}
@@ -67,12 +67,13 @@ namespace ICD.Connect.Krang.Core
 		public void Start()
 		{
 #if SIMPLSHARP
-            // Check for cpz files that are unextracted, indicating a problem
-		    if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
-		    {
-		        ServiceProvider.TryGetService<ILoggerService>()
-                               .AddEntry(eSeverity.Warning, "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY. YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
-		    }
+			// Check for cpz files that are unextracted, indicating a problem
+			if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
+			{
+				ServiceProvider.TryGetService<ILoggerService>()
+				               .AddEntry(eSeverity.Warning,
+				                         "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY. YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
+			}
 #endif
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 			try
@@ -182,9 +183,9 @@ namespace ICD.Connect.Krang.Core
 			                                () => FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings()));
 
 			yield return new ConsoleCommand("PrintPlugins", "Prints the loaded plugin assemblies.",
-											() => PrintPlugins());
+			                                () => PrintPlugins());
 			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.",
-											() => PrintTypes());
+			                                () => PrintTypes());
 		}
 
 		private void SaveSettings()

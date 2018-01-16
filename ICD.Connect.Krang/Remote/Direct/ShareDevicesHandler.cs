@@ -46,7 +46,8 @@ namespace ICD.Connect.Krang.Remote.Direct
 
 		private void AddSources(ShareDevicesMessage message, RemoteSwitcher switcher)
 		{
-			List<ISource> newSources = message.Sources.Where(source => m_Core.GetRoutingGraph().Sources.AddChild(source)).ToList();
+			List<ISource> newSources =
+				message.Sources.Where(source => m_Core.GetRoutingGraph().Sources.AddChild(source)).ToList();
 			foreach (ISource source in newSources)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
@@ -60,7 +61,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			{
 				// Get the device or create it if it doesn't exist
 				IDevice sourceDevice = m_Core.Originators.ContainsChild(source.Endpoint.Device)
-										   ? m_Core.Originators.GetChild<IDevice>(source.Endpoint.Device)
+					                       ? m_Core.Originators.GetChild<IDevice>(source.Endpoint.Device)
 					                       : null;
 
 				if (sourceDevice == null)
@@ -137,7 +138,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			{
 				// Get the device or create it if it doesn't exist
 				IDevice destinationDevice = m_Core.Originators.ContainsChild(destination.Endpoint.Device)
-												? m_Core.Originators.GetChild<IDevice>(destination.Endpoint.Device)
+					                            ? m_Core.Originators.GetChild<IDevice>(destination.Endpoint.Device)
 					                            : null;
 
 				if (destinationDevice == null)

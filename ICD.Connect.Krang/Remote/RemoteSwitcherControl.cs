@@ -6,7 +6,6 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Krang.Remote.Direct;
-using ICD.Connect.Krang.Routing;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
@@ -70,8 +69,8 @@ namespace ICD.Connect.Krang.Remote
 				return Enumerable.Empty<ConnectorInfo>();
 
 			return graph.Connections
-			              .Where(c => c.Source.Device == Parent.Id && c.Source.Control == Id)
-			              .Select(c => new ConnectorInfo(c.Source.Address, c.ConnectionType));
+			            .Where(c => c.Source.Device == Parent.Id && c.Source.Control == Id)
+			            .Select(c => new ConnectorInfo(c.Source.Address, c.ConnectionType));
 		}
 
 		#endregion
@@ -90,8 +89,8 @@ namespace ICD.Connect.Krang.Remote
 				return Enumerable.Empty<ConnectorInfo>();
 
 			return graph.Connections
-			              .Where(c => c.Destination.Device == Parent.Id && c.Destination.Control == Id)
-			              .Select(c => new ConnectorInfo(c.Destination.Address, c.ConnectionType));
+			            .Where(c => c.Destination.Device == Parent.Id && c.Destination.Control == Id)
+			            .Select(c => new ConnectorInfo(c.Destination.Address, c.ConnectionType));
 		}
 
 		#endregion
