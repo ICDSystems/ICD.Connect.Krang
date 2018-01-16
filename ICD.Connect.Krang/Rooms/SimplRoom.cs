@@ -14,6 +14,7 @@ using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
+using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Rooms

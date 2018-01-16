@@ -12,6 +12,7 @@ using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
+using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;

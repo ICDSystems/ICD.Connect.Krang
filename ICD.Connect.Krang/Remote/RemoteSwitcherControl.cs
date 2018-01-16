@@ -12,6 +12,7 @@ using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.EventArguments;
+using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Routing.Utils;
 using ICD.Connect.Settings.Core;
 
