@@ -9,7 +9,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 {
 	public sealed class DisconnectHandler : AbstractMessageHandler<DisconnectMessage>
 	{
-		public override AbstractMessage HandleMessage(DisconnectMessage message)
+		protected override AbstractMessage HandleMessage(DisconnectMessage message)
 		{
 			ICore core = ServiceProvider.TryGetService<ICore>();
 			if (core == null)

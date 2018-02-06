@@ -32,9 +32,7 @@ namespace ICD.Connect.Krang.Core
 
 		private readonly CoreOriginatorCollection m_Originators;
 
-		private readonly BroadcastManager m_BroadcastManager;
-		private readonly DirectMessageManager m_DirectMessageManager;
-		private DiscoveryBroadcastHandler m_BroadcastHandler;
+		private TielineDiscoveryBroadcastHandler m_BroadcastHandler;
 
 		#region Properties
 
@@ -65,9 +63,9 @@ namespace ICD.Connect.Krang.Core
 			get { return m_Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
 		}
 
-		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
+		public BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
 
-		public DirectMessageManager DirectMessageManager { get { return m_DirectMessageManager; } }
+		public DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
 
 		#endregion
 
@@ -82,9 +80,6 @@ namespace ICD.Connect.Krang.Core
 
 			m_LoadedOriginators = new Stack<int>();
 			m_Originators = new CoreOriginatorCollection();
-
-			m_BroadcastManager = ServiceProvider.GetService<BroadcastManager>();
-			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
 		}
 
 		#endregion
@@ -276,14 +271,14 @@ namespace ICD.Connect.Krang.Core
 
 				if (settings.Broadcast)
 				{
-					m_BroadcastHandler = new DiscoveryBroadcastHandler();
+					m_BroadcastHandler = new TielineDiscoveryBroadcastHandler();
 
-					m_DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
+					DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
+					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
+					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
 				}
 
 				ResetDefaultPermissions();

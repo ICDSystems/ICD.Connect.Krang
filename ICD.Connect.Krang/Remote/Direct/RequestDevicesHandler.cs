@@ -16,7 +16,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 {
 	public sealed class RequestDevicesHandler : AbstractMessageHandler<RequestDevicesMessage>
 	{
-		public override AbstractMessage HandleMessage(RequestDevicesMessage message)
+		protected override AbstractMessage HandleMessage(RequestDevicesMessage message)
 		{
 			ICore core = ServiceProvider.GetService<ICore>();
 			List<ISource> sources = core.GetRoutingGraph().Sources.Where(s => message.Sources.Contains(s.Id)).ToList();

@@ -28,7 +28,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			m_PendingMessagesSection = new SafeCriticalSection();
 		}
 
-		public override AbstractMessage HandleMessage(RouteDevicesMessage message)
+		protected override AbstractMessage HandleMessage(RouteDevicesMessage message)
 		{
 			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(message));
 			m_Core.GetRoutingGraph().Route(message.Operation);

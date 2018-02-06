@@ -76,8 +76,8 @@
     <Compile Include="Remote\Direct\DisconnectHandler.cs" />
     <Compile Include="Remote\Direct\GenericMessage.cs" />
     <Compile Include="Remote\Direct\InitiateConnectionHandler.cs" />
-    <Compile Include="Remote\Broadcast\KrangDiscoveryBroadcast.cs" />
-    <Compile Include="Remote\Broadcast\DiscoveryBroadcastHandler.cs" />
+    <Compile Include="Remote\Broadcast\TielineDiscoveryInfo.cs" />
+    <Compile Include="Remote\Broadcast\TielineDiscoveryBroadcastHandler.cs" />
     <Compile Include="Remote\Direct\InitiateConnectionMessage.cs" />
     <Compile Include="Remote\Direct\InitiateConnectionReply.cs" />
     <Compile Include="Remote\Direct\RequestDevicesHandler.cs" />

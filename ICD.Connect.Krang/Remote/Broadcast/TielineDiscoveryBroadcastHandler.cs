@@ -16,21 +16,21 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Broadcast
 {
-	public sealed class DiscoveryBroadcastHandler
+	public sealed class TielineDiscoveryBroadcastHandler
 	{
-		private readonly RecurringBroadcast<KrangDiscoveryBroadcast> m_Broadcast;
+		private readonly RecurringBroadcaster<TielineDiscoveryInfo> m_Broadcaster;
 		private readonly ICore m_Core;
 		private readonly BroadcastManager m_BroadcastManager;
 		private readonly DirectMessageManager m_DirectMessageManager;
 
-		public DiscoveryBroadcastHandler()
+		public TielineDiscoveryBroadcastHandler()
 		{
-			m_Broadcast = new RecurringBroadcast<KrangDiscoveryBroadcast>();
-			m_Broadcast.OnBroadcasting += UpdateData;
-			m_Broadcast.OnBroadcastReceived += HandleBroadcast;
+			m_Broadcaster = new RecurringBroadcaster<TielineDiscoveryInfo>();
+			m_Broadcaster.OnBroadcasting += UpdateData;
+			m_Broadcaster.OnBroadcastReceived += HandleBroadcast;
 
 			m_BroadcastManager = ServiceProvider.GetService<BroadcastManager>();
-			m_BroadcastManager.RegisterBroadcast(m_Broadcast);
+			m_BroadcastManager.RegisterBroadcaster(m_Broadcaster);
 
 			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
 
@@ -67,10 +67,10 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 					deviceConnections.Add(id, tielines);
 				}
 			}
-			m_Broadcast.UpdateData(devices.Any() ? new KrangDiscoveryBroadcast(devices, deviceConnections) : null);
+			m_Broadcaster.UpdateData(devices.Any() ? new TielineDiscoveryInfo(devices, deviceConnections) : null);
 		}
 
-		private void HandleBroadcast(object sender, BroadcastEventArgs<KrangDiscoveryBroadcast> e)
+		private void HandleBroadcast(object sender, BroadcastEventArgs<TielineDiscoveryInfo> e)
 		{
 			if (e.Data.Source == m_BroadcastManager.GetHostInfo())
 				return;
