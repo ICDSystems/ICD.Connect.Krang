@@ -6,8 +6,6 @@ using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Protocol.Network.Broadcast;
-using ICD.Connect.Protocol.Network.Direct;
-using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
@@ -16,31 +14,24 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Broadcast
 {
-	public sealed class TielineDiscoveryBroadcastHandler
+	public sealed class TielineDiscoveryBroadcastHandler : AbstractBroadcastHandler<TielineDiscoveryData>
 	{
-		private readonly RecurringBroadcaster<TielineDiscoveryData> m_Broadcaster;
 		private readonly ICore m_Core;
-		private readonly BroadcastManager m_BroadcastManager;
-		private readonly DirectMessageManager m_DirectMessageManager;
 
+		/// <summary>
+		/// Constructor.
+		/// </summary>
 		public TielineDiscoveryBroadcastHandler()
 		{
-			m_Broadcaster = new RecurringBroadcaster<TielineDiscoveryData>();
-			m_Broadcaster.OnBroadcasting += UpdateData;
-			m_Broadcaster.OnBroadcastReceived += HandleBroadcast;
-
-			m_BroadcastManager = ServiceProvider.GetService<BroadcastManager>();
-			m_BroadcastManager.RegisterBroadcaster(m_Broadcaster);
-
-			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
-
 			m_Core = ServiceProvider.GetService<ICore>();
 
-			m_Broadcaster.Broadcast();
+			SetBroadcaster(new RecurringBroadcaster<TielineDiscoveryData>());
 		}
 
-		private void UpdateData(object sender, EventArgs e)
+		protected override void BroadcasterOnBroadcasting(object sender, EventArgs e)
 		{
+			base.BroadcasterOnBroadcasting(sender, e);
+
 			int[] remoteSwitchers =
 				m_Core.Originators.GetChildren<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
 			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
@@ -69,13 +60,17 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 					deviceConnections.Add(id, tielines);
 				}
 			}
-			m_Broadcaster.UpdateData(devices.Any() ? new TielineDiscoveryData(devices, deviceConnections) : null);
+
+			Broadcaster.UpdateData(devices.Any() ? new TielineDiscoveryData(devices, deviceConnections) : null);
 		}
 
-		private void HandleBroadcast(object sender, BroadcastEventArgs<TielineDiscoveryData> e)
+		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs<TielineDiscoveryData> e)
 		{
-			if (e.Data.Source == m_BroadcastManager.GetHostInfo())
+			base.BroadcasterOnBroadcastReceived(sender, e);
+
+			if (e.Data.Source == BroadcastManager.GetHostInfo())
 				return;
+
 			foreach (KeyValuePair<int, int> pair in e.Data.Data.DeviceIds)
 			{
 				if (!m_Core.Originators.ContainsChild(pair.Key) || m_Core.Originators.GetChild(pair.Key) is RemoteSwitcher)
@@ -103,13 +98,12 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 				}
 				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
-				HostInfo hostInfo = m_DirectMessageManager.GetHostInfo();
 				ServiceProvider.TryGetService<ILoggerService>()
 				               .AddEntry(eSeverity.Informational,
 				                         "Sending response to Krang Discovery Broadcast. Device: {0}, Host: {1}", pair.Key,
 				                         e.Data.Source.ToString());
-				m_DirectMessageManager.Send(e.Data.Source,
-				                            new InitiateConnectionMessage {DeviceId = pair.Key});
+
+				DirectMessageManager.Send(e.Data.Source, new InitiateConnectionMessage {DeviceId = pair.Key});
 			}
 		}
 	}

@@ -247,8 +247,14 @@ namespace ICD.Connect.Krang.Core
 		protected override void ClearSettingsFinal()
 		{
 			base.ClearSettingsFinal();
+
 			SetOriginators(Enumerable.Empty<IOriginator>());
+
 			ResetDefaultPermissions();
+
+			if (m_TielineBroadcastHandler != null)
+				m_TielineBroadcastHandler.Dispose();
+			m_TielineBroadcastHandler = null;
 		}
 
 		/// <summary>
