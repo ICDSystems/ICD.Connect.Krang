@@ -23,7 +23,7 @@ namespace ICD.Connect.Krang.Core
 	/// Settings for the Krang core.
 	/// </summary>
 	[PublicAPI]
-	public sealed class KrangCoreSettings : AbstractSettings, ICoreSettings
+	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
 		private const string ROOT_ELEMENT = "IcdConfig";
 
@@ -44,7 +44,7 @@ namespace ICD.Connect.Krang.Core
 
 		#region Properties
 
-		public SettingsCollection OriginatorSettings { get { return m_OriginatorSettings; } }
+		public override SettingsCollection OriginatorSettings { get { return m_OriginatorSettings; } }
 
 		/// <summary>
 		/// Gets the theme settings.
