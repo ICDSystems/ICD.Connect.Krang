@@ -200,9 +200,9 @@ namespace ICD.Connect.Krang.Core
 		/// Parses the xml and applies the properties to the instance.
 		/// </summary>
 		/// <param name="xml"></param>
-		public void ParseXml(string xml)
+		public override void ParseXml(string xml)
 		{
-			ParseXml(this, xml);
+			base.ParseXml(xml);
 
 			Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
 			UpdateHeaderFromXml(xml);
