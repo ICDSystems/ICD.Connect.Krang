@@ -32,6 +32,7 @@ namespace ICD.Connect.Krang.Core
 
 		private readonly CoreOriginatorCollection m_Originators;
 
+		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
 		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
 
 		#region Properties
@@ -252,6 +253,10 @@ namespace ICD.Connect.Krang.Core
 
 			ResetDefaultPermissions();
 
+			if (m_DiscoveryBroadcastHandler != null)
+				m_DiscoveryBroadcastHandler.Dispose();
+			m_DiscoveryBroadcastHandler = null;
+
 			if (m_TielineBroadcastHandler != null)
 				m_TielineBroadcastHandler.Dispose();
 			m_TielineBroadcastHandler = null;
@@ -277,6 +282,7 @@ namespace ICD.Connect.Krang.Core
 
 				if (settings.Broadcast)
 				{
+					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler();
 					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
 
 					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());

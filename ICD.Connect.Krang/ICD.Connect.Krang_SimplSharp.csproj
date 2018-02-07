@@ -72,6 +72,10 @@
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
     <Compile Include="Remote\Broadcast\AbstractBroadcastHandler.cs" />
+    <Compile Include="Remote\Broadcast\CoreDiscoveryBroadcastHandler.cs" />
+    <Compile Include="Remote\Broadcast\CoreDiscoveryData.cs" />
+    <Compile Include="Remote\Broadcast\CoreDiscoveryInfo.cs" />
+    <Compile Include="Remote\Broadcast\CoreDiscoveryInfoEventArgs.cs" />
     <Compile Include="Remote\Direct\CostUpdateHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdateMessage.cs" />
     <Compile Include="Remote\Direct\DisconnectHandler.cs" />
