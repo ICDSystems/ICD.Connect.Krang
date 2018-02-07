@@ -25,8 +25,6 @@ namespace ICD.Connect.Krang.Core
 	[PublicAPI]
 	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
-		private const string ROOT_ELEMENT = "IcdConfig";
-
 		private const string FACTORY_NAME = "Krang";
 
 		private const string HEADER_ELEMENT = "Header";
@@ -125,11 +123,6 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the broadcast setting.
 		/// </summary>
 		public bool Broadcast { get; private set; }
-
-		/// <summary>
-		/// Gets the xml element.
-		/// </summary>
-		protected override string Element { get { return ROOT_ELEMENT; } }
 
 		public override string FactoryName { get { return FACTORY_NAME; } }
 
