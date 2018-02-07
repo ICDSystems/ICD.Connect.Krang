@@ -66,7 +66,7 @@ namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 					SimplSource.eSourceVisibility.None
 			};
 
-			ParseXml(output, xml);
+			output.ParseXml(xml);
 			return output;
 		}
 	}

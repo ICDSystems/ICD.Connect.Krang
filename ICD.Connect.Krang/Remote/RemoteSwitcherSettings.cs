@@ -47,21 +47,25 @@ namespace ICD.Connect.Krang.Remote
 		public static RemoteSwitcherSettings FromXml(string xml)
 		{
 			RemoteSwitcherSettings output = new RemoteSwitcherSettings();
-
-			ParseXml(output, xml);
+			output.ParseXml(xml);
 			return output;
 		}
 
-		private static void ParseXml(RemoteSwitcherSettings output, string xml)
+		/// <summary>
+		/// Updates the settings from xml.
+		/// </summary>
+		/// <param name="xml"></param>
+		public override void ParseXml(string xml)
 		{
+			base.ParseXml(xml);
+
 			string address = XmlUtils.TryReadChildElementContentAsString(xml, ADDRESS_ELEMENT);
-			if (!string.IsNullOrEmpty(address))
-			{
-				HostInfo info;
-				if (HostInfo.TryParse(address, out info))
-					output.Address = info;
-			}
-			AbstractDeviceSettings.ParseXml(output, xml);
+			if (string.IsNullOrEmpty(address))
+				return;
+
+			HostInfo info;
+			if (HostInfo.TryParse(address, out info))
+				Address = info;
 		}
 
 		#endregion

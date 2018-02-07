@@ -104,7 +104,7 @@ namespace ICD.Connect.Krang.Rooms
 			SimplRoomSettings output = new SimplRoomSettings();
 			output.SetCrosspoints(crosspoints);
 
-			ParseXml(output, xml);
+			output.ParseXml(xml);
 			return output;
 		}
 

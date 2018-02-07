@@ -23,21 +23,17 @@ using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core
 {
-	public sealed class KrangCore : AbstractOriginator<KrangCoreSettings>, ICore, IConsoleNode
+	public sealed class KrangCore : AbstractCore<KrangCoreSettings>, IConsoleNode
 	{
 		/// <summary>
 		/// Originator ids are pushed to the stack on load, and popped on clear.
 		/// </summary>
 		private readonly Stack<int> m_LoadedOriginators;
 
-		private readonly CoreOriginatorCollection m_Originators;
-
 		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
 		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
 
 		#region Properties
-
-		public IOriginatorCollection<IOriginator> Originators { get { return m_Originators; } }
 
 		/// <summary>
 		/// Gets the name of the node in the console.
@@ -53,7 +49,7 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the routing graph for the program.
 		/// </summary>
 		[CanBeNull]
-		public RoutingGraph RoutingGraph { get { return m_Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
+		public RoutingGraph RoutingGraph { get { return Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
 
 		/// <summary>
 		/// Gets the partition manager for the program.
@@ -61,7 +57,7 @@ namespace ICD.Connect.Krang.Core
 		[CanBeNull]
 		public PartitionManager PartitionManager
 		{
-			get { return m_Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
+			get { return Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
 		}
 
 		public BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
@@ -80,7 +76,6 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService<ICore>(this);
 
 			m_LoadedOriginators = new Stack<int>();
-			m_Originators = new CoreOriginatorCollection();
 		}
 
 		#endregion
@@ -100,7 +95,7 @@ namespace ICD.Connect.Krang.Core
 		private void SetOriginators(IEnumerable<IOriginator> originators)
 		{
 			DisposeOriginators();
-			m_Originators.SetChildren(originators);
+			Originators.SetChildren(originators);
 		}
 
 		/// <summary>
@@ -109,7 +104,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="originator"></param>
 		private void AddOriginator(IOriginator originator)
 		{
-			m_Originators.AddChild(originator);
+			Originators.AddChild(originator);
 		}
 
 		/// <summary>
@@ -123,17 +118,17 @@ namespace ICD.Connect.Krang.Core
 				int id = m_LoadedOriginators.Pop();
 
 				IOriginator originator;
-				if (!m_Originators.TryGetChild(id, out originator))
+				if (!Originators.TryGetChild(id, out originator))
 					continue;
 
 				TryDisposeOriginator(originator);
 			}
 
 			// Now dispose the remainder
-			foreach (IOriginator originator in m_Originators)
+			foreach (IOriginator originator in Originators)
 				TryDisposeOriginator(originator);
 
-			m_Originators.Clear();
+			Originators.Clear();
 		}
 
 		/// <summary>
@@ -159,42 +154,6 @@ namespace ICD.Connect.Krang.Core
 		#endregion
 
 		#region Settings
-
-		/// <summary>
-		/// Copies the current instance properties to the settings instance.
-		/// </summary>
-		/// <param name="settings"></param>
-		void ICore.CopySettings(ICoreSettings settings)
-		{
-			CopySettings((KrangCoreSettings)settings);
-		}
-
-		/// <summary>
-		/// Copies the current state of the Core instance.
-		/// </summary>
-		/// <returns></returns>
-		ICoreSettings ICore.CopySettings()
-		{
-			return CopySettings();
-		}
-
-		/// <summary>
-		/// Loads settings from disk and updates the Settings property.
-		/// </summary>
-		public void LoadSettings()
-		{
-			FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(this);
-		}
-
-		/// <summary>
-		/// Applies the settings to the Core instance.
-		/// </summary>
-		/// <param name="settings"></param>
-		void ICore.ApplySettings(ICoreSettings settings)
-		{
-			IDeviceFactory factory = new CoreDeviceFactory(settings);
-			ApplySettings((KrangCoreSettings)settings, factory);
-		}
 
 		/// <summary>
 		/// Override to apply properties to the settings instance.
@@ -237,7 +196,7 @@ namespace ICD.Connect.Krang.Core
 
 		private IEnumerable<ISettings> GetSerializableOriginators()
 		{
-			return m_Originators.GetChildren()
+			return Originators.GetChildren()
 			                    .Where(c => c.Serialize)
 			                    .Select(p => p.CopySettings());
 		}
@@ -345,11 +304,11 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="addRow"></param>
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("Theme count", m_Originators.GetChildren<ITheme>().Count());
-			addRow("Panel count", m_Originators.GetChildren<IPanelDevice>().Count());
-			addRow("Device count", m_Originators.GetChildren<IDevice>().Count());
-			addRow("Port count", m_Originators.GetChildren<IPort>().Count());
-			addRow("Room count", m_Originators.GetChildren<IRoom>().Count());
+			addRow("Theme count", Originators.GetChildren<ITheme>().Count());
+			addRow("Panel count", Originators.GetChildren<IPanelDevice>().Count());
+			addRow("Device count", Originators.GetChildren<IDevice>().Count());
+			addRow("Port count", Originators.GetChildren<IPort>().Count());
+			addRow("Room count", Originators.GetChildren<IRoom>().Count());
 		}
 
 		/// <summary>
@@ -358,11 +317,11 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
-			yield return ConsoleNodeGroup.KeyNodeMap("Themes", m_Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Panels", m_Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Devices", m_Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Ports", m_Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", m_Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Themes", Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Panels", Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Devices", Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Ports", Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
 
 			if (RoutingGraph != null)
 				yield return RoutingGraph;
