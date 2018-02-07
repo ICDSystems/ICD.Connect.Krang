@@ -129,9 +129,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 					ServiceProvider.GetService<ILoggerService>()
 								   .AddEntry(eSeverity.Warning, "{0} - Conflict between Core Id={1} at {2} and {3}",
 											 GetType().Name, info.Id, info.Source, existing.Source);
+					return;
 				}
 
 				m_Discovered[info.Id] = info;
+
+				// Don't raise event if the core was already discovered
+				if (existing != null)
+					return;
 			}
 			finally
 			{

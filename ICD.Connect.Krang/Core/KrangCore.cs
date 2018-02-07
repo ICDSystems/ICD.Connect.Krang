@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
+using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
@@ -153,6 +154,56 @@ namespace ICD.Connect.Krang.Core
 
 		#endregion
 
+		#region Core Discovery
+
+		/// <summary>
+		/// Subscribe to the broadcast events.
+		/// </summary>
+		/// <param name="handler"></param>
+		private void Subscribe(CoreDiscoveryBroadcastHandler handler)
+		{
+			if (handler == null)
+				return;
+
+			handler.OnCoreDiscovered += HandlerOnCoreDiscovered;
+			handler.OnCoreLost += HandlerOnCoreLost;
+		}
+
+		/// <summary>
+		/// Unsubscribe from the broadcast events.
+		/// </summary>
+		/// <param name="handler"></param>
+		private void Unsubscribe(CoreDiscoveryBroadcastHandler handler)
+		{
+			if (handler == null)
+				return;
+
+			handler.OnCoreDiscovered -= HandlerOnCoreDiscovered;
+			handler.OnCoreLost -= HandlerOnCoreLost;
+		}
+
+		/// <summary>
+		/// Called when a core is discovered on the network.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
+		private void HandlerOnCoreDiscovered(object sender, CoreDiscoveryInfoEventArgs eventArgs)
+		{
+			IcdConsole.PrintLine("Core {0} discovered {1} {2}", eventArgs.Data.Id, eventArgs.Data.Source, eventArgs.Data.Discovered);
+		}
+
+		/// <summary>
+		/// Called when a core times out.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
+		private void HandlerOnCoreLost(object sender, CoreDiscoveryInfoEventArgs eventArgs)
+		{
+			IcdConsole.PrintLine("Core {0} lost {1} {2}", eventArgs.Data.Id, eventArgs.Data.Source, eventArgs.Data.Discovered);
+		}
+
+		#endregion
+
 		#region Settings
 
 		/// <summary>
@@ -212,6 +263,7 @@ namespace ICD.Connect.Krang.Core
 
 			ResetDefaultPermissions();
 
+			Unsubscribe(m_DiscoveryBroadcastHandler);
 			if (m_DiscoveryBroadcastHandler != null)
 				m_DiscoveryBroadcastHandler.Dispose();
 			m_DiscoveryBroadcastHandler = null;
@@ -242,6 +294,8 @@ namespace ICD.Connect.Krang.Core
 				if (settings.Broadcast)
 				{
 					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler();
+					Subscribe(m_DiscoveryBroadcastHandler);
+
 					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
 
 					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
