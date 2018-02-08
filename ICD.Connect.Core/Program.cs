@@ -1,5 +1,4 @@
-﻿
-#if !SIMPLSHARP
+﻿#if !SIMPLSHARP
 using System;
 using System.Runtime.Loader;
 using ICD.Connect.API;
@@ -20,8 +19,6 @@ namespace ICD.Connect.Core
 	        while (true)
 	        {
 		        string command = Console.ReadLine();
-                if (command.Equals("exit", StringComparison.OrdinalIgnoreCase))
-                    break;
 		        ApiConsole.ExecuteCommand(command);
 	        }
 		}
