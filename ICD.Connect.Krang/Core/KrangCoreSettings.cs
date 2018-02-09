@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -13,6 +12,7 @@ using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
+using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Themes;
@@ -22,7 +22,7 @@ namespace ICD.Connect.Krang.Core
 	/// <summary>
 	/// Settings for the Krang core.
 	/// </summary>
-	[PublicAPI]
+	[KrangSettings(FACTORY_NAME)]
 	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
 		private const string FACTORY_NAME = "Krang";
@@ -187,8 +187,6 @@ namespace ICD.Connect.Krang.Core
 				partitionManagerSettings.ToXml(writer);
 		}
 
-		#region Protected Methods
-
 		/// <summary>
 		/// Parses the xml and applies the properties to the instance.
 		/// </summary>
@@ -222,6 +220,8 @@ namespace ICD.Connect.Krang.Core
 			if (XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child))
 				UpdatePartitioningFromXml(child);
 		}
+
+		#region Protected Methods
 
 		/// <summary>
 		/// Adds the given settings instances to the core settings collection.
@@ -280,7 +280,8 @@ namespace ICD.Connect.Krang.Core
 
 		private void UpdateRoutingFromXml(string xml)
 		{
-			RoutingGraphSettings routing = RoutingGraphSettings.FromXml(xml);
+			RoutingGraphSettings routing = new RoutingGraphSettings();
+			routing.ParseXml(xml);
 
 			if (!AddSettingsSkipDuplicateId(routing))
 				return;
@@ -295,7 +296,8 @@ namespace ICD.Connect.Krang.Core
 
 		private void UpdatePartitioningFromXml(string xml)
 		{
-			PartitionManagerSettings partitioning = PartitionManagerSettings.FromXml(xml);
+			PartitionManagerSettings partitioning = new PartitionManagerSettings();
+			partitioning.ParseXml(xml);
 
 			if (!AddSettingsSkipDuplicateId(partitioning))
 				return;
