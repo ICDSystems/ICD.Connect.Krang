@@ -6,6 +6,7 @@ using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
+using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
@@ -50,20 +51,37 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the routing graph for the program.
 		/// </summary>
 		[CanBeNull]
+		[ApiNode("Routing", "The routing features for the core.")]
 		public RoutingGraph RoutingGraph { get { return Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
 
 		/// <summary>
 		/// Gets the partition manager for the program.
 		/// </summary>
 		[CanBeNull]
+		[ApiNode("Partitioning", "The partitioning features for the core.")]
 		public PartitionManager PartitionManager
 		{
 			get { return Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
 		}
 
-		public BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
+		[ApiNodeGroup("Themes", "The currently active themes")]
+		private IApiNodeGroup Themes { get; set; }
 
-		public DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
+		[ApiNodeGroup("Devices", "The currently active devices")]
+		private IApiNodeGroup Devices { get; set; }
+
+		[ApiNodeGroup("Panels", "The currently active panels")]
+		private IApiNodeGroup Panels { get; set; }
+
+		[ApiNodeGroup("Ports", "The currently active ports")]
+		private IApiNodeGroup Ports { get; set; }
+
+		[ApiNodeGroup("Rooms", "The currently active rooms")]
+		private IApiNodeGroup Rooms { get; set; }
+
+		private BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
+
+		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
 
 		#endregion
 
@@ -77,6 +95,12 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService<ICore>(this);
 
 			m_LoadedOriginators = new Stack<int>();
+
+			Themes = new ApiNodeGroup<ITheme>(Originators.GetChildren<ITheme>, t => (uint)t.Id);
+			Devices = new ApiNodeGroup<IDevice>(Originators.GetChildren<IDevice>, t => (uint)t.Id);
+			Panels = new ApiNodeGroup<IPanelDevice>(Originators.GetChildren<IPanelDevice>, t => (uint)t.Id);
+			Ports = new ApiNodeGroup<IPort>(Originators.GetChildren<IPort>, t => (uint)t.Id);
+			Rooms = new ApiNodeGroup<IRoom>(Originators.GetChildren<IRoom>, t => (uint)t.Id);
 		}
 
 		#endregion
