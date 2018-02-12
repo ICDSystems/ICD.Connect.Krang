@@ -96,11 +96,11 @@ namespace ICD.Connect.Krang.Core
 
 			m_LoadedOriginators = new Stack<int>();
 
-			Themes = new ApiNodeGroup<ITheme>(Originators.GetChildren<ITheme>, t => (uint)t.Id);
-			Devices = new ApiNodeGroup<IDevice>(Originators.GetChildren<IDevice>, t => (uint)t.Id);
-			Panels = new ApiNodeGroup<IPanelDevice>(Originators.GetChildren<IPanelDevice>, t => (uint)t.Id);
-			Ports = new ApiNodeGroup<IPort>(Originators.GetChildren<IPort>, t => (uint)t.Id);
-			Rooms = new ApiNodeGroup<IRoom>(Originators.GetChildren<IRoom>, t => (uint)t.Id);
+			Themes = new ApiNodeGroup<ITheme>(Originators.GetChildren<ITheme>, t => (uint)t.Id, id => Originators.GetChild<ITheme>((int)id));
+			Devices = new ApiNodeGroup<IDevice>(Originators.GetChildren<IDevice>, t => (uint)t.Id, id => Originators.GetChild<IDevice>((int)id));
+			Panels = new ApiNodeGroup<IPanelDevice>(Originators.GetChildren<IPanelDevice>, t => (uint)t.Id, id => Originators.GetChild<IPanelDevice>((int)id));
+			Ports = new ApiNodeGroup<IPort>(Originators.GetChildren<IPort>, t => (uint)t.Id, id => Originators.GetChild<IPort>((int)id));
+			Rooms = new ApiNodeGroup<IRoom>(Originators.GetChildren<IRoom>, t => (uint)t.Id, id => Originators.GetChild<IRoom>((int)id));
 		}
 
 		#endregion
