@@ -63,6 +63,7 @@ namespace ICD.Connect.Krang.Core
 
 			m_Core = new KrangCore {Serialize = true};
 
+			ApiHandler.ControlSystem = this;
 			ApiConsole.RegisterChild(this);
 		}
 
