@@ -96,11 +96,11 @@ namespace ICD.Connect.Krang.Core
 
 			m_LoadedOriginators = new Stack<int>();
 
-			Themes = new ApiNodeGroup<ITheme>(Originators.GetChildren<ITheme>, t => (uint)t.Id, id => Originators.GetChild<ITheme>((int)id));
-			Devices = new ApiNodeGroup<IDevice>(Originators.GetChildren<IDevice>, t => (uint)t.Id, id => Originators.GetChild<IDevice>((int)id));
-			Panels = new ApiNodeGroup<IPanelDevice>(Originators.GetChildren<IPanelDevice>, t => (uint)t.Id, id => Originators.GetChild<IPanelDevice>((int)id));
-			Ports = new ApiNodeGroup<IPort>(Originators.GetChildren<IPort>, t => (uint)t.Id, id => Originators.GetChild<IPort>((int)id));
-			Rooms = new ApiNodeGroup<IRoom>(Originators.GetChildren<IRoom>, t => (uint)t.Id, id => Originators.GetChild<IRoom>((int)id));
+			Themes = new ApiOriginatorsNodeGroup<ITheme>(Originators);
+			Devices = new ApiOriginatorsNodeGroup<IDevice>(Originators);
+			Panels = new ApiOriginatorsNodeGroup<IPanelDevice>(Originators);
+			Ports = new ApiOriginatorsNodeGroup<IPort>(Originators);
+			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 		}
 
 		#endregion
@@ -374,7 +374,34 @@ namespace ICD.Connect.Krang.Core
 
 		#endregion
 
-		#region Console
+		#region API
+
+		private sealed class ApiOriginatorsNodeGroup<TOriginator> : AbstractApiNodeGroup
+			where TOriginator : IOriginator
+		{
+			private readonly IOriginatorCollection<IOriginator> m_Originators;
+
+			/// <summary>
+			/// Constructor.
+			/// </summary>
+			/// <param name="originators"></param>
+			public ApiOriginatorsNodeGroup(IOriginatorCollection<IOriginator> originators)
+			{
+				m_Originators = originators;
+			}
+
+			public override object this[uint key] { get { return m_Originators.GetChild<TOriginator>((int)key); } }
+
+			public override bool ContainsKey(uint key)
+			{
+				return m_Originators.ContainsChild<TOriginator>((int)key);
+			}
+
+			protected override IEnumerable<KeyValuePair<uint, object>> GetNodes()
+			{
+				return m_Originators.GetChildren<TOriginator>().Select(o => new KeyValuePair<uint, object>((uint)o.Id, o));
+			}
+		}
 
 		/// <summary>
 		/// Calls the delegate for each console status item.
