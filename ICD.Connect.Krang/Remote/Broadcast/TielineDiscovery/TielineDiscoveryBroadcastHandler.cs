@@ -4,7 +4,7 @@ using System.Linq;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
-using ICD.Connect.Krang.Remote.Direct;
+using ICD.Connect.Krang.Remote.Direct.InitiateConnection;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Extensions;
@@ -12,7 +12,7 @@ using ICD.Connect.Routing.Mock.Destination;
 using ICD.Connect.Routing.Mock.Source;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Broadcast
+namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 {
 	public sealed class TielineDiscoveryBroadcastHandler : AbstractBroadcastHandler<TielineDiscoveryData>
 	{

@@ -3,7 +3,7 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.InitiateConnection
 {
 	public sealed class InitiateConnectionHandler : AbstractMessageHandler<InitiateConnectionMessage>
 	{

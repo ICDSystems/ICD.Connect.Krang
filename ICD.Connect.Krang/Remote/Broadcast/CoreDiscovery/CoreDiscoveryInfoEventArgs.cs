@@ -1,6 +1,6 @@
 ﻿using ICD.Common.Utils.EventArguments;
 
-namespace ICD.Connect.Krang.Remote.Broadcast
+namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 {
 	public sealed class CoreDiscoveryInfoEventArgs : GenericEventArgs<CoreDiscoveryInfo>
 	{

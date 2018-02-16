@@ -3,6 +3,7 @@ using System.Linq;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Devices;
 using ICD.Connect.Devices.Controls;
+using ICD.Connect.Krang.Remote.Direct.ShareDevices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Controls;
@@ -12,7 +13,7 @@ using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 {
 	public sealed class RequestDevicesHandler : AbstractMessageHandler<RequestDevicesMessage>
 	{

@@ -3,7 +3,7 @@ using ICD.Common.Utils;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Ports;
 
-namespace ICD.Connect.Krang.Remote.Broadcast
+namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 {
 	public sealed class CoreDiscoveryInfo
 	{

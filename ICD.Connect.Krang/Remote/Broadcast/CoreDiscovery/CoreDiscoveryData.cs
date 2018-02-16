@@ -2,7 +2,7 @@
 using ICD.Connect.Settings.Core;
 using Newtonsoft.Json;
 
-namespace ICD.Connect.Krang.Remote.Broadcast
+namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 {
 	[Serializable]
 	public sealed class CoreDiscoveryData

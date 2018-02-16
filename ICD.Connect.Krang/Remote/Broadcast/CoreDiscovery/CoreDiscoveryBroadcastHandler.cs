@@ -10,7 +10,7 @@ using ICD.Common.Utils.Timers;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Broadcast
+namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 {
 	/// <summary>
 	/// CoreDiscoveryBroadcastHandler simply tracks the discovered core instances on the network.

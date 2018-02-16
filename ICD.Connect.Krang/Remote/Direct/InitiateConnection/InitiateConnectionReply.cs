@@ -3,7 +3,7 @@ using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.Connections;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.InitiateConnection
 {
 	public class InitiateConnectionReply : AbstractMessage
 	{

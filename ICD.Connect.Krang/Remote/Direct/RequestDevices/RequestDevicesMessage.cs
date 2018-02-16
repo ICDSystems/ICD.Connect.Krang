@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ICD.Connect.Protocol.Network.Direct;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 {
 	public sealed class RequestDevicesMessage : AbstractMessage
 	{

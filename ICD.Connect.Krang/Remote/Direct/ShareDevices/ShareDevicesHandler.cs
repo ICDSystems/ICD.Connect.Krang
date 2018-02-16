@@ -15,7 +15,7 @@ using ICD.Connect.Routing.Mock.Destination;
 using ICD.Connect.Routing.Mock.Source;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 {
 	public sealed class ShareDevicesHandler : AbstractMessageHandler<ShareDevicesMessage>
 	{

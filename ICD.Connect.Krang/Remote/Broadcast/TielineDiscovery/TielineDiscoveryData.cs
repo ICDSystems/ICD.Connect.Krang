@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ICD.Connect.Routing.Connections;
 
-namespace ICD.Connect.Krang.Remote.Broadcast
+namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 {
 	[Serializable]
 	public sealed class TielineDiscoveryData

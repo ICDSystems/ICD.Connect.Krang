@@ -7,7 +7,7 @@ using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 {
 	public sealed class RouteDevicesHandler : AbstractMessageHandler<RouteDevicesMessage>
 	{
