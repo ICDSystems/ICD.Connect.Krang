@@ -334,6 +334,8 @@ namespace ICD.Connect.Krang.Core
 					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
 					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
 					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new RemoteApiCommandHandler());
+					DirectMessageManager.RegisterMessageHandler(new RemoteApiResultHandler());
 				}
 
 				ResetDefaultPermissions();
