@@ -77,6 +77,7 @@
     <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryInfo.cs" />
     <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryInfoEventArgs.cs" />
     <Compile Include="Remote\Direct\API\AbstractApiMessage.cs" />
+    <Compile Include="Remote\Direct\API\RemoteApiResultHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdate\CostUpdateHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdate\CostUpdateMessage.cs" />
     <Compile Include="Remote\Direct\Disconnect\DisconnectHandler.cs" />
@@ -86,7 +87,7 @@
     <Compile Include="Remote\Broadcast\TielineDiscovery\TielineDiscoveryBroadcastHandler.cs" />
     <Compile Include="Remote\Direct\InitiateConnection\InitiateConnectionMessage.cs" />
     <Compile Include="Remote\Direct\InitiateConnection\InitiateConnectionReply.cs" />
-    <Compile Include="Remote\Direct\API\RemoteApiHandler.cs" />
+    <Compile Include="Remote\Direct\API\RemoteApiCommandHandler.cs" />
     <Compile Include="Remote\Direct\API\RemoteApiMessage.cs" />
     <Compile Include="Remote\Direct\API\RemoteApiReply.cs" />
     <Compile Include="Remote\Direct\RequestDevices\RequestDevicesHandler.cs" />
