@@ -7,16 +7,20 @@ using ICD.Common.Permissions;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
+using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
+using ICD.Common.Utils.Timers;
 using ICD.Connect.API;
 using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
+using ICD.Connect.API.Info;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
+using Newtonsoft.Json;
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
 #else
@@ -85,11 +89,39 @@ namespace ICD.Connect.Krang.Core
 			try
 			{
 				FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
+
+				//TestApi();
+				//TestApi();
+				//TestApi();
+
+				//ApiClassInfo info = ApiClassAttribute.GetInfo(GetType(), this);
+				//JsonUtils.Print(info.Serialize());
 			}
 			catch (Exception e)
 			{
 				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program initialization");
 			}
+		}
+
+		private void TestApi()
+		{
+			ApiClassInfo command =
+					IcdStopwatch.Profile(() => ApiCommandBuilder.NewCommand()
+									 .AtNode("ControlSystem")
+									 .AtNode("Core")
+									 .AtNodeGroupKey("Devices", 201000)
+						//.GetProperty("Name")
+									 .Complete(), "Build command");
+
+			string json = IcdStopwatch.Profile(() => JsonConvert.SerializeObject(command), "Serialize");
+			JsonUtils.Print(json);
+			IcdStopwatch.Profile(() => ApiHandler.HandleRequest(command), "Handle command");
+			string jsonResult = JsonConvert.SerializeObject(command);
+			JsonUtils.Print(jsonResult);
+
+			IcdStopwatch.Profile(() => JsonConvert.DeserializeObject(jsonResult), "Deserialize");
+
+			IcdConsole.PrintLine("--------------------------------");
 		}
 
 		public void Stop()
@@ -154,6 +186,21 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.TryAddService(m_BroadcastManager);
 
 			ServiceProvider.TryAddService(new PermissionsManager());
+
+			/*
+			// TODO - TEST
+			ApiClassInfo command =
+				ApiCommandBuilder.NewCommand()
+				.CallMethod("SetLoggingSeverity")
+				.AddParameter(eSeverity.Warning)
+				.Complete();
+
+			string json = JsonConvert.SerializeObject(command);
+			JsonUtils.Print(json);
+			string result = JsonConvert.SerializeObject(ApiHandler.HandleRequest(json));
+			JsonUtils.Print(result);
+			IcdConsole.PrintLine("--------------------------------");
+			*/
 		}
 
 		#endregion

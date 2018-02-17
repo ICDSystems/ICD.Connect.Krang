@@ -341,7 +341,7 @@ namespace ICD.Connect.Krang.Core
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
 
-				if (settings.Broadcast)
+				//if (settings.Broadcast)
 				{
 					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler();
 					Subscribe(m_DiscoveryBroadcastHandler);
