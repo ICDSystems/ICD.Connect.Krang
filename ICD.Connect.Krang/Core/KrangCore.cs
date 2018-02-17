@@ -12,6 +12,7 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
 using ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery;
+using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Krang.Remote.Direct.CostUpdate;
 using ICD.Connect.Krang.Remote.Direct.Disconnect;
 using ICD.Connect.Krang.Remote.Direct.InitiateConnection;
