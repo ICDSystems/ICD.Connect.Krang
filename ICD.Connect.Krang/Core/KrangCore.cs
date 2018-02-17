@@ -41,6 +41,7 @@ namespace ICD.Connect.Krang.Core
 
 		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
 		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
+		private CoreProxyCollection m_CoreProxyCollection;
 
 		#region Properties
 
@@ -102,6 +103,7 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService<ICore>(this);
 
 			m_LoadedOriginators = new Stack<int>();
+			m_CoreProxyCollection = new CoreProxyCollection();
 
 			Themes = new ApiOriginatorsNodeGroup<ITheme>(Originators);
 			Devices = new ApiOriginatorsNodeGroup<IDevice>(Originators);
@@ -221,6 +223,16 @@ namespace ICD.Connect.Krang.Core
 		private void HandlerOnCoreDiscovered(object sender, CoreDiscoveryInfoEventArgs eventArgs)
 		{
 			IcdConsole.PrintLine("Core {0} discovered {1} {2}", eventArgs.Data.Id, eventArgs.Data.Source, eventArgs.Data.Discovered);
+
+			CoreProxy proxy = new CoreProxy
+			{
+				Id = eventArgs.Data.Id,
+				Name = eventArgs.Data.Name
+			};
+
+			m_CoreProxyCollection.Add(proxy);
+
+			proxy.SetHostInfo(eventArgs.Data.Source);
 		}
 
 		/// <summary>
@@ -231,6 +243,13 @@ namespace ICD.Connect.Krang.Core
 		private void HandlerOnCoreLost(object sender, CoreDiscoveryInfoEventArgs eventArgs)
 		{
 			IcdConsole.PrintLine("Core {0} lost {1} {2}", eventArgs.Data.Id, eventArgs.Data.Source, eventArgs.Data.Discovered);
+
+			CoreProxy proxy;
+			if (!m_CoreProxyCollection.TryGetProxy(eventArgs.Data.Id, out proxy))
+				return;
+
+			m_CoreProxyCollection.Remove(eventArgs.Data.Id);
+			proxy.Dispose();
 		}
 
 		#endregion
