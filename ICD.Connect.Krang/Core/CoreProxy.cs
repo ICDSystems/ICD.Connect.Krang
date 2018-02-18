@@ -15,6 +15,8 @@ namespace ICD.Connect.Krang.Core
 	{
 		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.GetService<DirectMessageManager>(); } }
 
+		private RemoteApiResultHandler ApiResultHandler { get { return ServiceProvider.GetService<RemoteApiResultHandler>(); } }
+
 		public void SetHostInfo(HostInfo source)
 		{
 			ApiClassInfo command =

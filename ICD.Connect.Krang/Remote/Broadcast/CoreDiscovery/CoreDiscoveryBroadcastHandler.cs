@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Timers;
+using ICD.Connect.Krang.Core;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Settings.Core;
 
@@ -21,17 +21,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private const long TIMEOUT_INTERVAL = DEFAULT_INTERVAL / 5;
 		private const long TIMEOUT_DURATION = DEFAULT_INTERVAL * 5;
 
-		/// <summary>
-		/// Raised when we discover a new core instance on the network.
-		/// </summary>
-		public event EventHandler<CoreDiscoveryInfoEventArgs> OnCoreDiscovered;
-
-		/// <summary>
-		/// Raised when a discovered core instance times out.
-		/// </summary>
-		public event EventHandler<CoreDiscoveryInfoEventArgs> OnCoreLost;
-
 		private readonly Dictionary<int, CoreDiscoveryInfo> m_Discovered;
+		private readonly CoreProxyCollection m_CoreProxyCollection;
 		private readonly SafeCriticalSection m_DiscoveredSection;
 		private readonly SafeTimer m_TimeoutTimer;
 
@@ -43,6 +34,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		public CoreDiscoveryBroadcastHandler()
 		{
 			m_Discovered = new Dictionary<int, CoreDiscoveryInfo>();
+			m_CoreProxyCollection = new CoreProxyCollection();
 			m_DiscoveredSection = new SafeCriticalSection();
 			m_TimeoutTimer = SafeTimer.Stopped(TimeoutCallback);
 
@@ -56,9 +48,6 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		/// </summary>
 		public override void Dispose()
 		{
-			OnCoreDiscovered = null;
-			OnCoreLost = null;
-
 			base.Dispose();
 
 			m_TimeoutTimer.Stop();
@@ -69,27 +58,81 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		/// </summary>
 		private void TimeoutCallback()
 		{
-			IcdHashSet<CoreDiscoveryInfo> dropped = new IcdHashSet<CoreDiscoveryInfo>();
-
 			m_DiscoveredSection.Enter();
 
 			try
 			{
 				DateTime cutoff = IcdEnvironment.GetLocalTime() - TimeSpan.FromMilliseconds(TIMEOUT_DURATION);
-				IEnumerable<CoreDiscoveryInfo> items =
-					m_Discovered.Where(kvp => kvp.Value.Discovered <= cutoff)
-					            .Select(kvp => kvp.Value);
 
-				dropped.AddRange(items);
-				m_Discovered.RemoveAll(dropped.Select(d => d.Id));
+				CoreDiscoveryInfo[] dropped =
+					m_Discovered.Where(kvp => kvp.Value.Discovered <= cutoff)
+					            .Select(kvp => kvp.Value)
+								.ToArray();
+
+				foreach (CoreDiscoveryInfo item in dropped)
+					RemoveCore(item);
 			}
 			finally
 			{
 				m_DiscoveredSection.Leave();
 			}
+		}
 
-			foreach (CoreDiscoveryInfo item in dropped)
-				OnCoreLost.Raise(this, new CoreDiscoveryInfoEventArgs(item));
+		private void AddCore(CoreDiscoveryInfo info)
+		{
+			m_DiscoveredSection.Enter();
+
+			try
+			{
+				CoreDiscoveryInfo existing = m_Discovered.GetDefault(info.Id, null);
+
+				// Update discovery time even if we already know about the core.
+				m_Discovered[info.Id] = info;
+
+				if (existing != null)
+					return;
+
+				IcdConsole.PrintLine("Core {0} discovered {1} {2}", info.Id, info.Source, info.Discovered);
+
+				CoreProxy proxy = new CoreProxy
+				{
+					Id = info.Id,
+					Name = info.Name
+				};
+
+				m_CoreProxyCollection.Add(proxy);
+				proxy.SetHostInfo(info.Source);
+			}
+			finally
+			{
+				m_DiscoveredSection.Leave();
+			}
+		}
+
+		private void RemoveCore(CoreDiscoveryInfo item)
+		{
+			if (item == null)
+				throw new ArgumentNullException("item");
+
+			m_DiscoveredSection.Enter();
+
+			try
+			{
+				m_Discovered.Remove(item.Id);
+
+				IcdConsole.PrintLine("Core {0} lost {1} {2}", item.Id, item.Source, item.Discovered);
+
+				CoreProxy proxy;
+				if (!m_CoreProxyCollection.TryGetProxy(item.Id, out proxy))
+					return;
+
+				m_CoreProxyCollection.Remove(item.Id);
+				proxy.Dispose();
+			}
+			finally
+			{
+				m_DiscoveredSection.Leave();
+			}
 		}
 
 		#region Repeater Callbacks
@@ -132,18 +175,12 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 					return;
 				}
 
-				m_Discovered[info.Id] = info;
-
-				// Don't raise event if the core was already discovered
-				if (existing != null)
-					return;
+				AddCore(info);
 			}
 			finally
 			{
 				m_DiscoveredSection.Leave();
 			}
-
-			OnCoreDiscovered.Raise(this, new CoreDiscoveryInfoEventArgs(info));
 		}
 
 		#endregion

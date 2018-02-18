@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
-using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Attributes;
@@ -41,7 +40,6 @@ namespace ICD.Connect.Krang.Core
 
 		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
 		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
-		private CoreProxyCollection m_CoreProxyCollection;
 
 		#region Properties
 
@@ -103,7 +101,6 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService<ICore>(this);
 
 			m_LoadedOriginators = new Stack<int>();
-			m_CoreProxyCollection = new CoreProxyCollection();
 
 			Themes = new ApiOriginatorsNodeGroup<ITheme>(Originators);
 			Devices = new ApiOriginatorsNodeGroup<IDevice>(Originators);
@@ -187,73 +184,6 @@ namespace ICD.Connect.Krang.Core
 
 		#endregion
 
-		#region Core Discovery
-
-		/// <summary>
-		/// Subscribe to the broadcast events.
-		/// </summary>
-		/// <param name="handler"></param>
-		private void Subscribe(CoreDiscoveryBroadcastHandler handler)
-		{
-			if (handler == null)
-				return;
-
-			handler.OnCoreDiscovered += HandlerOnCoreDiscovered;
-			handler.OnCoreLost += HandlerOnCoreLost;
-		}
-
-		/// <summary>
-		/// Unsubscribe from the broadcast events.
-		/// </summary>
-		/// <param name="handler"></param>
-		private void Unsubscribe(CoreDiscoveryBroadcastHandler handler)
-		{
-			if (handler == null)
-				return;
-
-			handler.OnCoreDiscovered -= HandlerOnCoreDiscovered;
-			handler.OnCoreLost -= HandlerOnCoreLost;
-		}
-
-		/// <summary>
-		/// Called when a core is discovered on the network.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="eventArgs"></param>
-		private void HandlerOnCoreDiscovered(object sender, CoreDiscoveryInfoEventArgs eventArgs)
-		{
-			IcdConsole.PrintLine("Core {0} discovered {1} {2}", eventArgs.Data.Id, eventArgs.Data.Source, eventArgs.Data.Discovered);
-
-			CoreProxy proxy = new CoreProxy
-			{
-				Id = eventArgs.Data.Id,
-				Name = eventArgs.Data.Name
-			};
-
-			m_CoreProxyCollection.Add(proxy);
-
-			proxy.SetHostInfo(eventArgs.Data.Source);
-		}
-
-		/// <summary>
-		/// Called when a core times out.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="eventArgs"></param>
-		private void HandlerOnCoreLost(object sender, CoreDiscoveryInfoEventArgs eventArgs)
-		{
-			IcdConsole.PrintLine("Core {0} lost {1} {2}", eventArgs.Data.Id, eventArgs.Data.Source, eventArgs.Data.Discovered);
-
-			CoreProxy proxy;
-			if (!m_CoreProxyCollection.TryGetProxy(eventArgs.Data.Id, out proxy))
-				return;
-
-			m_CoreProxyCollection.Remove(eventArgs.Data.Id);
-			proxy.Dispose();
-		}
-
-		#endregion
-
 		#region Settings
 
 		/// <summary>
@@ -313,7 +243,6 @@ namespace ICD.Connect.Krang.Core
 
 			ResetDefaultPermissions();
 
-			Unsubscribe(m_DiscoveryBroadcastHandler);
 			if (m_DiscoveryBroadcastHandler != null)
 				m_DiscoveryBroadcastHandler.Dispose();
 			m_DiscoveryBroadcastHandler = null;
@@ -344,8 +273,6 @@ namespace ICD.Connect.Krang.Core
 				//if (settings.Broadcast)
 				{
 					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler();
-					Subscribe(m_DiscoveryBroadcastHandler);
-
 					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
 
 					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
