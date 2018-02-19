@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
 using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
+using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Core
@@ -15,9 +19,28 @@ namespace ICD.Connect.Krang.Core
 	/// </summary>
 	public sealed class CoreProxy : AbstractCore<CoreProxySettings>
 	{
+		private readonly CoreOriginatorCollection m_Originators;
+
 		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.GetService<DirectMessageManager>(); } }
 
 		private RemoteApiResultHandler ApiResultHandler { get { return ServiceProvider.GetService<RemoteApiResultHandler>(); } }
+
+		private ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
+
+		/// <summary>
+		/// Constructor.
+		/// </summary>
+		public CoreProxy()
+		{
+			m_Originators = new CoreOriginatorCollection();
+		}
+
+		protected override void DisposeFinal(bool disposing)
+		{
+			base.DisposeFinal(disposing);
+
+			DisposeOriginators();
+		}
 
 		public void SetHostInfo(HostInfo source)
 		{
@@ -48,9 +71,35 @@ namespace ICD.Connect.Krang.Core
 				return;
 
 			foreach (KeyValuePair<uint, ApiClassInfo> kvp in nodeGroup.GetNodes())
-			{
-				IcdConsole.PrintLine(eConsoleColor.Magenta, "{0} - {1}", kvp.Key, kvp.Value.Name);
-			}
+				LazyLoadProxyOriginator((int)kvp.Key + 1, kvp.Value);
+		}
+
+		private void LazyLoadProxyOriginator(int id, ApiClassInfo classInfo)
+		{
+			if (m_Originators.ContainsChild(id))
+				return;
+
+			if (Core.Originators.ContainsChild(id))
+				return;
+
+			Type proxyType = classInfo.GetProxyTypes().FirstOrDefault();
+			if (proxyType == null)
+				return;
+
+			IOriginator originator = ReflectionUtils.CreateInstance<IOriginator>(proxyType);
+			originator.Id = id;
+
+			m_Originators.AddChild(originator);
+
+			// Add to the core originator collection
+			Core.Originators.AddChild(originator);
+		}
+
+		private void DisposeOriginators()
+		{
+			foreach (IDisposable originator in m_Originators.OfType<IDisposable>())
+				originator.Dispose();
+			m_Originators.Clear();
 		}
 	}
 }

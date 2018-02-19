@@ -54,7 +54,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 
 		private void OriginatorsOnOnChildrenChanged(object sender, EventArgs eventArgs)
 		{
-			Broadcaster.Broadcast();
+			//Broadcaster.Broadcast();
 		}
 
 		#endregion
