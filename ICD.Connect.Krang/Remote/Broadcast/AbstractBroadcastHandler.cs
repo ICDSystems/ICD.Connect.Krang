@@ -1,6 +1,7 @@
 ﻿using System;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Broadcast;
+using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Protocol.Network.Direct;
 
 namespace ICD.Connect.Krang.Remote.Broadcast
@@ -10,12 +11,12 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		protected BroadcastManager BroadcastManager { get { return ServiceProvider.GetService<BroadcastManager>(); } }
 		protected DirectMessageManager DirectMessageManager { get { return ServiceProvider.GetService<DirectMessageManager>(); } }
 
-		private RecurringBroadcaster<TData> m_Broadcaster;
+		private IBroadcaster m_Broadcaster;
 
 		/// <summary>
 		/// Gets the current broadcaster.
 		/// </summary>
-		public RecurringBroadcaster<TData> Broadcaster { get { return m_Broadcaster; } }
+		public IBroadcaster Broadcaster { get { return m_Broadcaster; } }
 
 		/// <summary>
 		/// Release resources.
@@ -29,13 +30,13 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		/// Sets the broadcaster for this handler.
 		/// </summary>
 		/// <param name="broadcaster"></param>
-		public void SetBroadcaster(RecurringBroadcaster<TData> broadcaster)
+		public void SetBroadcaster(IBroadcaster broadcaster)
 		{
 			if (broadcaster == m_Broadcaster)
 				return;
 
 			if (m_Broadcaster != null)
-				BroadcastManager.DeregisterBroadcaster(m_Broadcaster);
+				BroadcastManager.DeregisterBroadcaster<TData>(m_Broadcaster);
 
 			Unsubscribe(m_Broadcaster);
 			m_Broadcaster = broadcaster;
@@ -44,7 +45,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 			if (m_Broadcaster == null)
 				return;
 
-			BroadcastManager.RegisterBroadcaster(m_Broadcaster);
+			BroadcastManager.RegisterBroadcaster<TData>(m_Broadcaster);
 			m_Broadcaster.Broadcast();
 		}
 
@@ -52,7 +53,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		/// Subscribe to the broadcaster events.
 		/// </summary>
 		/// <param name="broadcaster"></param>
-		protected virtual void Subscribe(RecurringBroadcaster<TData> broadcaster)
+		protected virtual void Subscribe(IBroadcaster broadcaster)
 		{
 			if (broadcaster == null)
 				return;
@@ -65,7 +66,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		/// Unsubscribe from the broadcaster events.
 		/// </summary>
 		/// <param name="broadcaster"></param>
-		protected virtual void Unsubscribe(RecurringBroadcaster<TData> broadcaster)
+		protected virtual void Unsubscribe(IBroadcaster broadcaster)
 		{
 			if (broadcaster == null)
 				return;
@@ -88,7 +89,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="eventArgs"></param>
-		protected virtual void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs<TData> eventArgs)
+		protected virtual void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs eventArgs)
 		{
 		}
 	}

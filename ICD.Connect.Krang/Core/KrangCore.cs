@@ -10,6 +10,7 @@ using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
+using ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange;
 using ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery;
 using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Krang.Remote.Direct.CostUpdate;
@@ -39,6 +40,7 @@ namespace ICD.Connect.Krang.Core
 		private readonly Stack<int> m_LoadedOriginators;
 
 		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
+		private OriginatorsChangeBroadcastHandler m_OriginatorsBroadcastHandler;
 		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
 
 		#region Properties
@@ -247,6 +249,10 @@ namespace ICD.Connect.Krang.Core
 				m_DiscoveryBroadcastHandler.Dispose();
 			m_DiscoveryBroadcastHandler = null;
 
+			if (m_OriginatorsBroadcastHandler != null)
+				m_OriginatorsBroadcastHandler.Dispose();
+			m_OriginatorsBroadcastHandler = null;
+
 			if (m_TielineBroadcastHandler != null)
 				m_TielineBroadcastHandler.Dispose();
 			m_TielineBroadcastHandler = null;
@@ -272,7 +278,8 @@ namespace ICD.Connect.Krang.Core
 
 				//if (settings.Broadcast)
 				{
-					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler();
+					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler(this);
+					m_OriginatorsBroadcastHandler = new OriginatorsChangeBroadcastHandler(this);
 					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
 
 					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());

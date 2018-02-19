@@ -16,10 +16,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		/// Constructor.
 		/// </summary>
 		/// <param name="data"></param>
-		public CoreDiscoveryInfo(BroadcastData<CoreDiscoveryData> data)
+		public CoreDiscoveryInfo(BroadcastData data)
 		{
-			Id = data.Data.Id;
-			Name = data.Data.Name;
+			CoreDiscoveryData discovery = data.Data as CoreDiscoveryData;
+			if (discovery == null)
+				throw new InvalidOperationException();
+
+			Id = discovery.Id;
+			Name = discovery.Name;
 			Source = data.Source;
 			Discovered = IcdEnvironment.GetLocalTime();
 		}

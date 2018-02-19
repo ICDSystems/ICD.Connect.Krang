@@ -31,7 +31,12 @@ namespace ICD.Connect.Krang.Core
 				Command = command
 			};
 
-			DirectMessageManager.Send(source, message);
+			DirectMessageManager.Send<RemoteApiReply>(source, message, ParseDevices);
+		}
+
+		private void ParseDevices(RemoteApiReply response)
+		{
+			
 		}
 	}
 }

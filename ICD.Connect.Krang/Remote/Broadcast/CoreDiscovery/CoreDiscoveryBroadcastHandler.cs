@@ -8,6 +8,7 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Timers;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Protocol.Network.Broadcast;
+using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
@@ -25,14 +26,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private readonly CoreProxyCollection m_CoreProxyCollection;
 		private readonly SafeCriticalSection m_DiscoveredSection;
 		private readonly SafeTimer m_TimeoutTimer;
-
-		public ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
+		private readonly ICore m_Core;
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public CoreDiscoveryBroadcastHandler()
+		public CoreDiscoveryBroadcastHandler(ICore core)
 		{
+			m_Core = core;
 			m_Discovered = new Dictionary<int, CoreDiscoveryInfo>();
 			m_CoreProxyCollection = new CoreProxyCollection();
 			m_DiscoveredSection = new SafeCriticalSection();
@@ -146,7 +147,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			base.BroadcasterOnBroadcasting(sender, e);
 
-			Broadcaster.UpdateData(new CoreDiscoveryData(Core));
+			Broadcaster.SetBroadcastData(new CoreDiscoveryData(m_Core));
 		}
 
 		/// <summary>
@@ -154,7 +155,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs<CoreDiscoveryData> e)
+		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs e)
 		{
 			base.BroadcasterOnBroadcastReceived(sender, e);
 

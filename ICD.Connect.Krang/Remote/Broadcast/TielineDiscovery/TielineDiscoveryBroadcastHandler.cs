@@ -6,6 +6,7 @@ using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Krang.Remote.Direct.InitiateConnection;
 using ICD.Connect.Protocol.Network.Broadcast;
+using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
@@ -61,17 +62,21 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 				}
 			}
 
-			Broadcaster.UpdateData(devices.Any() ? new TielineDiscoveryData(devices, deviceConnections) : null);
+			Broadcaster.SetBroadcastData(devices.Any() ? new TielineDiscoveryData(devices, deviceConnections) : null);
 		}
 
-		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs<TielineDiscoveryData> e)
+		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs e)
 		{
 			base.BroadcasterOnBroadcastReceived(sender, e);
 
 			if (e.Data.Source == BroadcastManager.GetHostInfo())
 				return;
 
-			foreach (KeyValuePair<int, int> pair in e.Data.Data.DeviceIds)
+			TielineDiscoveryData data = e.Data.Data as TielineDiscoveryData;
+			if (data == null)
+				return;
+
+			foreach (KeyValuePair<int, int> pair in data.DeviceIds)
 			{
 				if (!m_Core.Originators.ContainsChild(pair.Key) || m_Core.Originators.GetChild(pair.Key) is RemoteSwitcher)
 					continue;
@@ -88,7 +93,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 				}
 
 				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
-				foreach (Connection tieline in e.Data.Data.Tielines[pair.Key])
+				foreach (Connection tieline in data.Tielines[pair.Key])
 				{
 					// Workaround for compiler warning
 					Connection tieline1 = tieline;
