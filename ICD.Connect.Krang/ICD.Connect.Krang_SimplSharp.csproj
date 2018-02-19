@@ -78,7 +78,8 @@
     <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryBroadcastHandler.cs" />
     <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryData.cs" />
     <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryInfo.cs" />
-    <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryInfoEventArgs.cs" />
+    <Compile Include="Remote\Broadcast\OriginatorsChange\OriginatorsChangeBroadcastHandler.cs" />
+    <Compile Include="Remote\Broadcast\OriginatorsChange\OriginatorsChangeData.cs" />
     <Compile Include="Remote\Direct\API\AbstractApiMessage.cs" />
     <Compile Include="Remote\Direct\API\RemoteApiResultHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdate\CostUpdateHandler.cs" />
