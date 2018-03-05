@@ -1,15 +1,15 @@
 ﻿using System.Linq;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public class DisconnectHandler : AbstractMessageHandler<DisconnectMessage>
+	public sealed class DisconnectHandler : AbstractMessageHandler<DisconnectMessage>
 	{
-		public override AbstractMessage HandleMessage(DisconnectMessage message)
+		protected override AbstractMessage HandleMessage(DisconnectMessage message)
 		{
 			ICore core = ServiceProvider.TryGetService<ICore>();
 			if (core == null)
@@ -31,7 +31,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 		}
 	}
 
-	public class DisconnectMessage : AbstractMessage
+	public sealed class DisconnectMessage : AbstractMessage
 	{
 	}
 }

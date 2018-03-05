@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
-using ICD.Connect.Krang.Partitioning;
-using ICD.Connect.Krang.Settings;
 using ICD.Connect.Panels;
+using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
+using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
+using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Themes;
@@ -20,19 +22,17 @@ namespace ICD.Connect.Krang.Core
 	/// <summary>
 	/// Settings for the Krang core.
 	/// </summary>
-	[PublicAPI]
-	public sealed class KrangCoreSettings : AbstractSettings, ICoreSettings
+	[KrangSettings(FACTORY_NAME)]
+	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
-		public const string ROOT_ELEMENT = "IcdConfig";
-
-		public const string FACTORY_NAME = "Krang";
+		private const string FACTORY_NAME = "Krang";
 
 		private const string HEADER_ELEMENT = "Header";
 		private const string THEMES_ELEMENT = "Themes";
-		public const string PANELS_ELEMENT = "Panels";
-		public const string PORTS_ELEMENT = "Ports";
-		public const string DEVICES_ELEMENT = "Devices";
-		public const string ROOMS_ELEMENT = "Rooms";
+		private const string PANELS_ELEMENT = "Panels";
+		private const string PORTS_ELEMENT = "Ports";
+		private const string DEVICES_ELEMENT = "Devices";
+		private const string ROOMS_ELEMENT = "Rooms";
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
 		private const string BROADCAST_ELEMENT = "Broadcast";
@@ -42,117 +42,96 @@ namespace ICD.Connect.Krang.Core
 
 		#region Properties
 
-		public SettingsCollection OriginatorSettings
-		{
-			get { return m_OriginatorSettings; }
-		}
+		public override SettingsCollection OriginatorSettings { get { return m_OriginatorSettings; } }
 
 		/// <summary>
 		/// Gets the theme settings.
 		/// </summary>
-		public SettingsCollection ThemeSettings
+		private SettingsCollection ThemeSettings
 		{
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IThemeSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IThemeSettings))));
 			}
 		}
 
 		/// <summary>
 		/// Gets the device settings.
 		/// </summary>
-		public SettingsCollection DeviceSettings
+		private SettingsCollection DeviceSettings
 		{
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IDeviceSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IDeviceSettings))));
 			}
 		}
 
 		/// <summary>
 		/// Gets the port settings.
 		/// </summary>
-		public SettingsCollection PortSettings
+		private SettingsCollection PortSettings
 		{
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IPortSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IPortSettings))));
 			}
 		}
 
 		/// <summary>
 		/// Gets the panel settings.
 		/// </summary>
-		public SettingsCollection PanelSettings
+		private SettingsCollection PanelSettings
 		{
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IPanelDeviceSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IPanelDeviceSettings))));
 			}
 		}
 
 		/// <summary>
 		/// Gets the room settings.
 		/// </summary>
-		public SettingsCollection RoomSettings
+		private SettingsCollection RoomSettings
 		{
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-						s.GetType().IsAssignableTo(typeof (IRoomSettings))));
-			}
-		}
-		
-		public RoutingGraphSettings RoutingGraphSettings
-		{
-			get
-			{
-				return m_OriginatorSettings.OfType<RoutingGraphSettings>().SingleOrDefault();
+				                                                         s.GetType().IsAssignableTo(typeof(IRoomSettings))));
 			}
 		}
 
-		public PartitionManagerSettings PartitionManagerSettings
+		private RoutingGraphSettings RoutingGraphSettings
 		{
-			get
-			{
-				return m_OriginatorSettings.OfType<PartitionManagerSettings>().SingleOrDefault();
-			}
+			get { return m_OriginatorSettings.OfType<RoutingGraphSettings>().SingleOrDefault(); }
+		}
+
+		private PartitionManagerSettings PartitionManagerSettings
+		{
+			get { return m_OriginatorSettings.OfType<PartitionManagerSettings>().SingleOrDefault(); }
 		}
 
 		/// <summary>
 		/// Gets the header info.
 		/// </summary>
-		public ConfigurationHeader Header
-		{
-			get { return m_Header; }
-		}
+		public ConfigurationHeader Header { get { return m_Header; } }
 
 		/// <summary>
 		/// Gets the broadcast setting.
 		/// </summary>
 		public bool Broadcast { get; private set; }
 
-		/// <summary>
-		/// Gets the xml element.
-		/// </summary>
-		protected override string Element
-		{
-			get { return ROOT_ELEMENT; }
-		}
-
-		public override string FactoryName
-		{
-			get { return FACTORY_NAME; }
-		}
+		public override string FactoryName { get { return FACTORY_NAME; } }
 
 		/// <summary>
 		/// Gets the type of the originator for this settings instance.
 		/// </summary>
 		public override Type OriginatorType { get { return typeof(KrangCore); } }
+
+		private ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
 
 		#endregion
 
@@ -168,15 +147,20 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
-		/// Returns the collection of ids that the settings will depend on.
+		/// Returns true if the settings depend on a device with the given ID.
 		/// For example, to instantiate an IR Port from settings, the device the physical port
 		/// belongs to will need to be instantiated first.
 		/// </summary>
 		/// <returns></returns>
-		public override IEnumerable<int> GetDeviceDependencies()
+		public override bool HasDeviceDependency(int id)
 		{
-			return m_OriginatorSettings.Select(d => d.Id);
+			return m_OriginatorSettings.Select(o => o.Id).Contains(Id);
 		}
+
+		/// <summary>
+		/// Returns the count from the collection of ids that the settings depends on.
+		/// </summary>
+		public override int DependencyCount { get { return m_OriginatorSettings.Count; } }
 
 		/// <summary>
 		/// Writes property elements to xml.
@@ -203,15 +187,13 @@ namespace ICD.Connect.Krang.Core
 				partitionManagerSettings.ToXml(writer);
 		}
 
-		#region Protected Methods
-
 		/// <summary>
 		/// Parses the xml and applies the properties to the instance.
 		/// </summary>
 		/// <param name="xml"></param>
-		public void ParseXml(string xml)
+		public override void ParseXml(string xml)
 		{
-			ParseXml(this, xml);
+			base.ParseXml(xml);
 
 			Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
 			UpdateHeaderFromXml(xml);
@@ -222,11 +204,13 @@ namespace ICD.Connect.Krang.Core
 			IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
 			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
 
-			OriginatorSettings.AddRange(themes);
-			OriginatorSettings.AddRange(panels);
-			OriginatorSettings.AddRange(ports);
-			OriginatorSettings.AddRange(devices);
-			OriginatorSettings.AddRange(rooms);
+			IEnumerable<ISettings> concat =
+				themes.Concat(panels)
+				      .Concat(ports)
+				      .Concat(devices)
+				      .Concat(rooms);
+
+			AddSettingsSkipDuplicateIds(concat);
 
 			string child;
 
@@ -235,6 +219,54 @@ namespace ICD.Connect.Krang.Core
 
 			if (XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child))
 				UpdatePartitioningFromXml(child);
+		}
+
+		#region Protected Methods
+
+		/// <summary>
+		/// Adds the given settings instances to the core settings collection.
+		/// Logs and skips any items with duplicate ids.
+		/// </summary>
+		/// <param name="settings"></param>
+		private void AddSettingsSkipDuplicateIds(IEnumerable<ISettings> settings)
+		{
+			if (settings == null)
+				throw new ArgumentNullException("settings");
+
+			foreach (ISettings item in settings)
+				AddSettingsSkipDuplicateId(item);
+		}
+
+		/// <summary>
+		/// Adds the given settings instance to the core settings collection.
+		/// Logs and skips any item with duplicate id.
+		/// </summary>
+		/// <param name="settings"></param>
+		private bool AddSettingsSkipDuplicateId(ISettings settings)
+		{
+			if (settings == null)
+				throw new ArgumentNullException("settings");
+
+			if (OriginatorSettings.Add(settings))
+				return true;
+
+			Logger.AddEntry(eSeverity.Error, "{0} failed to add {1} - Duplicate ID", this, settings);
+			return false;
+		}
+
+		/// <summary>
+		/// Adds the collection settings instances to the core settings collection.
+		/// Logs and skips any item with duplicate id.
+		/// Removes items with duplicate ids from the given collection.
+		/// </summary>
+		/// <param name="collection"></param>
+		private void AddSettingsRemoveOnDuplicateId(ICollection<ISettings> collection)
+		{
+			foreach (ISettings item in collection.ToArray(collection.Count))
+			{
+				if (!AddSettingsSkipDuplicateId(item))
+					collection.Remove(item);
+			}
 		}
 
 		private void UpdateHeaderFromXml(string xml)
@@ -248,28 +280,30 @@ namespace ICD.Connect.Krang.Core
 
 		private void UpdateRoutingFromXml(string xml)
 		{
-			var routing = new RoutingGraphSettings();
+			RoutingGraphSettings routing = new RoutingGraphSettings();
 			routing.ParseXml(xml);
 
-			OriginatorSettings.Add(routing);
+			if (!AddSettingsSkipDuplicateId(routing))
+				return;
 
-			//add routing's child originators so they can be accessed by CoreDeviceFactory
-			OriginatorSettings.AddRange(routing.ConnectionSettings);
-			OriginatorSettings.AddRange(routing.StaticRouteSettings);
-			OriginatorSettings.AddRange(routing.SourceSettings);
-			OriginatorSettings.AddRange(routing.DestinationSettings);
-			OriginatorSettings.AddRange(routing.DestinationGroupSettings);
+			// Add routing's child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(routing.ConnectionSettings);
+			AddSettingsRemoveOnDuplicateId(routing.StaticRouteSettings);
+			AddSettingsRemoveOnDuplicateId(routing.SourceSettings);
+			AddSettingsRemoveOnDuplicateId(routing.DestinationSettings);
+			AddSettingsRemoveOnDuplicateId(routing.DestinationGroupSettings);
 		}
 
 		private void UpdatePartitioningFromXml(string xml)
 		{
-			var partitioning = new PartitionManagerSettings();
+			PartitionManagerSettings partitioning = new PartitionManagerSettings();
 			partitioning.ParseXml(xml);
 
-			OriginatorSettings.Add(partitioning);
+			if (!AddSettingsSkipDuplicateId(partitioning))
+				return;
 
-			//add partitioning's child originators so they can be accessed by CoreDeviceFactory
-			OriginatorSettings.AddRange(partitioning.PartitionSettings);
+			// Add partitioning's child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(partitioning.PartitionSettings);
 		}
 
 		/// <summary>
@@ -280,7 +314,6 @@ namespace ICD.Connect.Krang.Core
 		private void DeviceSettingsOnItemRemoved(object sender, EventArgs eventArgs)
 		{
 			int[] ids = m_OriginatorSettings.Select(s => s.Id).ToArray();
-
 			RemoveSettingsWithBadDeviceDependency(m_OriginatorSettings, ids);
 		}
 
@@ -292,8 +325,9 @@ namespace ICD.Connect.Krang.Core
 		private static void RemoveSettingsWithBadDeviceDependency(ICollection<ISettings> settings,
 		                                                          IEnumerable<int> deviceIds)
 		{
-			IEnumerable<ISettings> remove = settings.ToArray().Where(s => HasBadDeviceDependency(s, deviceIds));
-			settings.RemoveAll(remove);
+			IEnumerable<ISettings> remove = settings.Where(s => HasBadDeviceDependency(s, deviceIds)).ToArray();
+			foreach (ISettings item in remove)
+				settings.Remove(item);
 		}
 
 		/// <summary>
@@ -304,9 +338,10 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		private static bool HasBadDeviceDependency(ISettings settings, IEnumerable<int> deviceIds)
 		{
-			return settings.GetDeviceDependencies()
-			               .ToHashSet()
-			               .Subtract(deviceIds.ToHashSet()).Count > 0;
+			int expectedSettingsDependencyCount = settings.DependencyCount;
+			foreach (int id in deviceIds.Where(settings.HasDeviceDependency))
+				expectedSettingsDependencyCount--;
+			return expectedSettingsDependencyCount != 0;
 		}
 
 		#endregion

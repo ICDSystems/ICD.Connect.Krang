@@ -157,6 +157,10 @@
       <Project>{CC672DB0-ED3A-4579-809F-4261B345BA1D}</Project>
       <Name>ICD.Connect.Krang_SimplSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_SimplSharp.csproj">
+      <Project>{7D599445-C1F9-4BBD-ACC4-DC80E3311376}</Project>
+      <Name>ICD.Connect.Themes_SimplSharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <PropertyGroup>

@@ -1,25 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Logging.Console;
+using ICD.Common.Logging.Console.Loggers;
+using ICD.Common.Permissions;
+using ICD.Common.Utils;
+using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.IO;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
+using ICD.Connect.API;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
+using ICD.Connect.Protocol.Network.Broadcast;
+using ICD.Connect.Protocol.Network.Direct;
+using ICD.Connect.Settings;
+using ICD.Connect.Settings.Core;
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
 #else
 using System.Reflection;
 #endif
-using ICD.Common.Logging.Console;
-using ICD.Common.Logging.Console.Loggers;
-using ICD.Common.Permissions;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
-using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
-using ICD.Connect.API;
-using ICD.Connect.API.Commands;
-using ICD.Connect.API.Nodes;
-using ICD.Connect.Krang.Settings;
-using ICD.Connect.Protocol.Network.Broadcast;
-using ICD.Connect.Protocol.Network.Direct;
-using ICD.Common.Utils.IO;
 
 namespace ICD.Connect.Krang.Core
 {
@@ -57,7 +58,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			AddServices();
 
-			m_Core = new KrangCore { Serialize = true };
+			m_Core = new KrangCore {Serialize = true};
 
 			ApiConsole.RegisterChild(this);
 		}
@@ -66,6 +67,16 @@ namespace ICD.Connect.Krang.Core
 
 		public void Start()
 		{
+#if SIMPLSHARP
+			// Check for cpz files that are unextracted, indicating a problem
+			if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
+			{
+				ServiceProvider.TryGetService<ILoggerService>()
+				               .AddEntry(eSeverity.Warning,
+				                         "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY. YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
+			}
+#endif
+
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
@@ -82,7 +93,7 @@ namespace ICD.Connect.Krang.Core
 			catch (Exception e)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Error, e, "Exception in program initialization - {0}", e.Message);
+				               .AddEntry(eSeverity.Error, e, "Exception in program initialization");
 			}
 		}
 
@@ -90,15 +101,15 @@ namespace ICD.Connect.Krang.Core
 		{
 			try
 			{
-				Clear();
-
 				m_DirectMessageManager.Dispose();
 				m_BroadcastManager.Dispose();
+
+				Clear();
 			}
 			catch (Exception e)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Error, e, "Exception in program stop - {0}", e.Message);
+				               .AddEntry(eSeverity.Error, e, "Exception in program stop");
 			}
 		}
 
@@ -113,7 +124,16 @@ namespace ICD.Connect.Krang.Core
 		{
 			if (m_Core != null)
 				m_Core.Dispose();
-			ServiceProvider.DisposeStatic();
+
+			// Avoid disposing the logging service
+			foreach (object service in ServiceProvider.GetServices().Where(s => !(s is ILoggerService)))
+			{
+				ServiceProvider.RemoveService(service);
+
+				IDisposable disposable = service as IDisposable;
+				if (disposable != null)
+					disposable.Dispose();
+			}
 		}
 
 		private void AddServices()
@@ -126,15 +146,15 @@ namespace ICD.Connect.Krang.Core
 #else
  			logger.SeverityLevel = eSeverity.Warning;
 #endif
-			ServiceProvider.AddService<ILoggerService>(logger);
+			ServiceProvider.TryAddService<ILoggerService>(logger);
 
 			m_DirectMessageManager = new DirectMessageManager();
 			ServiceProvider.AddService(m_DirectMessageManager);
 
 			m_BroadcastManager = new BroadcastManager();
-			ServiceProvider.AddService(m_BroadcastManager);
+			ServiceProvider.TryAddService(m_BroadcastManager);
 
-			ServiceProvider.AddService(new PermissionsManager());
+			ServiceProvider.TryAddService(new PermissionsManager());
 
 			m_LicenseManager = new LicenseManager();
 			ServiceProvider.AddService(m_LicenseManager);
@@ -172,14 +192,25 @@ namespace ICD.Connect.Krang.Core
 			yield return new ConsoleCommand("LoadCore", "Loads and applies the XML config.",
 			                                () => m_Core.LoadSettings());
 			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML.",
-			                                () => FileOperations.SaveSettings(m_Core.CopySettings()));
+			                                () => SaveSettings());
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.",
 			                                () => FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings()));
 
 			yield return new ConsoleCommand("PrintPlugins", "Prints the loaded plugin assemblies.",
-											() => PrintPlugins());
+			                                () => PrintPlugins());
 			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.",
-											() => PrintTypes());
+			                                () => PrintTypes());
+		}
+
+		private void SaveSettings()
+		{
+			// Saving settings involves running some console commands to get processor information.
+			// Executing console commands from a console command thread is extremely slow.
+			ThreadingUtils.SafeInvoke(() =>
+			                          {
+				                          ICoreSettings settings = m_Core.CopySettings();
+				                          FileOperations.SaveSettings(settings);
+			                          });
 		}
 
 		private static string PrintPlugins()

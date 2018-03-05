@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
@@ -10,6 +9,7 @@ using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Rooms
 {
+	[KrangSettings(FACTORY_NAME)]
 	public sealed class SimplRoomSettings : AbstractRoomSettings
 	{
 		private const string FACTORY_NAME = "SimplRoom";
@@ -92,20 +92,15 @@ namespace ICD.Connect.Krang.Rooms
 		}
 
 		/// <summary>
-		/// Loads the settings from XML.
+		/// Updates the settings from xml.
 		/// </summary>
 		/// <param name="xml"></param>
-		/// <returns></returns>
-		[PublicAPI, XmlFactoryMethod(FACTORY_NAME)]
-		public static SimplRoomSettings FromXml(string xml)
+		public override void ParseXml(string xml)
 		{
+			base.ParseXml(xml);
+
 			IEnumerable<KeyValuePair<ushort, SimplRoom.eCrosspointType>> crosspoints = ReadCrosspointsFromXml(xml);
-
-			SimplRoomSettings output = new SimplRoomSettings();
-			output.SetCrosspoints(crosspoints);
-
-			ParseXml(output, xml);
-			return output;
+			SetCrosspoints(crosspoints);
 		}
 
 		private static IEnumerable<KeyValuePair<ushort, SimplRoom.eCrosspointType>> ReadCrosspointsFromXml(string xml)

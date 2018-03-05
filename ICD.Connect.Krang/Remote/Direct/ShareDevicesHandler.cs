@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Devices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			m_Core = ServiceProvider.GetService<ICore>();
 		}
 
-		public override AbstractMessage HandleMessage(ShareDevicesMessage message)
+		protected override AbstractMessage HandleMessage(ShareDevicesMessage message)
 		{
 			RemoteSwitcher switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
 			                                .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);
@@ -46,7 +46,8 @@ namespace ICD.Connect.Krang.Remote.Direct
 
 		private void AddSources(ShareDevicesMessage message, RemoteSwitcher switcher)
 		{
-			List<ISource> newSources = message.Sources.Where(source => m_Core.GetRoutingGraph().Sources.AddChild(source)).ToList();
+			List<ISource> newSources =
+				message.Sources.Where(source => m_Core.GetRoutingGraph().Sources.AddChild(source)).ToList();
 			foreach (ISource source in newSources)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
@@ -60,7 +61,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			{
 				// Get the device or create it if it doesn't exist
 				IDevice sourceDevice = m_Core.Originators.ContainsChild(source.Endpoint.Device)
-										   ? m_Core.Originators.GetChild<IDevice>(source.Endpoint.Device)
+					                       ? m_Core.Originators.GetChild<IDevice>(source.Endpoint.Device)
 					                       : null;
 
 				if (sourceDevice == null)
@@ -103,7 +104,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					}
 				}
 
-				m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				// Set outputs on MockSource if applicable
 				MockSourceDevice mockSource = sourceDevice as MockSourceDevice;
@@ -111,9 +112,11 @@ namespace ICD.Connect.Krang.Remote.Direct
 				{
 					mockSource.Controls.Clear();
 					mockSource.AddSourceControl(source.Endpoint.Control);
-					mockSource.Controls
-					          .GetControl<MockRouteSourceControl>(source.Endpoint.Control)
-					          .SetOutputs(message.SourceConnections[source.Id]);
+
+					// MockRouteSourceControl pulls outputs from the routing graph
+					//mockSource.Controls
+					//          .GetControl<MockRouteSourceControl>(source.Endpoint.Control)
+					//          .SetOutputs(message.SourceConnections[source.Id]);
 				}
 			}
 		}
@@ -135,7 +138,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			{
 				// Get the device or create it if it doesn't exist
 				IDevice destinationDevice = m_Core.Originators.ContainsChild(destination.Endpoint.Device)
-												? m_Core.Originators.GetChild<IDevice>(destination.Endpoint.Device)
+					                            ? m_Core.Originators.GetChild<IDevice>(destination.Endpoint.Device)
 					                            : null;
 
 				if (destinationDevice == null)
@@ -177,7 +180,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 					}
 				}
 
-				m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				// Set inputs on MockDestination if applicable
 				MockDestinationDevice mockDestination = destinationDevice as MockDestinationDevice;

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Services;
-using ICD.Common.Services.Logging;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Protocol.Network.Broadcast;
-using ICD.Connect.Protocol.Network.Direct;
-using ICD.Connect.Protocol.Ports;
+using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
@@ -16,32 +15,27 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Broadcast
 {
-	public sealed class DiscoveryBroadcastHandler
+	public sealed class TielineDiscoveryBroadcastHandler : AbstractBroadcastHandler<TielineDiscoveryData>
 	{
-		private readonly RecurringBroadcast<KrangDiscoveryBroadcast> m_Broadcast;
 		private readonly ICore m_Core;
-		private readonly BroadcastManager m_BroadcastManager;
-		private readonly DirectMessageManager m_DirectMessageManager;
 
-		public DiscoveryBroadcastHandler()
+		/// <summary>
+		/// Constructor.
+		/// </summary>
+		public TielineDiscoveryBroadcastHandler()
 		{
-			m_Broadcast = new RecurringBroadcast<KrangDiscoveryBroadcast>();
-			m_Broadcast.OnBroadcasting += UpdateData;
-			m_Broadcast.OnBroadcastReceived += HandleBroadcast;
-
-			m_BroadcastManager = ServiceProvider.GetService<BroadcastManager>();
-			m_BroadcastManager.RegisterBroadcast(m_Broadcast);
-
-			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
-
 			m_Core = ServiceProvider.GetService<ICore>();
+
+			SetBroadcaster(new RecurringBroadcaster<TielineDiscoveryData>());
 		}
 
-		private void UpdateData(object sender, EventArgs e)
+		protected override void BroadcasterOnBroadcasting(object sender, EventArgs e)
 		{
+			base.BroadcasterOnBroadcasting(sender, e);
+
 			int[] remoteSwitchers =
 				m_Core.Originators.GetChildren<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
-			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetConnections().ToList();
+			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
 
 			Dictionary<int, int> devices = new Dictionary<int, int>();
 			Dictionary<int, IEnumerable<Connection>> deviceConnections = new Dictionary<int, IEnumerable<Connection>>();
@@ -52,11 +46,11 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 				int id1 = id;
 
 				List<Connection> tielines = connections.Where(c => c.Source.Device == id1 || c.Destination.Device == id1).ToList();
-				
+
 				int deviceId = tielines.Select(c => c.Source.Device == id1 ? c.Destination.Device : c.Source.Device)
 				                       .Where(c =>
-											  !(m_Core.Originators.GetChild(c) is MockSourceDevice) &&
-											  !(m_Core.Originators.GetChild(c) is MockDestinationDevice))
+				                              !(m_Core.Originators.GetChild(c) is MockSourceDevice) &&
+				                              !(m_Core.Originators.GetChild(c) is MockDestinationDevice))
 				                       .Unanimous(-1);
 
 				tielines = tielines.Where(c => c.Source.Device == deviceId || c.Destination.Device == deviceId).ToList();
@@ -67,14 +61,22 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 					deviceConnections.Add(id, tielines);
 				}
 			}
-			m_Broadcast.UpdateData(devices.Any() ? new KrangDiscoveryBroadcast(devices, deviceConnections) : null);
+
+			Broadcaster.SetBroadcastData(devices.Any() ? new TielineDiscoveryData(devices, deviceConnections) : null);
 		}
 
-		private void HandleBroadcast(object sender, BroadcastEventArgs<KrangDiscoveryBroadcast> e)
+		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs e)
 		{
-			if (e.Data.Source == m_BroadcastManager.GetHostInfo())
+			base.BroadcasterOnBroadcastReceived(sender, e);
+
+			if (e.Data.Source == BroadcastManager.GetHostInfo())
 				return;
-			foreach (KeyValuePair<int, int> pair in e.Data.Data.DeviceIds)
+
+			TielineDiscoveryData data = e.Data.Data as TielineDiscoveryData;
+			if (data == null)
+				return;
+
+			foreach (KeyValuePair<int, int> pair in data.DeviceIds)
 			{
 				if (!m_Core.Originators.ContainsChild(pair.Key) || m_Core.Originators.GetChild(pair.Key) is RemoteSwitcher)
 					continue;
@@ -91,7 +93,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 				}
 
 				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
-				foreach (Connection tieline in e.Data.Data.Tielines[pair.Key])
+				foreach (Connection tieline in data.Tielines[pair.Key])
 				{
 					// Workaround for compiler warning
 					Connection tieline1 = tieline;
@@ -99,15 +101,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 					if (connections.All(c => c.Id != tieline1.Id))
 						connections.Add(tieline);
 				}
-				m_Core.GetRoutingGraph().Connections.SetConnections(connections);
+				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
-				HostInfo hostInfo = m_DirectMessageManager.GetHostInfo();
 				ServiceProvider.TryGetService<ILoggerService>()
 				               .AddEntry(eSeverity.Informational,
 				                         "Sending response to Krang Discovery Broadcast. Device: {0}, Host: {1}", pair.Key,
 				                         e.Data.Source.ToString());
-				m_DirectMessageManager.Send(e.Data.Source,
-				                            new InitiateConnectionMessage {DeviceId = pair.Key});
+
+				DirectMessageManager.Send(e.Data.Source, new InitiateConnectionMessage {DeviceId = pair.Key});
 			}
 		}
 	}

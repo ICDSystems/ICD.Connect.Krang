@@ -1,5 +1,4 @@
 ﻿using System;
-using ICD.Common.Properties;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
 using ICD.Connect.Protocol.Ports;
@@ -7,6 +6,7 @@ using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Remote
 {
+	[KrangSettings(FACTORY_NAME)]
 	public sealed class RemoteSwitcherSettings : AbstractDeviceSettings
 	{
 		private const string FACTORY_NAME = "RemoteSwitcher";
@@ -39,29 +39,20 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
-		/// Loads the settings from XML.
+		/// Updates the settings from xml.
 		/// </summary>
 		/// <param name="xml"></param>
-		/// <returns></returns>
-		[PublicAPI, XmlFactoryMethod(FACTORY_NAME)]
-		public static RemoteSwitcherSettings FromXml(string xml)
+		public override void ParseXml(string xml)
 		{
-			RemoteSwitcherSettings output = new RemoteSwitcherSettings();
+			base.ParseXml(xml);
 
-			ParseXml(output, xml);
-			return output;
-		}
-
-		private static void ParseXml(RemoteSwitcherSettings output, string xml)
-		{
 			string address = XmlUtils.TryReadChildElementContentAsString(xml, ADDRESS_ELEMENT);
-			if (!string.IsNullOrEmpty(address))
-			{
-				HostInfo info;
-				if (HostInfo.TryParse(address, out info))
-					output.Address = info;
-			}
-			AbstractDeviceSettings.ParseXml(output, xml);
+			if (string.IsNullOrEmpty(address))
+				return;
+
+			HostInfo info;
+			if (HostInfo.TryParse(address, out info))
+				Address = info;
 		}
 
 		#endregion

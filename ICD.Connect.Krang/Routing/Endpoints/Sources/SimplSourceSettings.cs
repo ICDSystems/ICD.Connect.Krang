@@ -6,6 +6,7 @@ using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 {
+	[KrangSettings(FACTORY_NAME)]
 	public sealed class SimplSourceSettings : AbstractSourceSettings
 	{
 		private const string FACTORY_NAME = "SimplSource";
@@ -50,24 +51,18 @@ namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 		}
 
 		/// <summary>
-		/// Loads the settings from XML.
+		/// Updates the settings from xml.
 		/// </summary>
 		/// <param name="xml"></param>
-		/// <returns></returns>
-		[PublicAPI, XmlFactoryMethod(FACTORY_NAME)]
-		public static SimplSourceSettings FromXml(string xml)
+		public override void ParseXml(string xml)
 		{
-			SimplSourceSettings output = new SimplSourceSettings
-			{
-				CrosspointId = XmlUtils.TryReadChildElementContentAsUShort(xml, CROSSPOINT_ID_ELEMENT) ?? 0,
-				CrosspointType = XmlUtils.TryReadChildElementContentAsUShort(xml, CROSSPOINT_TYPE_ELEMENT) ?? 0,
-				SourceVisibility =
-					XmlUtils.TryReadChildElementContentAsEnum<SimplSource.eSourceVisibility>(xml, SOURCE_VISIBILITY_ELEMENT, true) ??
-					SimplSource.eSourceVisibility.None
-			};
+			base.ParseXml(xml);
 
-			ParseXml(output, xml);
-			return output;
+			CrosspointId = XmlUtils.TryReadChildElementContentAsUShort(xml, CROSSPOINT_ID_ELEMENT) ?? 0;
+			CrosspointType = XmlUtils.TryReadChildElementContentAsUShort(xml, CROSSPOINT_TYPE_ELEMENT) ?? 0;
+			SourceVisibility =
+				XmlUtils.TryReadChildElementContentAsEnum<SimplSource.eSourceVisibility>(xml, SOURCE_VISIBILITY_ELEMENT, true) ??
+				SimplSource.eSourceVisibility.None;
 		}
 	}
 }

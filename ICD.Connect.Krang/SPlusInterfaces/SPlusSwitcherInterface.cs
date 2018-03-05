@@ -1,7 +1,6 @@
 ﻿#if SIMPLSHARP
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
@@ -122,7 +121,12 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			if (m_SwitcherControl == null)
 				return;
 
-			m_SwitcherControl.UpdateSwitcherOutput(output, eConnectionType.Video | eConnectionType.Audio);
+			ushort? input = GetInputForOutputCallback == null ? (ushort?)null : GetInputForOutputCallback(output);
+
+			if (input == null)
+				m_SwitcherControl.ClearOutput(output, eConnectionType.Video | eConnectionType.Audio);
+			else
+				m_SwitcherControl.SetInputForOutput(output, (int)input, eConnectionType.Video | eConnectionType.Audio);
 		}
 
 		/// <summary>
@@ -176,7 +180,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			switcherControl.GetSignalDetectedStateCallback = SwitcherControlGetSignalDetectedStateCallback;
 			switcherControl.GetInputsCallback = SwitcherControlGetInputsCallback;
 			switcherControl.GetOutputsCallback = SwitcherControlGetOutputsCallback;
-			switcherControl.GetInputsForOutputCallback = SwitcherControlGetInputsForOutputCallback;
 			switcherControl.RouteCallback = SwitcherControlRouteCallback;
 			switcherControl.ClearOutputCallback = SwitcherControlClearOutputCallback;
 		}
@@ -195,7 +198,6 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			switcherControl.GetSignalDetectedStateCallback = null;
 			switcherControl.GetInputsCallback = null;
 			switcherControl.GetOutputsCallback = null;
-			switcherControl.GetInputsForOutputCallback = null;
 			switcherControl.RouteCallback = null;
 			switcherControl.ClearOutputCallback = null;
 		}
@@ -220,25 +222,10 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			return RouteCallback != null && (RouteCallback((ushort)info.LocalInput, (ushort)info.LocalOutput) != 0);
 		}
 
-		private IEnumerable<ConnectorInfo> SwitcherControlGetInputsForOutputCallback(int output, eConnectionType type)
-		{
-			if (type == eConnectionType.None)
-				yield break;
-
-			if (EnumUtils.GetFlagsExceptNone(type).Any(f => f != eConnectionType.Audio && f != eConnectionType.Video))
-				yield break;
-
-			if (GetInputForOutputCallback == null)
-				yield break;
-
-			ushort input = GetInputForOutputCallback((ushort)output);
-			yield return new ConnectorInfo(input, eConnectionType.Audio | eConnectionType.Video);
-		}
-
 		private IEnumerable<ConnectorInfo> SwitcherControlGetOutputsCallback()
 		{
 			int outputCount = GetOutputCountCallback == null ? 0 : GetOutputCountCallback();
-			for (int index=0; index < outputCount; index++)
+			for (int index = 0; index < outputCount; index++)
 				yield return new ConnectorInfo(index + 1, eConnectionType.Video | eConnectionType.Audio);
 		}
 
@@ -252,9 +239,11 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		private bool SwitcherControlGetSignalDetectedStateCallback(int input, eConnectionType type)
 		{
 			if (EnumUtils.HasMultipleFlags(type))
+			{
 				return EnumUtils.GetFlagsExceptNone(type)
 				                .SelectMulti(f => SwitcherControlGetSignalDetectedStateCallback(input, f))
 				                .Unanimous(false);
+			}
 
 			switch (type)
 			{
@@ -269,4 +258,5 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		#endregion
 	}
 }
+
 #endif

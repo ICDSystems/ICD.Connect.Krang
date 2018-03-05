@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Services;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
@@ -28,7 +28,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			m_PendingMessagesSection = new SafeCriticalSection();
 		}
 
-		public override AbstractMessage HandleMessage(RouteDevicesMessage message)
+		protected override AbstractMessage HandleMessage(RouteDevicesMessage message)
 		{
 			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(message));
 			m_Core.GetRoutingGraph().Route(message.Operation);

@@ -3,44 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
-using ICD.Common.Services;
-using ICD.Common.Utils;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
-using ICD.Connect.Krang.Partitioning;
 using ICD.Connect.Krang.Remote.Broadcast;
 using ICD.Connect.Krang.Remote.Direct;
-using ICD.Connect.Krang.Routing;
-using ICD.Connect.Krang.Settings;
 using ICD.Connect.Panels;
+using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Routing;
+using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core
 {
-	public sealed class KrangCore : AbstractOriginator<KrangCoreSettings>, ICore, IConsoleNode
+	public sealed class KrangCore : AbstractCore<KrangCoreSettings>, IConsoleNode
 	{
 		/// <summary>
 		/// Originator ids are pushed to the stack on load, and popped on clear.
 		/// </summary>
 		private readonly Stack<int> m_LoadedOriginators;
 
-		private readonly CoreOriginatorCollection m_Originators;
-
-		private readonly BroadcastManager m_BroadcastManager;
-		private readonly DirectMessageManager m_DirectMessageManager;
-		private DiscoveryBroadcastHandler m_BroadcastHandler;
+		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
 
 		#region Properties
-
-		public IOriginatorCollection<IOriginator> Originators {get { return m_Originators; } } 
 
 		/// <summary>
 		/// Gets the name of the node in the console.
@@ -56,17 +48,20 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the routing graph for the program.
 		/// </summary>
 		[CanBeNull]
-		public RoutingGraph RoutingGraph { get { return m_Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
+		public RoutingGraph RoutingGraph { get { return Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
 
 		/// <summary>
 		/// Gets the partition manager for the program.
 		/// </summary>
 		[CanBeNull]
-		public PartitionManager PartitionManager { get { return m_Originators.GetChildren<PartitionManager>().SingleOrDefault(); } }
+		public PartitionManager PartitionManager
+		{
+			get { return Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
+		}
 
-		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
+		public BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
 
-		public DirectMessageManager DirectMessageManager { get { return m_DirectMessageManager; } }
+		public DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
 
 		#endregion
 
@@ -80,10 +75,6 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService<ICore>(this);
 
 			m_LoadedOriginators = new Stack<int>();
-			m_Originators = new CoreOriginatorCollection();
-
-			m_BroadcastManager = ServiceProvider.GetService<BroadcastManager>();
-			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
 		}
 
 		#endregion
@@ -100,13 +91,19 @@ namespace ICD.Connect.Krang.Core
 			DisposeOriginators();
 		}
 
+		private void SetOriginators(IEnumerable<IOriginator> originators)
+		{
+			DisposeOriginators();
+			Originators.SetChildren(originators);
+		}
+
 		/// <summary>
 		/// Adds the given originator to the cor.
 		/// </summary>
 		/// <param name="originator"></param>
 		private void AddOriginator(IOriginator originator)
 		{
-			m_Originators.AddChild(originator);
+			Originators.AddChild(originator);
 		}
 
 		/// <summary>
@@ -120,62 +117,42 @@ namespace ICD.Connect.Krang.Core
 				int id = m_LoadedOriginators.Pop();
 
 				IOriginator originator;
-				if (!m_Originators.TryGetChild(id, out originator))
+				if (!Originators.TryGetChild(id, out originator))
 					continue;
 
-				IDisposable disposable = originator as IDisposable;
-				if (disposable == null)
-					continue;
-
-				disposable.Dispose();
+				TryDisposeOriginator(originator);
 			}
 
 			// Now dispose the remainder
-			foreach (IDisposable originator in m_Originators.OfType<IDisposable>())
-				originator.Dispose();
+			foreach (IOriginator originator in Originators)
+				TryDisposeOriginator(originator);
 
-			m_Originators.Clear();
+			Originators.Clear();
 		}
-		
+
+		/// <summary>
+		/// Attempts to dispose the originator if it implements IDisposable. Logs any exceptions.
+		/// </summary>
+		/// <param name="originator"></param>
+		private void TryDisposeOriginator(IOriginator originator)
+		{
+			IDisposable disposable = originator as IDisposable;
+			if (disposable == null)
+				return;
+
+			try
+			{
+				disposable.Dispose();
+			}
+			catch (Exception e)
+			{
+				Logger.AddEntry(eSeverity.Error, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
+			}
+		}
+
 		#endregion
 
 		#region Settings
-
-		/// <summary>
-		/// Copies the current instance properties to the settings instance.
-		/// </summary>
-		/// <param name="settings"></param>
-		void ICore.CopySettings(ICoreSettings settings)
-		{
-			CopySettings((KrangCoreSettings)settings);
-		}
-
-		/// <summary>
-		/// Copies the current state of the Core instance.
-		/// </summary>
-		/// <returns></returns>
-		ICoreSettings ICore.CopySettings()
-		{
-			return CopySettings();
-		}
-
-		/// <summary>
-		/// Loads settings from disk and updates the Settings property.
-		/// </summary>
-		public void LoadSettings()
-		{
-			FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(this);
-		}
-
-		/// <summary>
-		/// Applies the settings to the Core instance.
-		/// </summary>
-		/// <param name="settings"></param>
-		void ICore.ApplySettings(ICoreSettings settings)
-		{
-			IDeviceFactory factory = new CoreDeviceFactory(settings);
-			ApplySettings((KrangCoreSettings)settings, factory);
-		}
 
 		/// <summary>
 		/// Override to apply properties to the settings instance.
@@ -185,17 +162,15 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IPort>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IDevice>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IPanelDevice>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<IRoom>());
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators<ITheme>());
+			settings.OriginatorSettings.Clear();
+
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
 
 			RoutingGraph routingGraph = RoutingGraph;
 			RoutingGraphSettings routingSettings = routingGraph == null || !routingGraph.Serialize
 				                                       ? new RoutingGraphSettings
 				                                       {
-					                                       Id = MathUtils.GetNewId(Originators.GetChildrenIds())
+														   Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_ROUTING_GRAPH)
 				                                       }
 				                                       : routingGraph.CopySettings();
 			settings.OriginatorSettings.Add(routingSettings);
@@ -210,7 +185,7 @@ namespace ICD.Connect.Krang.Core
 			PartitionManagerSettings partitionSettings = partitionManager == null || !partitionManager.Serialize
 				                                             ? new PartitionManagerSettings
 				                                             {
-					                                             Id = MathUtils.GetNewId(Originators.GetChildrenIds())
+																 Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_PARTITION_MANAGER)
 				                                             }
 				                                             : partitionManager.CopySettings();
 			settings.OriginatorSettings.Add(partitionSettings);
@@ -218,10 +193,9 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
 		}
 
-		private IEnumerable<ISettings> GetSerializableOriginators<T>()
-			where T : IOriginator
+		private IEnumerable<ISettings> GetSerializableOriginators()
 		{
-			return m_Originators.GetChildren<T>()
+			return Originators.GetChildren()
 			                    .Where(c => c.Serialize)
 			                    .Select(p => p.CopySettings());
 		}
@@ -232,8 +206,14 @@ namespace ICD.Connect.Krang.Core
 		protected override void ClearSettingsFinal()
 		{
 			base.ClearSettingsFinal();
-			DisposeOriginators();
+
+			SetOriginators(Enumerable.Empty<IOriginator>());
+
 			ResetDefaultPermissions();
+
+			if (m_TielineBroadcastHandler != null)
+				m_TielineBroadcastHandler.Dispose();
+			m_TielineBroadcastHandler = null;
 		}
 
 		/// <summary>
@@ -251,18 +231,19 @@ namespace ICD.Connect.Krang.Core
 				base.ApplySettingsFinal(settings, factory);
 
 				factory.LoadOriginators<IRoutingGraph>();
-				factory.LoadOriginators();
+				factory.LoadOriginators<IPartitionManager>();
+				LoadOriginatorsSkipExceptions(factory);
 
 				if (settings.Broadcast)
 				{
-					m_BroadcastHandler = new DiscoveryBroadcastHandler();
+					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
 
-					m_DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
-					m_DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
+					DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
+					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
+					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
 				}
 
 				ResetDefaultPermissions();
@@ -270,6 +251,23 @@ namespace ICD.Connect.Krang.Core
 			finally
 			{
 				factory.OnOriginatorLoaded -= FactoryOnOriginatorLoaded;
+			}
+		}
+
+		private void LoadOriginatorsSkipExceptions(IDeviceFactory factory)
+		{
+			foreach (int id in factory.GetOriginatorIds())
+			{
+				try
+				{
+					// Don't care about the result, loaded originators will be handled by the load event.
+					factory.GetOriginatorById(id);
+				}
+				catch (Exception e)
+				{
+					Logger.AddEntry(eSeverity.Error, "{0} failed to instantiate {1} with id {2} - {3}", this,
+					                typeof(IOriginator).Name, id, e.Message);
+				}
 			}
 		}
 
@@ -300,18 +298,11 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="addRow"></param>
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("Theme count", m_Originators.GetChildren<ITheme>().Count());
-			addRow("Panel count", m_Originators.GetChildren<IPanelDevice>().Count());
-			addRow("Device count", m_Originators.GetChildren<IDevice>().Count());
-			addRow("Port count", m_Originators.GetChildren<IPort>().Count());
-
-			if (RoutingGraph != null)
-			{
-				addRow("Connection count", RoutingGraph.Connections.Count);
-				addRow("Static Routes count", RoutingGraph.StaticRoutes.Count);
-			}
-
-			addRow("Room count", m_Originators.GetChildren<IRoom>().Count());
+			addRow("Theme count", Originators.GetChildren<ITheme>().Count());
+			addRow("Panel count", Originators.GetChildren<IPanelDevice>().Count());
+			addRow("Device count", Originators.GetChildren<IDevice>().Count());
+			addRow("Port count", Originators.GetChildren<IPort>().Count());
+			addRow("Room count", Originators.GetChildren<IRoom>().Count());
 		}
 
 		/// <summary>
@@ -320,11 +311,11 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
-			//yield return ConsoleNodeGroup.KeyNodeMap("Themes", m_Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Panels", m_Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Devices", m_Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Ports", m_Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", m_Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Themes", Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Panels", Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Devices", Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Ports", Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
 
 			if (RoutingGraph != null)
 				yield return RoutingGraph;
@@ -342,11 +333,9 @@ namespace ICD.Connect.Krang.Core
 			yield return new ConsoleCommand("whoami", "Displays info about Krang", () => PrintKrang(), true);
 		}
 
-		public static string PrintKrang()
+		private static string PrintKrang()
 		{
-			return string.Format(
-				//Krang ASCII Art
-@"................................................................................
+			return @"................................................................................
 ................................................................................
 ...................................~?IIIIII?~,?.................................
 ..................................,IIIIIIIIIIII+,...............................
@@ -390,7 +379,7 @@ namespace ICD.Connect.Krang.Core
 ...............................?I..........................??+++??????????+I,...
 .............................................................~,+????????I:?.....
 .................................................................?,,:+..........
-................................................................................");
+................................................................................";
 		}
 
 		#endregion

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Services;
+using ICD.Common.Utils.Services;
 using ICD.Connect.Devices;
 using ICD.Connect.Devices.Controls;
 using ICD.Connect.Protocol.Network.Direct;
@@ -16,31 +16,36 @@ namespace ICD.Connect.Krang.Remote.Direct
 {
 	public sealed class RequestDevicesHandler : AbstractMessageHandler<RequestDevicesMessage>
 	{
-		public override AbstractMessage HandleMessage(RequestDevicesMessage message)
+		protected override AbstractMessage HandleMessage(RequestDevicesMessage message)
 		{
 			ICore core = ServiceProvider.GetService<ICore>();
 			List<ISource> sources = core.GetRoutingGraph().Sources.Where(s => message.Sources.Contains(s.Id)).ToList();
-			List<IDestination> destinations = core.GetRoutingGraph().Destinations.Where(d => message.Destinations.Contains(d.Id)).ToList();
-			List<IDestinationGroup> destinationGroups = core.GetRoutingGraph().DestinationGroups.Where(d => message.DestinationGroups.Contains(d.Id)).ToList();
+			List<IDestination> destinations =
+				core.GetRoutingGraph().Destinations.Where(d => message.Destinations.Contains(d.Id)).ToList();
+			List<IDestinationGroup> destinationGroups =
+				core.GetRoutingGraph().DestinationGroups.Where(d => message.DestinationGroups.Contains(d.Id)).ToList();
 
 			// TODO - Does this work properly for switchers or throughput devices?
-			var sourceConnections = new Dictionary<int, IEnumerable<ConnectorInfo>>();
-			var destinationConnections = new Dictionary<int, IEnumerable<ConnectorInfo>>();
+			Dictionary<int, IEnumerable<ConnectorInfo>> sourceConnections = new Dictionary<int, IEnumerable<ConnectorInfo>>();
+			Dictionary<int, IEnumerable<ConnectorInfo>> destinationConnections =
+				new Dictionary<int, IEnumerable<ConnectorInfo>>();
 
-			foreach (var source in sources)
+			foreach (ISource source in sources)
 			{
 				IRouteSourceControl control =
-					core.Originators.GetChild<IDeviceBase>(source.Endpoint.Device).Controls.GetControl<IRouteSourceControl>(source.Endpoint.Control);
+					core.Originators.GetChild<IDeviceBase>(source.Endpoint.Device)
+					    .Controls.GetControl<IRouteSourceControl>(source.Endpoint.Control);
 
 				if (!sourceConnections.ContainsKey(source.Id))
 					sourceConnections.Add(source.Id, control.GetOutputs());
 			}
 
-			foreach (var destination in destinations)
+			foreach (IDestination destination in destinations)
 			{
 				DeviceControlInfo info = new DeviceControlInfo(destination.Endpoint.Device, destination.Endpoint.Control);
 				IRouteDestinationControl control =
-					core.Originators.GetChild<IDeviceBase>(destination.Endpoint.Device).Controls.GetControl<IRouteDestinationControl>(destination.Endpoint.Control);
+					core.Originators.GetChild<IDeviceBase>(destination.Endpoint.Device)
+					    .Controls.GetControl<IRouteDestinationControl>(destination.Endpoint.Control);
 
 				if (!destinationConnections.ContainsKey(destination.Id))
 					destinationConnections.Add(destination.Id, control.GetInputs());
