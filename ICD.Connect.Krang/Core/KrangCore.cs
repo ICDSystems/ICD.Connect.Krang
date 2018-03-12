@@ -269,8 +269,8 @@ namespace ICD.Connect.Krang.Core
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, "{0} failed to instantiate {1} with id {2} - {3}: {4}", this,
-					                typeof(IOriginator).Name, id, e.GetType().Name, e.Message);
+					Logger.AddEntry(eSeverity.Error, e, "{0} failed to instantiate {1} with id {2} - {3}", this,
+					                typeof(IOriginator).Name, id, e.Message);
 				}
 			}
 		}
