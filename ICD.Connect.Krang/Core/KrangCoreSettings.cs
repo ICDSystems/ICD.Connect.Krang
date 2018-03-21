@@ -224,8 +224,7 @@ namespace ICD.Connect.Krang.Core
 				themes.Concat(panels)
 					  .Concat(ports)
 					  .Concat(devices)
-					  .Concat(rooms)
-					  .Concat(volumePoints);
+					  .Concat(rooms);
 
 			AddSettingsSkipDuplicateIds(concat);
 
