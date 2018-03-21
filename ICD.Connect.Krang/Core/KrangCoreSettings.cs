@@ -16,7 +16,6 @@ using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Themes;
-using ICD.Connect.Partitioning.VolumePoints;
 
 namespace ICD.Connect.Krang.Core
 {
@@ -37,7 +36,6 @@ namespace ICD.Connect.Krang.Core
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
 		private const string BROADCAST_ELEMENT = "Broadcast";
-		private const string VOLUME_POINTS_ELEMENT = "VolumePoints";
 
 		private readonly SettingsCollection m_OriginatorSettings;
 		private readonly ConfigurationHeader m_Header;
@@ -54,7 +52,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IThemeSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IThemeSettings))));
 			}
 		}
 
@@ -66,7 +64,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IDeviceSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IDeviceSettings))));
 			}
 		}
 
@@ -78,7 +76,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IPortSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IPortSettings))));
 			}
 		}
 
@@ -90,7 +88,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IPanelDeviceSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IPanelDeviceSettings))));
 			}
 		}
 
@@ -102,19 +100,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IRoomSettings))));
-			}
-		}
-
-		/// <summary>
-		/// Gets the volume point settings.
-		/// </summary>
-		private SettingsCollection VolumePointSettings
-		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IVolumePointSettings))));
+				                                                         s.GetType().IsAssignableTo(typeof(IRoomSettings))));
 			}
 		}
 
@@ -191,7 +177,6 @@ namespace ICD.Connect.Krang.Core
 			PortSettings.ToXml(writer, PORTS_ELEMENT);
 			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
 			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
-			VolumePointSettings.ToXml(writer, VOLUME_POINTS_ELEMENT);
 
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
 			if (routingGraphSettings != null)
@@ -218,13 +203,12 @@ namespace ICD.Connect.Krang.Core
 			IEnumerable<ISettings> ports = PluginFactory.GetSettingsFromXml(xml, PORTS_ELEMENT);
 			IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
 			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
-			IEnumerable<ISettings> volumePoints = PluginFactory.GetSettingsFromXml(xml, VOLUME_POINTS_ELEMENT);
 
 			IEnumerable<ISettings> concat =
 				themes.Concat(panels)
-					  .Concat(ports)
-					  .Concat(devices)
-					  .Concat(rooms);
+				      .Concat(ports)
+				      .Concat(devices)
+				      .Concat(rooms);
 
 			AddSettingsSkipDuplicateIds(concat);
 
@@ -339,7 +323,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="settings"></param>
 		/// <param name="deviceIds"></param>
 		private static void RemoveSettingsWithBadDeviceDependency(ICollection<ISettings> settings,
-																  IEnumerable<int> deviceIds)
+		                                                          IEnumerable<int> deviceIds)
 		{
 			IEnumerable<ISettings> remove = settings.Where(s => HasBadDeviceDependency(s, deviceIds)).ToArray();
 			foreach (ISettings item in remove)
