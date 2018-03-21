@@ -214,11 +214,11 @@ namespace ICD.Connect.Krang.Core
 
 			string child;
 
-			if (XmlUtils.TryGetChildElementAsString(xml, ROUTING_ELEMENT, out child))
-				UpdateRoutingFromXml(child);
+			XmlUtils.TryGetChildElementAsString(xml, ROUTING_ELEMENT, out child);
+			UpdateRoutingFromXml(child);
 
-			if (XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child))
-				UpdatePartitioningFromXml(child);
+			XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child);
+			UpdatePartitioningFromXml(child);
 		}
 
 		#region Protected Methods
@@ -280,8 +280,13 @@ namespace ICD.Connect.Krang.Core
 
 		private void UpdateRoutingFromXml(string xml)
 		{
-			RoutingGraphSettings routing = new RoutingGraphSettings();
-			routing.ParseXml(xml);
+			RoutingGraphSettings routing = new RoutingGraphSettings
+			{
+				Id = IdUtils.GetNewId(OriginatorSettings.Select(s => s.Id), IdUtils.ID_ROUTING_GRAPH)
+			};
+
+			if (xml != null)
+				routing.ParseXml(xml);
 
 			if (!AddSettingsSkipDuplicateId(routing))
 				return;
@@ -296,8 +301,13 @@ namespace ICD.Connect.Krang.Core
 
 		private void UpdatePartitioningFromXml(string xml)
 		{
-			PartitionManagerSettings partitioning = new PartitionManagerSettings();
-			partitioning.ParseXml(xml);
+			PartitionManagerSettings partitioning = new PartitionManagerSettings
+			{
+				Id = IdUtils.GetNewId(OriginatorSettings.Select(s => s.Id), IdUtils.ID_PARTITION_MANAGER)
+			};
+
+			if (xml != null)
+				partitioning.ParseXml(xml);
 
 			if (!AddSettingsSkipDuplicateId(partitioning))
 				return;
