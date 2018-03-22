@@ -294,7 +294,13 @@ namespace ICD.Connect.Krang.Core
 					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
 					DirectMessageManager.RegisterMessageHandler(new RemoteApiCommandHandler());
 					DirectMessageManager.RegisterMessageHandler(new RemoteApiResultHandler());
+
+					BroadcastManager.Start();
 				}
+				/*else
+				{
+					BroadcastManager.Stop();
+				}*/
 
 				ResetDefaultPermissions();
 			}
