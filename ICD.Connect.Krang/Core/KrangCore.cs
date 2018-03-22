@@ -248,6 +248,12 @@ namespace ICD.Connect.Krang.Core
 					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
 					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
 					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+
+					BroadcastManager.Start();
+				}
+				else
+				{
+					BroadcastManager.Stop();
 				}
 
 				ResetDefaultPermissions();
