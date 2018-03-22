@@ -88,6 +88,7 @@ namespace ICD.Connect.Krang.Core
 
 			IOriginator originator = ReflectionUtils.CreateInstance<IOriginator>(proxyType);
 			originator.Id = id;
+			originator.Name = classInfo.Name;
 
 			m_Originators.AddChild(originator);
 
