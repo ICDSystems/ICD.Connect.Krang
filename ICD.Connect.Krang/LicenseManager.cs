@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Licensing;
+using ICD.Common.Licensing.Validation;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 #if SIMPLSHARP
@@ -15,8 +17,6 @@ using ICD.Common.Utils.IO;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Settings;
-using Portable.Licensing;
-using Portable.Licensing.Validation;
 
 namespace ICD.Connect.Krang
 {
