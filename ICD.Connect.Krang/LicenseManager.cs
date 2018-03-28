@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if LICENSING
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils.Services;
@@ -199,3 +200,4 @@ namespace ICD.Connect.Krang
 		#endregion
 	}
 }
+#endif
