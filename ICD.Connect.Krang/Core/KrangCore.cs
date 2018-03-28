@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
+using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
@@ -111,6 +112,8 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private void DisposeOriginators()
 		{
+			IcdHashSet<IOriginator> disposed = new IcdHashSet<IOriginator>();
+
 			// First try to dispose in reverse of load order
 			while (m_LoadedOriginators.Count > 0)
 			{
@@ -121,10 +124,11 @@ namespace ICD.Connect.Krang.Core
 					continue;
 
 				TryDisposeOriginator(originator);
+				disposed.Add(originator);
 			}
 
 			// Now dispose the remainder
-			foreach (IOriginator originator in Originators)
+			foreach (IOriginator originator in Originators.Where(o => !disposed.Contains(o)))
 				TryDisposeOriginator(originator);
 
 			Originators.Clear();
@@ -244,6 +248,12 @@ namespace ICD.Connect.Krang.Core
 					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
 					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
 					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+
+					BroadcastManager.Start();
+				}
+				else
+				{
+					BroadcastManager.Stop();
 				}
 
 				ResetDefaultPermissions();
@@ -265,7 +275,7 @@ namespace ICD.Connect.Krang.Core
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, "{0} failed to instantiate {1} with id {2} - {3}", this,
+					Logger.AddEntry(eSeverity.Error, e, "{0} failed to instantiate {1} with id {2} - {3}", this,
 					                typeof(IOriginator).Name, id, e.Message);
 				}
 			}
@@ -285,7 +295,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			PermissionsManager permissionsManager = ServiceProvider.TryGetService<PermissionsManager>();
 			if (permissionsManager != null)
-				permissionsManager.SetDefaultPermissions(Permissions);
+				permissionsManager.SetDefaultPermissions(GetPermissions());
 		}
 
 		#endregion

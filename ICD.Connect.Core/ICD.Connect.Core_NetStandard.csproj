@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
 	<RootNamespace>ICD.Connect.Core</RootNamespace>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-	<Deterministic>false</Deterministic>
+	<Deterministic>true</Deterministic>
 	<StartupObject>ICD.Connect.Core.Program</StartupObject>
 	<ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
