@@ -14,9 +14,9 @@ using ICD.Connect.Settings.Core;
 namespace ICD.Connect.Krang.Core
 {
 	/// <summary>
-	/// CoreProxy simply represents an abstract core instance that lives remotely.
+	/// RemoteCore simply represents a core instance that lives remotely.
 	/// </summary>
-	public sealed class CoreProxy : AbstractCore<CoreProxySettings>
+	public sealed class RemoteCore : AbstractCore<RemoteCoreSettings>
 	{
 		private readonly CoreOriginatorCollection m_Originators;
 
@@ -29,7 +29,7 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public CoreProxy()
+		public RemoteCore()
 		{
 			m_Originators = new CoreOriginatorCollection();
 		}
@@ -58,6 +58,8 @@ namespace ICD.Connect.Krang.Core
 			DirectMessageManager.Send<RemoteApiReply>(source, message, DevicesQueryResponse);
 		}
 
+		#region Private Methods
+
 		private void DevicesQueryResponse(RemoteApiReply response)
 		{
 			ApiHandler.ReadResultsRecursive(response.Command, ParseResult);
@@ -70,7 +72,13 @@ namespace ICD.Connect.Krang.Core
 				return;
 
 			foreach (KeyValuePair<uint, ApiClassInfo> kvp in nodeGroup.GetNodes())
-				LazyLoadProxyOriginator((int)kvp.Key + 1, kvp.Value);
+			{
+				// For testing
+				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
+				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
+
+				LazyLoadProxyOriginator(id, kvp.Value);
+			}
 		}
 
 		private void LazyLoadProxyOriginator(int id, ApiClassInfo classInfo)
@@ -85,9 +93,11 @@ namespace ICD.Connect.Krang.Core
 			if (proxyType == null)
 				return;
 
-			IOriginator originator = ReflectionUtils.CreateInstance<IOriginator>(proxyType);
+			IProxyOriginator originator = ReflectionUtils.CreateInstance<IProxyOriginator>(proxyType);
 			originator.Id = id;
 			originator.Name = classInfo.Name;
+
+			Subscribe(originator);
 
 			m_Originators.AddChild(originator);
 
@@ -97,9 +107,36 @@ namespace ICD.Connect.Krang.Core
 
 		private void DisposeOriginators()
 		{
-			foreach (IDisposable originator in m_Originators.OfType<IDisposable>())
-				originator.Dispose();
+			foreach (IProxyOriginator originator in m_Originators.OfType<IProxyOriginator>())
+			{
+				Unsubscribe(originator);
+
+				if (originator is IDisposable)
+					(originator as IDisposable).Dispose();
+			}
+
 			m_Originators.Clear();
 		}
+
+		#endregion
+
+		#region Originator Callbacks
+
+		private void Subscribe(IProxyOriginator originator)
+		{
+			originator.OnCommand += OriginatorOnCommand;
+		}
+
+		private void Unsubscribe(IProxyOriginator originator)
+		{
+			originator.OnCommand -= OriginatorOnCommand;
+		}
+
+		private void OriginatorOnCommand(object sender, ApiClassInfoEventArgs eventArgs)
+		{
+			throw new NotImplementedException();
+		}
+
+		#endregion
 	}
 }

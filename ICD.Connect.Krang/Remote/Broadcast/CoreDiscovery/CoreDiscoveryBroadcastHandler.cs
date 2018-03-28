@@ -23,7 +23,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private const long TIMEOUT_DURATION = DEFAULT_INTERVAL * 5;
 
 		private readonly Dictionary<int, CoreDiscoveryInfo> m_Discovered;
-		private readonly CoreProxyCollection m_CoreProxyCollection;
+		private readonly RemoteCoreCollection m_RemoteCoreCollection;
 		private readonly SafeCriticalSection m_DiscoveredSection;
 		private readonly SafeTimer m_TimeoutTimer;
 		private readonly ICore m_Core;
@@ -35,7 +35,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			m_Core = core;
 			m_Discovered = new Dictionary<int, CoreDiscoveryInfo>();
-			m_CoreProxyCollection = new CoreProxyCollection();
+			m_RemoteCoreCollection = new RemoteCoreCollection();
 			m_DiscoveredSection = new SafeCriticalSection();
 			m_TimeoutTimer = SafeTimer.Stopped(TimeoutCallback);
 
@@ -95,13 +95,13 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 
 				IcdConsole.PrintLine("Core {0} discovered {1} {2}", info.Id, info.Source, info.Discovered);
 
-				CoreProxy proxy = new CoreProxy
+				RemoteCore proxy = new RemoteCore
 				{
 					Id = info.Id,
 					Name = info.Name
 				};
 
-				m_CoreProxyCollection.Add(proxy);
+				m_RemoteCoreCollection.Add(proxy);
 				proxy.SetHostInfo(info.Source);
 			}
 			finally
@@ -123,11 +123,11 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 
 				IcdConsole.PrintLine("Core {0} lost {1} {2}", item.Id, item.Source, item.Discovered);
 
-				CoreProxy proxy;
-				if (!m_CoreProxyCollection.TryGetProxy(item.Id, out proxy))
+				RemoteCore proxy;
+				if (!m_RemoteCoreCollection.TryGetProxy(item.Id, out proxy))
 					return;
 
-				m_CoreProxyCollection.Remove(item.Id);
+				m_RemoteCoreCollection.Remove(item.Id);
 				proxy.Dispose();
 			}
 			finally

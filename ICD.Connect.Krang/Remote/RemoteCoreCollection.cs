@@ -5,17 +5,17 @@ using ICD.Common.Utils.Extensions;
 
 namespace ICD.Connect.Krang.Core
 {
-	public sealed class CoreProxyCollection : IEnumerable<CoreProxy>
+	public sealed class RemoteCoreCollection : IEnumerable<RemoteCore>
 	{
-		private readonly Dictionary<int, CoreProxy> m_Proxies;
+		private readonly Dictionary<int, RemoteCore> m_Proxies;
 		private readonly SafeCriticalSection m_ProxySection;
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public CoreProxyCollection()
+		public RemoteCoreCollection()
 		{
-			m_Proxies = new Dictionary<int, CoreProxy>();
+			m_Proxies = new Dictionary<int, RemoteCore>();
 			m_ProxySection = new SafeCriticalSection();
 		}
 
@@ -32,12 +32,12 @@ namespace ICD.Connect.Krang.Core
 		/// Adds the proxy to the collection.
 		/// </summary>
 		/// <param name="proxy"></param>
-		public void Add(CoreProxy proxy)
+		public void Add(RemoteCore proxy)
 		{
 			m_ProxySection.Execute(() => m_Proxies.Add(proxy.Id, proxy));
 		}
 
-		public IEnumerator<CoreProxy> GetEnumerator()
+		public IEnumerator<RemoteCore> GetEnumerator()
 		{
 			return m_ProxySection.Execute(() => m_Proxies.Values.ToList(m_Proxies.Count).GetEnumerator());
 		}
@@ -47,7 +47,7 @@ namespace ICD.Connect.Krang.Core
 			return GetEnumerator();
 		}
 
-		public bool TryGetProxy(int id, out CoreProxy proxy)
+		public bool TryGetProxy(int id, out RemoteCore proxy)
 		{
 			m_ProxySection.Enter();
 

@@ -4,11 +4,11 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Core
 {
-	public sealed class CoreProxySettings : AbstractCoreSettings
+	public sealed class RemoteCoreSettings : AbstractCoreSettings
 	{
 		public override string FactoryName { get { return null; } }
 
-		public override Type OriginatorType { get { return typeof(CoreProxy); } }
+		public override Type OriginatorType { get { return typeof(RemoteCore); } }
 
 		public override SettingsCollection OriginatorSettings { get { return null; } }
 	}
