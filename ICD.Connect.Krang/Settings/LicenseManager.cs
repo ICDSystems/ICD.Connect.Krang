@@ -149,10 +149,7 @@ namespace ICD.Connect.Krang.Settings
 		/// <returns></returns>
 		public bool IsValid(Assembly assembly)
 		{
-			if (!IsValid())
-				return false;
-
-			throw new NotImplementedException();
+			return IsValid();
 		}
 
 		/// <summary>
@@ -162,10 +159,7 @@ namespace ICD.Connect.Krang.Settings
 		/// <returns></returns>
 		public bool IsValid(IOriginator originator)
 		{
-			if (!IsValid())
-				return false;
-
-			throw new NotImplementedException();
+			return IsValid();
 		}
 
 		#endregion
