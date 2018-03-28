@@ -11,7 +11,7 @@ using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Remote
 {
 	/// <summary>
 	/// RemoteCore simply represents a core instance that lives remotely.

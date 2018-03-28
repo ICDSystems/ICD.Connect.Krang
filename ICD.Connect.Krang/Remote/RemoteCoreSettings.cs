@@ -2,7 +2,7 @@
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Remote
 {
 	public sealed class RemoteCoreSettings : AbstractCoreSettings
 	{

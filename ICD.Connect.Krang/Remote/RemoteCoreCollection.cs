@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Remote
 {
 	public sealed class RemoteCoreCollection : IEnumerable<RemoteCore>
 	{
