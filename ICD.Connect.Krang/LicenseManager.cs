@@ -17,7 +17,7 @@ using ICD.Connect.Settings;
 using Portable.Licensing;
 using Portable.Licensing.Validation;
 
-namespace ICD.Connect.Krang.Settings
+namespace ICD.Connect.Krang
 {
 	public sealed class LicenseManager : IConsoleNode
 	{
