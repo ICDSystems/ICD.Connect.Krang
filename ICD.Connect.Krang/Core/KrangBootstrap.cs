@@ -83,9 +83,6 @@ namespace ICD.Connect.Krang.Core
 
 			try
 			{
-				foreach (string address in IcdEnvironment.MacAddresses)
-					IcdConsole.PrintLine(address);
-
 				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
 
 				if (m_LicenseManager.IsValid())
