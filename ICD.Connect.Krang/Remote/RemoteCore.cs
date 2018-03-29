@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
@@ -11,7 +10,6 @@ using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
-using Newtonsoft.Json;
 
 namespace ICD.Connect.Krang.Remote
 {
@@ -21,6 +19,8 @@ namespace ICD.Connect.Krang.Remote
 	public sealed class RemoteCore : AbstractCore<RemoteCoreSettings>
 	{
 		private readonly CoreOriginatorCollection m_Originators;
+
+		private readonly Dictionary<int, int> m_ProxyIdToOriginatorId = new Dictionary<int, int>(); 
 
 		private HostInfo m_Source;
 
@@ -89,6 +89,8 @@ namespace ICD.Connect.Krang.Remote
 				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
 				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
 
+				m_ProxyIdToOriginatorId.Add(id, (int)kvp.Key);
+
 				LazyLoadProxyOriginator(id, kvp.Value);
 			}
 		}
@@ -149,18 +151,22 @@ namespace ICD.Connect.Krang.Remote
 			IProxyOriginator originator = sender as IProxyOriginator;
 			if (originator == null)
 				return;
-
+			
 			ApiClassInfo absoluteCommand =
 				ApiCommandBuilder.NewCommand()
 				                 .AtNode("ControlSystem")
 				                 .AtNode("Core")
 				                 .AtNodeGroup("Devices")
-				                 .AtKey((uint)originator.Id)
-				                 .Append(eventArgs.Data)
+								 .AddKey((uint)m_ProxyIdToOriginatorId[originator.Id], eventArgs.Data)
 				                 .Complete();
 
-			string json = JsonConvert.SerializeObject(absoluteCommand);
-			JsonUtils.Print(json);
+			RemoteApiMessage message = new RemoteApiMessage {Command = absoluteCommand};
+
+			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, DeviceCommandResponse);
+		}
+
+		private void DeviceCommandResponse(RemoteApiReply response)
+		{
 		}
 
 		#endregion
