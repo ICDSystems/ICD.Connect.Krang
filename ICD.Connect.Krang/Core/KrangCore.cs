@@ -33,7 +33,7 @@ using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core
 {
-	public sealed class KrangCore : AbstractCore<KrangCoreSettings>, IConsoleNode
+	public sealed class KrangCore : AbstractCore<KrangCoreSettings>
 	{
 		/// <summary>
 		/// Originator ids are pushed to the stack on load, and popped on clear.
@@ -49,12 +49,7 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Gets the name of the node in the console.
 		/// </summary>
-		public string ConsoleName { get { return "Core"; } }
-
-		/// <summary>
-		/// Gets the help information for the node.
-		/// </summary>
-		public string ConsoleHelp { get { return string.Empty; } }
+		public override string ConsoleName { get { return "Core"; } }
 
 		/// <summary>
 		/// Gets the routing graph for the program.
@@ -352,8 +347,10 @@ namespace ICD.Connect.Krang.Core
 		/// Calls the delegate for each console status item.
 		/// </summary>
 		/// <param name="addRow"></param>
-		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
+			base.BuildConsoleStatus(addRow);
+
 			addRow("Theme count", Originators.GetChildren<ITheme>().Count());
 			addRow("Panel count", Originators.GetChildren<IPanelDevice>().Count());
 			addRow("Device count", Originators.GetChildren<IDevice>().Count());
@@ -365,8 +362,11 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the child console node groups.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		public override IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
+			foreach (IConsoleNodeBase node in GetBaseConsoleNodes())
+				yield return node;
+
 			yield return ConsoleNodeGroup.KeyNodeMap("Themes", Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Panels", Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Devices", Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
@@ -381,12 +381,33 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
+		/// Workaround for "unverifiable code" warning.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<IConsoleNodeBase> GetBaseConsoleNodes()
+		{
+			return base.GetConsoleNodes();
+		}
+
+		/// <summary>
 		/// Gets the child console commands.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<IConsoleCommand> GetConsoleCommands()
+		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
+			foreach (IConsoleCommand command in GetBaseConsoleCommands())
+				yield return command;
+
 			yield return new ConsoleCommand("whoami", "Displays info about Krang", () => PrintKrang(), true);
+		}
+
+		/// <summary>
+		/// Workaround for "unverifiable code" warning.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
+		{
+			return base.GetConsoleCommands();
 		}
 
 		private static string PrintKrang()
