@@ -4,6 +4,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
 	<RootNamespace>ICD.Connect.Krang.Tests</RootNamespace>
+	<AssemblyName>ICD.Connect.Krang.Tests</AssemblyName>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<Deterministic>true</Deterministic>
   </PropertyGroup>
