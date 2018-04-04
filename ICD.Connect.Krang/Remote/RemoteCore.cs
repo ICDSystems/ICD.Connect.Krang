@@ -5,6 +5,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
+using ICD.Connect.API.Proxies;
 using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
@@ -20,8 +21,8 @@ namespace ICD.Connect.Krang.Remote
 	public sealed class RemoteCore : AbstractCore<RemoteCoreSettings>
 	{
 		private readonly CoreOriginatorCollection m_Originators;
-
-		private readonly Dictionary<int, int> m_ProxyIdToOriginatorId = new Dictionary<int, int>(); 
+		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
+		private readonly Dictionary<int, int> m_TempProxyIds;
 
 		private HostInfo m_Source;
 
@@ -37,8 +38,14 @@ namespace ICD.Connect.Krang.Remote
 		public RemoteCore()
 		{
 			m_Originators = new CoreOriginatorCollection();
+			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
+			m_TempProxyIds = new Dictionary<int, int>();
 		}
 
+		/// <summary>
+		/// Release resources.
+		/// </summary>
+		/// <param name="disposing"></param>
 		protected override void DisposeFinal(bool disposing)
 		{
 			base.DisposeFinal(disposing);
@@ -46,6 +53,12 @@ namespace ICD.Connect.Krang.Remote
 			DisposeOriginators();
 		}
 
+		#region Methods
+
+		/// <summary>
+		/// Sets the host info for the remote API.
+		/// </summary>
+		/// <param name="source"></param>
 		public void SetHostInfo(HostInfo source)
 		{
 			if (source == m_Source)
@@ -56,28 +69,43 @@ namespace ICD.Connect.Krang.Remote
 			m_Source = source;
 
 			// Query the available devices
+			QueryDevices();
+		}
+
+		#endregion
+
+		#region Private Methods
+
+		/// <summary>
+		/// Queries the remote API for the available devices.
+		/// </summary>
+		private void QueryDevices()
+		{
 			ApiClassInfo command =
 				ApiCommandBuilder.NewCommand()
 				                 .AtNode("ControlSystem")
 				                 .AtNode("Core")
 				                 .AtNodeGroup("Devices")
-								 .Complete();
+				                 .Complete();
 
-			RemoteApiMessage message = new RemoteApiMessage
-			{
-				Command = command
-			};
+			RemoteApiMessage message = new RemoteApiMessage {Command = command};
 
-			DirectMessageManager.Send<RemoteApiReply>(source, message, DevicesQueryResponse);
+			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, ParseResponse);
 		}
 
-		#region Private Methods
-
-		private void DevicesQueryResponse(RemoteApiReply response)
+		/// <summary>
+		/// Parses responses from the remote API.
+		/// </summary>
+		/// <param name="response"></param>
+		private void ParseResponse(RemoteApiReply response)
 		{
 			ApiHandler.ReadResultsRecursive(response.Command, ParseResult);
 		}
 
+		/// <summary>
+		/// Parses an individual result from a response.
+		/// </summary>
+		/// <param name="result"></param>
 		private void ParseResult(ApiResult result)
 		{
 			ApiNodeGroupInfo nodeGroup = result.Value as ApiNodeGroupInfo;
@@ -89,14 +117,19 @@ namespace ICD.Connect.Krang.Remote
 				// For testing
 				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
 				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
+				m_TempProxyIds[id] = (int)kvp.Key;
 
-				m_ProxyIdToOriginatorId.Add(id, (int)kvp.Key);
-
-				LazyLoadProxyOriginator(id, kvp.Value);
+				LazyLoadProxyOriginator("Devices", id, kvp.Value);
 			}
 		}
 
-		private void LazyLoadProxyOriginator(int id, ApiClassInfo classInfo)
+		/// <summary>
+		/// Creates a proxy originator for the given class info if an originator with the given id does not exist.
+		/// </summary>
+		/// <param name="group"></param>
+		/// <param name="id"></param>
+		/// <param name="classInfo"></param>
+		private void LazyLoadProxyOriginator(string group, int id, ApiClassInfo classInfo)
 		{
 			if (m_Originators.ContainsChild(id))
 				return;
@@ -108,68 +141,100 @@ namespace ICD.Connect.Krang.Remote
 			if (proxyType == null)
 				return;
 
+			// Build the originator
 			IProxyOriginator originator = ReflectionUtils.CreateInstance<IProxyOriginator>(proxyType);
 			originator.Id = id;
 			originator.Name = classInfo.Name;
 
-			Subscribe(originator);
+			// Build the root command
+			Func<ApiClassInfo, ApiClassInfo> buildCommand = local =>
+				ApiCommandBuilder.NewCommand()
+				                 .AtNode("ControlSystem")
+				                 .AtNode("Core")
+				                 .AtNodeGroup(group)
+								 .AddKey((uint)m_TempProxyIds[id], local)
+				                 .Complete();
+
+			m_ProxyBuildCommand.Add(originator, buildCommand);
 
 			m_Originators.AddChild(originator);
+
+			// Start handling the proxy callbacks
+			Subscribe(originator);
 
 			// Add to the core originator collection
 			Core.Originators.AddChild(originator);
 		}
 
+		/// <summary>
+		/// Dispose all of the generated originators.
+		/// </summary>
 		private void DisposeOriginators()
 		{
 			foreach (IProxyOriginator originator in m_Originators.OfType<IProxyOriginator>())
-			{
-				Unsubscribe(originator);
-
-				if (originator is IDisposable)
-					(originator as IDisposable).Dispose();
-			}
+				DisposeOriginator(originator);
 
 			m_Originators.Clear();
 		}
 
-		#endregion
-
-		#region Originator Callbacks
-
-		private void Subscribe(IProxyOriginator originator)
+		/// <summary>
+		/// Disposes the given originator.
+		/// </summary>
+		/// <param name="originator"></param>
+		private void DisposeOriginator(IProxyOriginator originator)
 		{
-			originator.OnCommand += OriginatorOnCommand;
-		}
-
-		private void Unsubscribe(IProxyOriginator originator)
-		{
-			originator.OnCommand -= OriginatorOnCommand;
-		}
-
-		private void OriginatorOnCommand(object sender, ApiClassInfoEventArgs eventArgs)
-		{
-			IProxyOriginator originator = sender as IProxyOriginator;
 			if (originator == null)
 				return;
-			
-			ApiClassInfo absoluteCommand =
-				ApiCommandBuilder.NewCommand()
-				                 .AtNode("ControlSystem")
-				                 .AtNode("Core")
-				                 .AtNodeGroup("Devices")
-								 .AddKey((uint)m_ProxyIdToOriginatorId[originator.Id], eventArgs.Data)
-				                 .Complete();
 
-			RemoteApiMessage message = new RemoteApiMessage {Command = absoluteCommand};
+			Unsubscribe(originator);
 
-			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, DeviceCommandResponse);
+			m_ProxyBuildCommand.Remove(originator);
+
+			if (originator is IDisposable)
+				(originator as IDisposable).Dispose();
 		}
 
-		private void DeviceCommandResponse(RemoteApiReply response)
+		#endregion
+
+		#region Proxy Callbacks
+
+		/// <summary>
+		/// Subscribe to the proxy events.
+		/// </summary>
+		/// <param name="originator"></param>
+		private void Subscribe(IProxy originator)
 		{
+			originator.OnCommand += ProxyOnCommand;
+		}
+
+		/// <summary>
+		/// Unsubscribe from the proxy events.
+		/// </summary>
+		/// <param name="originator"></param>
+		private void Unsubscribe(IProxy originator)
+		{
+			originator.OnCommand -= ProxyOnCommand;
+		}
+
+		/// <summary>
+		/// Called when a proxy raises a command to be sent to the remote API.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
+		private void ProxyOnCommand(object sender, ApiClassInfoEventArgs eventArgs)
+		{
+			IProxy proxy = sender as IProxy;
+			if (proxy == null)
+				return;
+
+			// Build the full command from the API root to the proxy
+			ApiClassInfo command = m_ProxyBuildCommand[proxy](eventArgs.Data);
+			RemoteApiMessage message = new RemoteApiMessage {Command = command};
+
+			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, ParseResponse);
 		}
 
 		#endregion
 	}
 }
+
