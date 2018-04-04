@@ -100,7 +100,7 @@ namespace ICD.Connect.Krang.Remote
 				ApiCommandBuilder.NewCommand()
 				                 .AtNode("ControlSystem")
 				                 .AtNode("Core")
-				                 .AtNodeGroup("Devices")
+				                 .GetNodeGroup("Devices")
 				                 .Complete();
 
 			SendCommand(command);
@@ -169,7 +169,6 @@ namespace ICD.Connect.Krang.Remote
 				                 .Complete();
 
 			m_ProxyBuildCommand.Add(originator, buildCommand);
-
 			m_Proxies.Add(originator);
 
 			// Start handling the proxy callbacks
@@ -177,6 +176,9 @@ namespace ICD.Connect.Krang.Remote
 
 			// Add to the core originator collection
 			Core.Originators.AddChild(originator);
+
+			// Initialize the proxy
+			originator.Initialize();
 		}
 
 		/// <summary>
@@ -186,25 +188,24 @@ namespace ICD.Connect.Krang.Remote
 		{
 			foreach (IProxy proxy in m_Proxies)
 				DisposeProxy(proxy);
-
-			m_Proxies.Clear();
 		}
 
 		/// <summary>
 		/// Disposes the given proxy.
 		/// </summary>
-		/// <param name="originator"></param>
-		private void DisposeProxy(IProxy originator)
+		/// <param name="proxy"></param>
+		private void DisposeProxy(IProxy proxy)
 		{
-			if (originator == null)
+			if (proxy == null)
 				return;
 
-			Unsubscribe(originator);
+			Unsubscribe(proxy);
 
-			m_ProxyBuildCommand.Remove(originator);
+			m_ProxyBuildCommand.Remove(proxy);
+			m_Proxies.Remove(proxy);
 
-			if (originator is IDisposable)
-				(originator as IDisposable).Dispose();
+			if (proxy is IDisposable)
+				(proxy as IDisposable).Dispose();
 		}
 
 		#endregion
