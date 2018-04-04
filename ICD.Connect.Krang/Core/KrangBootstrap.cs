@@ -5,7 +5,6 @@ using ICD.Common.Logging.Console;
 using ICD.Common.Logging.Console.Loggers;
 using ICD.Common.Permissions;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
@@ -19,13 +18,7 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Core;
 using Newtonsoft.Json;
-#if SIMPLSHARP
-using Crestron.SimplSharp.Reflection;
-#else
-using System.Reflection;
-#endif
 
 namespace ICD.Connect.Krang.Core
 {
@@ -94,34 +87,13 @@ namespace ICD.Connect.Krang.Core
 				//TestApi();
 				//TestApi();
 
-				//ApiClassInfo info = ApiClassAttribute.GetInfo(GetType(), this);
-				//JsonUtils.Print(info.Serialize());
+				ApiClassInfo info = ApiClassAttribute.GetInfo(GetType(), this);
+				JsonUtils.Print(JsonConvert.SerializeObject(info));
 			}
 			catch (Exception e)
 			{
 				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program initialization");
 			}
-		}
-
-		private void TestApi()
-		{
-			ApiClassInfo command =
-					IcdStopwatch.Profile(() => ApiCommandBuilder.NewCommand()
-									 .AtNode("ControlSystem")
-									 .AtNode("Core")
-									 .AtNodeGroupKey("Devices", 201000)
-						//.GetProperty("Name")
-									 .Complete(), "Build command");
-
-			string json = IcdStopwatch.Profile(() => JsonConvert.SerializeObject(command), "Serialize");
-			JsonUtils.Print(json);
-			IcdStopwatch.Profile(() => ApiHandler.HandleRequest(command), "Handle command");
-			string jsonResult = JsonConvert.SerializeObject(command);
-			JsonUtils.Print(jsonResult);
-
-			IcdStopwatch.Profile(() => JsonConvert.DeserializeObject(jsonResult), "Deserialize");
-
-			IcdConsole.PrintLine("--------------------------------");
 		}
 
 		public void Stop()
@@ -186,26 +158,32 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.TryAddService(m_BroadcastManager);
 
 			ServiceProvider.TryAddService(new PermissionsManager());
+		}
 
-			/*
-			// TODO - TEST
+		private void TestApi()
+		{
 			ApiClassInfo command =
-				ApiCommandBuilder.NewCommand()
-				.CallMethod("SetLoggingSeverity")
-				.AddParameter(eSeverity.Warning)
-				.Complete();
+				IcdStopwatch.Profile(() => ApiCommandBuilder.NewCommand()
+				                                            .AtNode("ControlSystem")
+				                                            .AtNode("Core")
+				                                            .AtNodeGroupKey("Devices", 201000)
+					                           //.GetProperty("Name")
+				                                            .Complete(), "Build command");
 
-			string json = JsonConvert.SerializeObject(command);
+			string json = IcdStopwatch.Profile(() => JsonConvert.SerializeObject(command), "Serialize");
 			JsonUtils.Print(json);
-			string result = JsonConvert.SerializeObject(ApiHandler.HandleRequest(json));
-			JsonUtils.Print(result);
+			IcdStopwatch.Profile(() => ApiHandler.HandleRequest(command), "Handle command");
+			string jsonResult = JsonConvert.SerializeObject(command);
+			JsonUtils.Print(jsonResult);
+
+			IcdStopwatch.Profile(() => JsonConvert.DeserializeObject(jsonResult), "Deserialize");
+
 			IcdConsole.PrintLine("--------------------------------");
-			*/
 		}
 
 		#endregion
 
-		#region API
+		#region Console
 
 		/// <summary>
 		/// Calls the delegate for each console status item.
@@ -213,7 +191,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="addRow"></param>
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("Core", m_Core);
+			KrangBootstrapConsole.BuildConsoleStatus(this, addRow);
 		}
 
 		/// <summary>
@@ -222,7 +200,7 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
-			yield return m_Core;
+			return KrangBootstrapConsole.GetConsoleNodes(this);
 		}
 
 		/// <summary>
@@ -231,77 +209,7 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
-			yield return new ConsoleCommand("LoadCore", "Loads and applies the XML config.", () => LoadSettings());
-			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML.", () => SaveSettings());
-			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.", () => RebuildCore());
-			yield return new ConsoleCommand("PrintPlugins", "Prints the loaded plugin assemblies.", () => PrintPlugins());
-			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.", () => PrintTypes());
-		}
-
-		[ApiMethod("LoadSettings", "Loads the local config file and applies it to the current Core instance.")]
-		private void LoadSettings()
-		{
-			m_Core.LoadSettings();
-		}
-
-		[ApiMethod("SaveSettings", "Saves the current Core instance to the local config file.")]
-		private void SaveSettings()
-		{
-			// Saving settings involves running some console commands to get processor information.
-			// Executing console commands from a console command thread is extremely slow.
-			ThreadingUtils.SafeInvoke(() =>
-			                          {
-				                          ICoreSettings settings = m_Core.CopySettings();
-				                          FileOperations.SaveSettings(settings);
-			                          });
-		}
-
-		[ApiMethod("RebuildCore", "Loads the local config file and applies it to the current Core instance.")]
-		private void RebuildCore()
-		{
-			FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings());
-		}
-
-		[ApiMethod("GetPlugins", "Returns a table of the loaded plugin assemblies.")]
-		private static string PrintPlugins()
-		{
-			TableBuilder builder = new TableBuilder("Assembly", "Path", "Version", "Date");
-
-			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
-			{
-				string name = assembly.GetName().Name;
-				string path = assembly.GetPath();
-				string version = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
-
-				path = IcdPath.GetDirectoryName(path);
-
-				builder.AddRow(name, path, version, date);
-			}
-
-			return builder.ToString();
-		}
-
-		[ApiMethod("GetOriginatorTypes", "Returns a table of the loaded plugin originators.")]
-		private static string PrintTypes()
-		{
-			TableBuilder builder = new TableBuilder("Type", "Assembly", "Path", "Version", "Date");
-
-			foreach (string factoryName in PluginFactory.GetFactoryNames().Order())
-			{
-				Assembly assembly = PluginFactory.GetType(factoryName).GetAssembly();
-
-				string name = assembly.GetName().Name;
-				string path = assembly.GetPath();
-				string version = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
-
-				path = IcdPath.GetDirectoryName(path);
-
-				builder.AddRow(factoryName, name, path, version, date);
-			}
-
-			return builder.ToString();
+			return KrangBootstrapConsole.GetConsoleCommands(this);
 		}
 
 		#endregion
