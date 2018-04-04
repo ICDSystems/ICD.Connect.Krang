@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
 using ICD.Connect.API.Proxies;
@@ -23,7 +24,7 @@ namespace ICD.Connect.Krang.Remote
 	/// </summary>
 	public sealed class RemoteCore : AbstractCore<RemoteCoreSettings>
 	{
-		private readonly IcdHashSet<IProxy> m_Proxies;
+		private readonly Dictionary<int, IProxyOriginator> m_Proxies;
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
 		private readonly Dictionary<int, int> m_TempProxyIds;
 
@@ -40,7 +41,7 @@ namespace ICD.Connect.Krang.Remote
 		/// </summary>
 		public RemoteCore()
 		{
-			m_Proxies = new IcdHashSet<IProxy>();
+			m_Proxies = new Dictionary<int, IProxyOriginator>();
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
 			m_TempProxyIds = new Dictionary<int, int>();
 		}
@@ -79,6 +80,10 @@ namespace ICD.Connect.Krang.Remote
 
 		#region Private Methods
 
+		/// <summary>
+		/// Sends the given command to the remote API.
+		/// </summary>
+		/// <param name="command"></param>
 		private void SendCommand(ApiClassInfo command)
 		{
 			if (command == null)
@@ -107,52 +112,22 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
-		/// Parses responses from the remote API.
-		/// </summary>
-		/// <param name="response"></param>
-		private void ParseResponse(RemoteApiReply response)
-		{
-			IcdConsole.PrintLine("Received response:");
-			JsonUtils.Print(JsonConvert.SerializeObject(response.Command));
-
-			ApiHandler.ReadResultsRecursive(response.Command, ParseResult);
-		}
-
-		/// <summary>
-		/// Parses an individual result from a response.
-		/// </summary>
-		/// <param name="result"></param>
-		private void ParseResult(ApiResult result)
-		{
-			ApiNodeGroupInfo nodeGroup = result.Value as ApiNodeGroupInfo;
-			if (nodeGroup == null || nodeGroup.Name != "Devices")
-				return;
-
-			foreach (KeyValuePair<uint, ApiClassInfo> kvp in nodeGroup.GetNodes())
-			{
-				// For testing
-				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
-				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
-				m_TempProxyIds[id] = (int)kvp.Key;
-
-				LazyLoadProxyOriginator("Devices", id, kvp.Value);
-			}
-		}
-
-		/// <summary>
 		/// Creates a proxy originator for the given class info if an originator with the given id does not exist.
 		/// </summary>
 		/// <param name="group"></param>
 		/// <param name="id"></param>
 		/// <param name="classInfo"></param>
-		private void LazyLoadProxyOriginator(string group, int id, ApiClassInfo classInfo)
+		private IProxyOriginator LazyLoadProxyOriginator(string group, int id, ApiClassInfo classInfo)
 		{
+			if (m_Proxies.ContainsKey(id))
+				return m_Proxies[id];
+
 			if (Core.Originators.ContainsChild(id))
-				return;
+				return m_Proxies[id];
 
 			Type proxyType = classInfo.GetProxyTypes().FirstOrDefault();
 			if (proxyType == null)
-				return;
+				throw new InvalidOperationException(string.Format("No proxy type discovered for originator {0}", id));
 
 			// Build the originator
 			IProxyOriginator originator = ReflectionUtils.CreateInstance<IProxyOriginator>(proxyType);
@@ -169,7 +144,7 @@ namespace ICD.Connect.Krang.Remote
 				                 .Complete();
 
 			m_ProxyBuildCommand.Add(originator, buildCommand);
-			m_Proxies.Add(originator);
+			m_Proxies.Add(id, originator);
 
 			// Start handling the proxy callbacks
 			Subscribe(originator);
@@ -179,6 +154,8 @@ namespace ICD.Connect.Krang.Remote
 
 			// Initialize the proxy
 			originator.Initialize();
+
+			return originator;
 		}
 
 		/// <summary>
@@ -186,8 +163,10 @@ namespace ICD.Connect.Krang.Remote
 		/// </summary>
 		private void DisposeProxies()
 		{
-			foreach (IProxy proxy in m_Proxies)
+			foreach (IProxyOriginator proxy in m_Proxies.Values)
 				DisposeProxy(proxy);
+
+			m_Proxies.Clear();
 		}
 
 		/// <summary>
@@ -202,10 +181,171 @@ namespace ICD.Connect.Krang.Remote
 			Unsubscribe(proxy);
 
 			m_ProxyBuildCommand.Remove(proxy);
-			m_Proxies.Remove(proxy);
 
 			if (proxy is IDisposable)
 				(proxy as IDisposable).Dispose();
+		}
+
+		#endregion
+
+		#region Parse Response
+
+		/// <summary>
+		/// Parses responses from the remote API.
+		/// </summary>
+		/// <param name="response"></param>
+		private void ParseResponse(RemoteApiReply response)
+		{
+			if (response == null)
+				throw new ArgumentNullException("response");
+
+			IcdConsole.PrintLine("Received response:");
+			JsonUtils.Print(JsonConvert.SerializeObject(response.Command));
+
+			// A copy of the original command populated with results
+			ApiClassInfo command = response.Command;
+
+			ApiHandler.ReadResultsRecursive(command, LogResults);
+
+			try
+			{
+				// Parse the ControlSystem node
+				ApiClassInfo controlSystemInfo;
+				if (command.TryGetNodeContents("ControlSystem", out controlSystemInfo) && controlSystemInfo != null)
+					ParseControlSystemResponse(controlSystemInfo);
+			}
+			catch (Exception e)
+			{
+				Logger.AddEntry(eSeverity.Error, e, "{0} failed to parse response - {1}", this, e.Message);
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Parses the control system info for results.
+		/// </summary>
+		/// <param name="controlSystemInfo"></param>
+		private void ParseControlSystemResponse(ApiClassInfo controlSystemInfo)
+		{
+			if (controlSystemInfo == null)
+				throw new ArgumentNullException("controlSystemInfo");
+
+			ApiClassInfo coreInfo;
+			if (!controlSystemInfo.TryGetNodeContents("Core", out coreInfo))
+				return;
+
+			if (coreInfo != null)
+				ParseCoreResponse(coreInfo);
+		}
+
+		/// <summary>
+		/// Parses the core info for results.
+		/// </summary>
+		/// <param name="coreInfo"></param>
+		private void ParseCoreResponse(ApiClassInfo coreInfo)
+		{
+			if (coreInfo == null)
+				throw new ArgumentNullException("coreInfo");
+
+			ApiNodeGroupInfo devicesGroupInfo;
+			if (!coreInfo.TryGetNodeGroup("Devices", out devicesGroupInfo))
+				return;
+
+			if (devicesGroupInfo != null)
+				ParseDevicesResponse(devicesGroupInfo);
+		}
+
+		/// <summary>
+		/// Parses the devices group for results.
+		/// </summary>
+		/// <param name="devicesGroupInfo"></param>
+		private void ParseDevicesResponse(ApiNodeGroupInfo devicesGroupInfo)
+		{
+			if (devicesGroupInfo == null)
+				throw new ArgumentNullException("devicesGroupInfo");
+
+			// Parse the devices result
+			ApiResult result = devicesGroupInfo.Result;
+			if (result != null)
+				ParseDevicesGroupResult(result);
+
+			foreach (KeyValuePair<uint, ApiClassInfo> kvp in devicesGroupInfo)
+				ParseDeviceResponse(kvp.Key, kvp.Value);
+		}
+
+		/// <summary>
+		/// Parses the device info for results.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <param name="deviceInfo"></param>
+		private void ParseDeviceResponse(uint index, ApiClassInfo deviceInfo)
+		{
+			IProxyOriginator proxy = LazyLoadProxyOriginator("Devices", m_TempProxyIds.GetKey((int)index), deviceInfo);
+			proxy.ParseInfo(deviceInfo);
+		}
+
+		#endregion
+
+		#region Parse Results
+
+		/// <summary>
+		/// Parses the devices group result.
+		/// </summary>
+		/// <param name="result"></param>
+		private void ParseDevicesGroupResult(ApiResult result)
+		{
+			if (result == null)
+				throw new ArgumentNullException("devicesGroupInfo");
+
+			ApiNodeGroupInfo devicesGroupInfo = result.Value as ApiNodeGroupInfo;
+			if (devicesGroupInfo == null)
+				return;
+
+			foreach (KeyValuePair<uint, ApiClassInfo> kvp in devicesGroupInfo.GetNodes())
+			{
+				// For testing
+				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
+				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
+				m_TempProxyIds[id] = (int)kvp.Key;
+
+				LazyLoadProxyOriginator("Devices", id, kvp.Value);
+			}
+		}
+
+		/// <summary>
+		/// Logs the given result to the logger service.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <param name="path"></param>
+		private void LogResults(ApiResult result, Stack<IApiInfo> path)
+		{
+			if (result == null)
+				throw new ArgumentNullException("result");
+
+			eSeverity severity;
+			string message = string.Format("{0}", result.Value);
+
+			switch (result.ErrorCode)
+			{
+				case ApiResult.eErrorCode.Ok:
+					severity = eSeverity.Debug;
+					message = "Command OK.";
+					break;
+
+				case ApiResult.eErrorCode.MissingMember:
+				case ApiResult.eErrorCode.MissingNode:
+				case ApiResult.eErrorCode.InvalidParameter:
+				case ApiResult.eErrorCode.Exception:
+					severity = eSeverity.Error;
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+			string pathText = string.Join("/", path.Reverse().Select(i => i.Name).Where(n => n != null).ToArray());
+
+			Logger.AddEntry(severity, "{0} - {1} - {2}", this, message, pathText);
 		}
 
 		#endregion
