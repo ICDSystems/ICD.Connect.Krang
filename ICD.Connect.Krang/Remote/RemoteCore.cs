@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
@@ -12,6 +14,7 @@ using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Proxies;
+using Newtonsoft.Json;
 
 namespace ICD.Connect.Krang.Remote
 {
@@ -20,7 +23,7 @@ namespace ICD.Connect.Krang.Remote
 	/// </summary>
 	public sealed class RemoteCore : AbstractCore<RemoteCoreSettings>
 	{
-		private readonly CoreOriginatorCollection m_Originators;
+		private readonly IcdHashSet<IProxy> m_Proxies;
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
 		private readonly Dictionary<int, int> m_TempProxyIds;
 
@@ -37,7 +40,7 @@ namespace ICD.Connect.Krang.Remote
 		/// </summary>
 		public RemoteCore()
 		{
-			m_Originators = new CoreOriginatorCollection();
+			m_Proxies = new IcdHashSet<IProxy>();
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
 			m_TempProxyIds = new Dictionary<int, int>();
 		}
@@ -50,7 +53,7 @@ namespace ICD.Connect.Krang.Remote
 		{
 			base.DisposeFinal(disposing);
 
-			DisposeOriginators();
+			DisposeProxies();
 		}
 
 		#region Methods
@@ -64,7 +67,7 @@ namespace ICD.Connect.Krang.Remote
 			if (source == m_Source)
 				return;
 
-			DisposeOriginators();
+			DisposeProxies();
 
 			m_Source = source;
 
@@ -75,6 +78,18 @@ namespace ICD.Connect.Krang.Remote
 		#endregion
 
 		#region Private Methods
+
+		private void SendCommand(ApiClassInfo command)
+		{
+			if (command == null)
+				throw new ArgumentNullException("command");
+
+			IcdConsole.PrintLine("Sending command:");
+			JsonUtils.Print(JsonConvert.SerializeObject(command));
+
+			RemoteApiMessage message = new RemoteApiMessage { Command = command };
+			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, ParseResponse);
+		}
 
 		/// <summary>
 		/// Queries the remote API for the available devices.
@@ -88,9 +103,7 @@ namespace ICD.Connect.Krang.Remote
 				                 .AtNodeGroup("Devices")
 				                 .Complete();
 
-			RemoteApiMessage message = new RemoteApiMessage {Command = command};
-
-			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, ParseResponse);
+			SendCommand(command);
 		}
 
 		/// <summary>
@@ -99,6 +112,9 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="response"></param>
 		private void ParseResponse(RemoteApiReply response)
 		{
+			IcdConsole.PrintLine("Received response:");
+			JsonUtils.Print(JsonConvert.SerializeObject(response.Command));
+
 			ApiHandler.ReadResultsRecursive(response.Command, ParseResult);
 		}
 
@@ -131,9 +147,6 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="classInfo"></param>
 		private void LazyLoadProxyOriginator(string group, int id, ApiClassInfo classInfo)
 		{
-			if (m_Originators.ContainsChild(id))
-				return;
-
 			if (Core.Originators.ContainsChild(id))
 				return;
 
@@ -157,7 +170,7 @@ namespace ICD.Connect.Krang.Remote
 
 			m_ProxyBuildCommand.Add(originator, buildCommand);
 
-			m_Originators.AddChild(originator);
+			m_Proxies.Add(originator);
 
 			// Start handling the proxy callbacks
 			Subscribe(originator);
@@ -167,21 +180,21 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
-		/// Dispose all of the generated originators.
+		/// Dispose all of the generated proxies.
 		/// </summary>
-		private void DisposeOriginators()
+		private void DisposeProxies()
 		{
-			foreach (IProxyOriginator originator in m_Originators.OfType<IProxyOriginator>())
-				DisposeOriginator(originator);
+			foreach (IProxy proxy in m_Proxies)
+				DisposeProxy(proxy);
 
-			m_Originators.Clear();
+			m_Proxies.Clear();
 		}
 
 		/// <summary>
-		/// Disposes the given originator.
+		/// Disposes the given proxy.
 		/// </summary>
 		/// <param name="originator"></param>
-		private void DisposeOriginator(IProxyOriginator originator)
+		private void DisposeProxy(IProxy originator)
 		{
 			if (originator == null)
 				return;
@@ -229,9 +242,8 @@ namespace ICD.Connect.Krang.Remote
 
 			// Build the full command from the API root to the proxy
 			ApiClassInfo command = m_ProxyBuildCommand[proxy](eventArgs.Data);
-			RemoteApiMessage message = new RemoteApiMessage {Command = command};
 
-			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, ParseResponse);
+			SendCommand(command);
 		}
 
 		#endregion
