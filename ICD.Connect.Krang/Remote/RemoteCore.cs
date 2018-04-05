@@ -355,19 +355,19 @@ namespace ICD.Connect.Krang.Remote
 		/// <summary>
 		/// Subscribe to the proxy events.
 		/// </summary>
-		/// <param name="originator"></param>
-		private void Subscribe(IProxy originator)
+		/// <param name="proxy"></param>
+		private void Subscribe(IProxy proxy)
 		{
-			originator.OnCommand += ProxyOnCommand;
+			proxy.OnCommand += ProxyOnCommand;
 		}
 
 		/// <summary>
 		/// Unsubscribe from the proxy events.
 		/// </summary>
-		/// <param name="originator"></param>
-		private void Unsubscribe(IProxy originator)
+		/// <param name="proxy"></param>
+		private void Unsubscribe(IProxy proxy)
 		{
-			originator.OnCommand -= ProxyOnCommand;
+			proxy.OnCommand -= ProxyOnCommand;
 		}
 
 		/// <summary>
