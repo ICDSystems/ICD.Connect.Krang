@@ -269,8 +269,8 @@ namespace ICD.Connect.Krang.Remote
 			if (result != null)
 				ParseDevicesGroupResult(result);
 
-			foreach (KeyValuePair<uint, ApiClassInfo> kvp in devicesGroupInfo)
-				ParseDeviceResponse(kvp.Key, kvp.Value);
+			foreach (ApiNodeGroupKeyInfo node in devicesGroupInfo)
+				ParseDeviceResponse(node.Key, node.Node);
 		}
 
 		/// <summary>
@@ -280,6 +280,9 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="deviceInfo"></param>
 		private void ParseDeviceResponse(uint index, ApiClassInfo deviceInfo)
 		{
+			if (deviceInfo == null)
+				throw new ArgumentNullException("deviceInfo");
+
 			IProxyOriginator proxy = LazyLoadProxyOriginator("Devices", m_TempProxyIds.GetKey((int)index), deviceInfo);
 			proxy.ParseInfo(deviceInfo);
 		}
@@ -301,14 +304,14 @@ namespace ICD.Connect.Krang.Remote
 			if (devicesGroupInfo == null)
 				return;
 
-			foreach (KeyValuePair<uint, ApiClassInfo> kvp in devicesGroupInfo.GetNodes())
+			foreach (ApiNodeGroupKeyInfo node in devicesGroupInfo.GetNodes())
 			{
 				// For testing
 				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
 				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
-				m_TempProxyIds[id] = (int)kvp.Key;
+				m_TempProxyIds[id] = (int)node.Key;
 
-				LazyLoadProxyOriginator("Devices", id, kvp.Value);
+				LazyLoadProxyOriginator("Devices", id, node.Node);
 			}
 		}
 
