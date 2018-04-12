@@ -205,7 +205,7 @@ namespace ICD.Connect.Krang.Remote
 			// A copy of the original command populated with results
 			ApiClassInfo command = response.Command;
 
-			ApiHandler.ReadResultsRecursive(command, LogResults);
+			ApiResult.ReadResultsRecursive(command, LogResults);
 
 			try
 			{
