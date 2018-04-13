@@ -51,28 +51,27 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (ISource source in newSources)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Informational, "Received Source(Id:{0}, Device:{1}, output:{2} from Host {3}",
-				                         source.Id, source.Endpoint.Device,
-				                         source.Endpoint.Address, message.MessageFrom);
+				               .AddEntry(eSeverity.Informational, "Received {0} from Host {1}",
+				                         source, message.MessageFrom);
 				source.Remote = true;
 			}
 
 			foreach (ISource source in message.Sources.Distinct())
 			{
 				// Get the device or create it if it doesn't exist
-				IDevice sourceDevice = m_Core.Originators.ContainsChild(source.Endpoint.Device)
-					                       ? m_Core.Originators.GetChild<IDevice>(source.Endpoint.Device)
+				IDevice sourceDevice = m_Core.Originators.ContainsChild(source.Device)
+					                       ? m_Core.Originators.GetChild<IDevice>(source.Device)
 					                       : null;
 
 				if (sourceDevice == null)
 				{
 					MockSourceDevice newSourceDevice = new MockSourceDevice
 					{
-						Id = source.Endpoint.Device,
+						Id = source.Device,
 						Name = "Remote Source Device"
 					};
 					newSourceDevice.Controls.Clear();
-					newSourceDevice.AddSourceControl(source.Endpoint.Control);
+					newSourceDevice.AddSourceControl(source.Control);
 
 					sourceDevice = newSourceDevice;
 					m_Core.Originators.AddChild(sourceDevice);
@@ -86,15 +85,15 @@ namespace ICD.Connect.Krang.Remote.Direct
 					ISource source1 = source;
 					ConnectorInfo connector1 = connector;
 
-					if (!connections.Any(c => c.Source.Device == source1.Endpoint.Device &&
-					                          c.Source.Control == source1.Endpoint.Control &&
+					if (!connections.Any(c => c.Source.Device == source1.Device &&
+					                          c.Source.Control == source1.Control &&
 					                          c.Source.Address == connector1.Address &&
 					                          c.ConnectionType == connector1.ConnectionType))
 					{
 						connections.Add(new Connection(
 							                MathUtils.Clamp(connections.Max(c => c.Id) + 1, ushort.MaxValue / 2, ushort.MaxValue),
-							                source.Endpoint.Device,
-							                source.Endpoint.Control,
+							                source.Device,
+							                source.Control,
 							                connector.Address,
 							                switcher.Id,
 							                switcher.SwitcherControl.Id,
@@ -111,7 +110,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 				if (mockSource != null)
 				{
 					mockSource.Controls.Clear();
-					mockSource.AddSourceControl(source.Endpoint.Control);
+					mockSource.AddSourceControl(source.Control);
 
 					// MockRouteSourceControl pulls outputs from the routing graph
 					//mockSource.Controls
@@ -128,28 +127,27 @@ namespace ICD.Connect.Krang.Remote.Direct
 			foreach (IDestination destination in newDestinations)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Informational, "Received Destination(Id:{0}, Device:{1}, Input:{2} from Host {3}",
-				                         destination.Id,
-				                         destination.Endpoint.Device, destination.Endpoint.Address, message.MessageFrom);
+				               .AddEntry(eSeverity.Informational, "Received {0} from Host {1}",
+				                         destination, message.MessageFrom);
 				destination.Remote = true;
 			}
 
 			foreach (IDestination destination in message.Destinations.Distinct())
 			{
 				// Get the device or create it if it doesn't exist
-				IDevice destinationDevice = m_Core.Originators.ContainsChild(destination.Endpoint.Device)
-					                            ? m_Core.Originators.GetChild<IDevice>(destination.Endpoint.Device)
+				IDevice destinationDevice = m_Core.Originators.ContainsChild(destination.Device)
+					                            ? m_Core.Originators.GetChild<IDevice>(destination.Device)
 					                            : null;
 
 				if (destinationDevice == null)
 				{
 					MockDestinationDevice newDestinationDevice = new MockDestinationDevice
 					{
-						Id = destination.Endpoint.Device,
+						Id = destination.Device,
 						Name = "Remote Destination Device"
 					};
 					newDestinationDevice.Controls.Clear();
-					newDestinationDevice.AddDestinationControl(destination.Endpoint.Control);
+					newDestinationDevice.AddDestinationControl(destination.Control);
 
 					destinationDevice = newDestinationDevice;
 					m_Core.Originators.AddChild(destinationDevice);
@@ -163,8 +161,8 @@ namespace ICD.Connect.Krang.Remote.Direct
 					IDestination destination1 = destination;
 					ConnectorInfo connector1 = connector;
 
-					if (!connections.Any(c => c.Destination.Device == destination1.Endpoint.Device &&
-					                          c.Destination.Control == destination1.Endpoint.Control &&
+					if (!connections.Any(c => c.Destination.Device == destination1.Device &&
+					                          c.Destination.Control == destination1.Control &&
 					                          c.Destination.Address == connector1.Address &&
 					                          c.ConnectionType == connector1.ConnectionType))
 					{
@@ -173,8 +171,8 @@ namespace ICD.Connect.Krang.Remote.Direct
 							                switcher.Id,
 							                switcher.SwitcherControl.Id,
 							                MathUtils.Clamp(connections.Max(c => c.Source.Address) + 1, ushort.MaxValue / 2, ushort.MaxValue),
-							                destination.Endpoint.Device,
-							                destination.Endpoint.Control,
+							                destination.Device,
+							                destination.Control,
 							                connector.Address,
 							                connector.ConnectionType));
 					}
@@ -187,9 +185,9 @@ namespace ICD.Connect.Krang.Remote.Direct
 				if (mockDestination != null)
 				{
 					mockDestination.Controls.Clear();
-					mockDestination.AddDestinationControl(destination.Endpoint.Control);
+					mockDestination.AddDestinationControl(destination.Control);
 					mockDestination.Controls
-					               .GetControl<MockRouteDestinationControl>(destination.Endpoint.Control)
+					               .GetControl<MockRouteDestinationControl>(destination.Control)
 					               .SetInputs(message.DestinationConnections[destination.Id]);
 				}
 			}
