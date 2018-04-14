@@ -32,7 +32,10 @@ namespace ICD.Connect.Krang.Remote
 
 		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.GetService<DirectMessageManager>(); } }
 
-		private RemoteApiResultHandler ApiResultHandler { get { return ServiceProvider.GetService<RemoteApiResultHandler>(); } }
+		private RemoteApiResultHandler ApiResultHandler
+		{
+			get { return DirectMessageManager.GetMessageHandler<RemoteApiReply>() as RemoteApiResultHandler; }
+		}
 
 		private ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
 
@@ -44,6 +47,8 @@ namespace ICD.Connect.Krang.Remote
 			m_Proxies = new Dictionary<int, IProxyOriginator>();
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
 			m_TempProxyIds = new Dictionary<int, int>();
+
+			Subscribe(ApiResultHandler);
 		}
 
 		/// <summary>
@@ -52,6 +57,8 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="disposing"></param>
 		protected override void DisposeFinal(bool disposing)
 		{
+			Unsubscribe(ApiResultHandler);
+
 			base.DisposeFinal(disposing);
 
 			DisposeProxies();
@@ -93,7 +100,7 @@ namespace ICD.Connect.Krang.Remote
 			JsonUtils.Print(JsonConvert.SerializeObject(command));
 
 			RemoteApiMessage message = new RemoteApiMessage { Command = command };
-			DirectMessageManager.Send<RemoteApiReply>(m_Source, message, ParseResponse);
+			DirectMessageManager.Send(m_Source, message);
 		}
 
 		/// <summary>
@@ -189,6 +196,21 @@ namespace ICD.Connect.Krang.Remote
 		#endregion
 
 		#region Parse Response
+
+		private void Subscribe(RemoteApiResultHandler results)
+		{
+			results.OnApiResult += ResultsOnOnApiResult;
+		}
+
+		private void Unsubscribe(RemoteApiResultHandler results)
+		{
+			results.OnApiResult -= ResultsOnOnApiResult;
+		}
+
+		private void ResultsOnOnApiResult(RemoteApiResultHandler sender, RemoteApiReply reply)
+		{
+			ParseResponse(reply);
+		}
 
 		/// <summary>
 		/// Parses responses from the remote API.
