@@ -9,14 +9,14 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 	/// <summary>
 	/// The RemoteApiCommandHandler receives 
 	/// </summary>
-	public sealed class RemoteApiCommandHandler : AbstractMessageHandler<RemoteApiMessage>, IApiRequestor
+	public sealed class RemoteApiCommandHandler : AbstractMessageHandler<RemoteApiMessage, RemoteApiReply>
 	{
 		/// <summary>
 		/// Handles the message receieved
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns>Returns an AbstractMessage as a reply, or null for no reply</returns>
-		protected override AbstractMessage HandleMessage(RemoteApiMessage message)
+		protected override RemoteApiReply HandleMessage(RemoteApiMessage message)
 		{
 			ApiHandler.HandleRequest(this, message.Command);
 			return new RemoteApiReply {Command = message.Command};

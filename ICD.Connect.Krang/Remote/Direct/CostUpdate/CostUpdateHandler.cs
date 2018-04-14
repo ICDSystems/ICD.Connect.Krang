@@ -20,7 +20,7 @@ using ICD.Connect.Settings.Core;
 namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 {
 	// Based on RIP (https://tools.ietf.org/html/rfc2453#section-3.9.1)
-	public sealed class CostUpdateHandler : AbstractMessageHandler<CostUpdateMessage>
+	public sealed class CostUpdateHandler : AbstractMessageHandler<CostUpdateMessage, IReply>
 	{
 		private const double MAX_COST = 16;
 
@@ -65,7 +65,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			m_RegularUpdateTimer = new SafeTimer(SendRegularUpdate, UPDATE_TIME, UPDATE_TIME);
 		}
 
-		protected override AbstractMessage HandleMessage(CostUpdateMessage message)
+		protected override IReply HandleMessage(CostUpdateMessage message)
 		{
 			InitializeCostTables();
 

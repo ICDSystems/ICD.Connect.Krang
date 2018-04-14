@@ -4,14 +4,14 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 {
 	public delegate void RemoteApiReplyCallback(RemoteApiResultHandler sender, RemoteApiReply reply);
 
-	public sealed class RemoteApiResultHandler : AbstractMessageHandler<RemoteApiReply>
+	public sealed class RemoteApiResultHandler : AbstractMessageHandler<RemoteApiReply, IReply>
 	{
 		/// <summary>
 		/// Raised when we receive an API reply from an endpoint.
 		/// </summary>
 		public event RemoteApiReplyCallback OnApiResult;
 
-		protected override AbstractMessage HandleMessage(RemoteApiReply message)
+		protected override IReply HandleMessage(RemoteApiReply message)
 		{
 			RemoteApiReplyCallback handler = OnApiResult;
 			if (handler != null)

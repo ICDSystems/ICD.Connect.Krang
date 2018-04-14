@@ -5,9 +5,9 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct.InitiateConnection
 {
-	public sealed class InitiateConnectionHandler : AbstractMessageHandler<InitiateConnectionMessage>
+	public sealed class InitiateConnectionHandler : AbstractMessageHandler<InitiateConnectionMessage, IReply>
 	{
-		protected override AbstractMessage HandleMessage(InitiateConnectionMessage message)
+		protected override IReply HandleMessage(InitiateConnectionMessage message)
 		{
 			ICore core = ServiceProvider.GetService<ICore>();
 			RemoteSwitcher switcher = (RemoteSwitcher)core.Originators.GetChild(message.DeviceId);

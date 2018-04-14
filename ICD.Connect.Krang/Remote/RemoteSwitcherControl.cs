@@ -5,7 +5,6 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Krang.Core;
-using ICD.Connect.Krang.Remote.Direct;
 using ICD.Connect.Krang.Remote.Direct.RouteDevices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
@@ -109,21 +108,17 @@ namespace ICD.Connect.Krang.Remote
 				if (graph != null)
 					graph.PendingRouteStarted(info);
 
-				dmManager.Send(Parent.HostInfo, new RouteDevicesMessage(info),
-				               RouteFinished(info));
+				dmManager.Send<RouteDevicesReply>(Parent.HostInfo, new RouteDevicesMessage(info), r => RouteFinished(info, r));
 			}
 
 			return m_Cache.SetInputForOutput(info.LocalOutput, info.LocalInput, info.ConnectionType);
 		}
 
-		private MessageResponseCallback<GenericMessage<bool>> RouteFinished(RouteOperation info)
+		private void RouteFinished(RouteOperation info, RouteDevicesReply response)
 		{
-			return message =>
-			       {
-				       RoutingGraph graph = m_Krang.RoutingGraph;
-				       if (graph != null)
-					       graph.PendingRouteFinished(info, message.Value);
-			       };
+			RoutingGraph graph = m_Krang.RoutingGraph;
+			if (graph != null)
+				graph.PendingRouteFinished(info, response.Result);
 		}
 
 		// change to clearroute
