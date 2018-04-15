@@ -9,7 +9,7 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public sealed class RouteDevicesHandler : AbstractMessageHandler<RouteDevicesMessage>
+	public sealed class RouteDevicesHandler : AbstractMessageHandler<RouteDevicesMessage, RouteDevicesReply>
 	{
 		private readonly ICore m_Core;
 
@@ -28,7 +28,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			m_PendingMessagesSection = new SafeCriticalSection();
 		}
 
-		protected override AbstractMessage HandleMessage(RouteDevicesMessage message)
+		protected override RouteDevicesReply HandleMessage(RouteDevicesMessage message)
 		{
 			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(message));
 			m_Core.GetRoutingGraph().Route(message.Operation);
@@ -55,8 +55,14 @@ namespace ICD.Connect.Krang.Remote.Direct
 				m_PendingMessagesSection.Leave();
 			}
 
-			ServiceProvider.GetService<DirectMessageManager>()
-			               .Respond(message.ClientId, message.MessageId, new GenericMessage<bool> {Value = args.Success});
+			RouteDevicesReply reply = new RouteDevicesReply
+			{
+				Result = args.Success,
+				MessageId = message.MessageId,
+				ClientId = message.ClientId
+			};
+
+			RaiseReply(reply);
 		}
 	}
 }

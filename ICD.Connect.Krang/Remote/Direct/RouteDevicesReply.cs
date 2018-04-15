@@ -2,7 +2,7 @@
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public class RouteDevicesReply : AbstractMessage
+	public sealed class RouteDevicesReply : AbstractMessage, IReply
 	{
 		public bool Result { get; set; }
 	}

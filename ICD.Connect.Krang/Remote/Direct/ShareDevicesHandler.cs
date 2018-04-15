@@ -17,7 +17,7 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public sealed class ShareDevicesHandler : AbstractMessageHandler<ShareDevicesMessage>
+	public sealed class ShareDevicesHandler : AbstractMessageHandler<ShareDevicesMessage, IReply>
 	{
 		private readonly ICore m_Core;
 
@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.Remote.Direct
 			m_Core = ServiceProvider.GetService<ICore>();
 		}
 
-		protected override AbstractMessage HandleMessage(ShareDevicesMessage message)
+		protected override IReply HandleMessage(ShareDevicesMessage message)
 		{
 			RemoteSwitcher switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
 			                                .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);

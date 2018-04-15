@@ -14,9 +14,9 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public sealed class RequestDevicesHandler : AbstractMessageHandler<RequestDevicesMessage>
+	public sealed class RequestDevicesHandler : AbstractMessageHandler<RequestDevicesMessage, IReply>
 	{
-		protected override AbstractMessage HandleMessage(RequestDevicesMessage message)
+		protected override IReply HandleMessage(RequestDevicesMessage message)
 		{
 			ICore core = ServiceProvider.GetService<ICore>();
 			List<ISource> sources = core.GetRoutingGraph().Sources.Where(s => message.Sources.Contains(s.Id)).ToList();
