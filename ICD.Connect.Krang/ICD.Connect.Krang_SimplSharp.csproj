@@ -87,7 +87,6 @@
     <Compile Include="Remote\Direct\CostUpdate\CostUpdateHandler.cs" />
     <Compile Include="Remote\Direct\CostUpdate\CostUpdateMessage.cs" />
     <Compile Include="Remote\Direct\Disconnect\DisconnectHandler.cs" />
-    <Compile Include="Remote\Direct\GenericMessage.cs" />
     <Compile Include="Remote\Direct\InitiateConnection\InitiateConnectionHandler.cs" />
     <Compile Include="Remote\Broadcast\TielineDiscovery\TielineDiscoveryData.cs" />
     <Compile Include="Remote\Broadcast\TielineDiscovery\TielineDiscoveryBroadcastHandler.cs" />
