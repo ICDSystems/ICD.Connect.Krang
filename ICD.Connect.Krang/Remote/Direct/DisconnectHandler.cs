@@ -7,9 +7,9 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Direct
 {
-	public sealed class DisconnectHandler : AbstractMessageHandler<DisconnectMessage>
+	public sealed class DisconnectHandler : AbstractMessageHandler<DisconnectMessage, IReply>
 	{
-		protected override AbstractMessage HandleMessage(DisconnectMessage message)
+		protected override IReply HandleMessage(DisconnectMessage message)
 		{
 			ICore core = ServiceProvider.TryGetService<ICore>();
 			if (core == null)

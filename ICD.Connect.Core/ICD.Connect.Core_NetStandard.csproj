@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
 	<RootNamespace>ICD.Connect.Core</RootNamespace>
+	<AssemblyName>ICD.Connect.Core</AssemblyName>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<Deterministic>true</Deterministic>
 	<StartupObject>ICD.Connect.Core.Program</StartupObject>
