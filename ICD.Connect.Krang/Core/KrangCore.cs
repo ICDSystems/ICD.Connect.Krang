@@ -127,6 +127,9 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="originators"></param>
 		private void SetOriginators(IEnumerable<IOriginator> originators)
 		{
+			if (originators == null)
+				throw new ArgumentNullException("originators");
+
 			DisposeOriginators();
 			Originators.SetChildren(originators);
 		}
@@ -137,6 +140,9 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="originator"></param>
 		private void AddOriginator(IOriginator originator)
 		{
+			if (originator == null)
+				throw new ArgumentNullException("originator");
+
 			Originators.AddChild(originator);
 		}
 
