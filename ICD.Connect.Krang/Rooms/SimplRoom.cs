@@ -195,7 +195,7 @@ namespace ICD.Connect.Krang.Rooms
 				return;
 
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
-			m_SubscribedRoutingGraph.Route(source.Endpoint, destination.Endpoint, connectionType, Id);
+			m_SubscribedRoutingGraph.Route(source, destination, connectionType, Id);
 		}
 
 		/// <summary>
@@ -232,7 +232,7 @@ namespace ICD.Connect.Krang.Rooms
 				return;
 
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
-			m_SubscribedRoutingGraph.Unroute(source.Endpoint, destination.Endpoint, connectionType, Id);
+			m_SubscribedRoutingGraph.Unroute(source, destination, connectionType, Id);
 		}
 
 		#endregion
@@ -277,7 +277,7 @@ namespace ICD.Connect.Krang.Rooms
 			if (m_SubscribedRoutingGraph == null)
 				return Enumerable.Empty<ISource>();
 
-			return m_SubscribedRoutingGraph.GetActiveSourceEndpoints(destination.Endpoint,
+			return m_SubscribedRoutingGraph.GetActiveSourceEndpoints(destination,
 			                                                         destination.ConnectionType, false, true)
 			                               .Select(e => GetSourceFromEndpoint(e))
 			                               .Where(s => s != null);
@@ -293,7 +293,7 @@ namespace ICD.Connect.Krang.Rooms
 		{
 			return m_SubscribedRoutingGraph == null
 				       ? null
-				       : m_SubscribedRoutingGraph.Sources.FirstOrDefault(s => s.Endpoint == endpoint);
+				       : m_SubscribedRoutingGraph.Sources.FirstOrDefault(s => s.Contains(endpoint));
 		}
 
 		/// <summary>
