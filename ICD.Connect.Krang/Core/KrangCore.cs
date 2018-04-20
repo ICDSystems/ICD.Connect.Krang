@@ -121,6 +121,10 @@ namespace ICD.Connect.Krang.Core
 			DisposeOriginators();
 		}
 
+		/// <summary>
+		/// Disposes the existing originators and adds the given originators.
+		/// </summary>
+		/// <param name="originators"></param>
 		private void SetOriginators(IEnumerable<IOriginator> originators)
 		{
 			DisposeOriginators();
@@ -341,7 +345,7 @@ namespace ICD.Connect.Krang.Core
 
 		#endregion
 
-		#region API
+		#region Console
 
 		/// <summary>
 		/// Calls the delegate for each console status item.
