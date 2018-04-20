@@ -285,7 +285,7 @@ namespace ICD.Connect.Krang.Core
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
 
-				//if (settings.Broadcast)
+				if (settings.Broadcast)
 				{
 					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler(this);
 					m_OriginatorsBroadcastHandler = new OriginatorsChangeBroadcastHandler(this);
@@ -302,10 +302,9 @@ namespace ICD.Connect.Krang.Core
 
 					BroadcastManager.Start();
 				}
-				/*else
 				{
 					BroadcastManager.Stop();
-				}*/
+				}
 
 				ResetDefaultPermissions();
 			}
