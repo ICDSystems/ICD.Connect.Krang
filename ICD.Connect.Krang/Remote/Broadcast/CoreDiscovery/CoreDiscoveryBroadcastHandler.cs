@@ -158,6 +158,10 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			base.BroadcasterOnBroadcastReceived(sender, e);
 
+			// Ignore local broadcasts
+			if (e.Data.Source.IsLocalHost)
+				return;
+
 			CoreDiscoveryInfo info = new CoreDiscoveryInfo(e.Data);
 
 			m_DiscoveredSection.Enter();
