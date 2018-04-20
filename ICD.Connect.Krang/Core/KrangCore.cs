@@ -302,6 +302,7 @@ namespace ICD.Connect.Krang.Core
 
 					BroadcastManager.Start();
 				}
+				else
 				{
 					BroadcastManager.Stop();
 				}
