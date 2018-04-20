@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -26,7 +25,6 @@ namespace ICD.Connect.Krang.Remote
 	{
 		private readonly Dictionary<int, IProxyOriginator> m_Proxies;
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
-		private readonly Dictionary<int, int> m_TempProxyIds;
 
 		private HostInfo m_Source;
 
@@ -46,7 +44,6 @@ namespace ICD.Connect.Krang.Remote
 		{
 			m_Proxies = new Dictionary<int, IProxyOriginator>();
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
-			m_TempProxyIds = new Dictionary<int, int>();
 
 			Subscribe(ApiResultHandler);
 		}
@@ -147,7 +144,7 @@ namespace ICD.Connect.Krang.Remote
 				                 .AtNode("ControlSystem")
 				                 .AtNode("Core")
 				                 .AtNodeGroup(group)
-								 .AddKey((uint)m_TempProxyIds[id], local)
+								 .AddKey((uint)id, local)
 				                 .Complete();
 
 			m_ProxyBuildCommand.Add(originator, buildCommand);
@@ -305,7 +302,7 @@ namespace ICD.Connect.Krang.Remote
 			if (deviceInfo == null)
 				throw new ArgumentNullException("deviceInfo");
 
-			IProxyOriginator proxy = LazyLoadProxyOriginator("Devices", m_TempProxyIds.GetKey((int)index), deviceInfo);
+			IProxyOriginator proxy = LazyLoadProxyOriginator("Devices", (int)index, deviceInfo);
 			proxy.ParseInfo(deviceInfo);
 		}
 
@@ -331,7 +328,6 @@ namespace ICD.Connect.Krang.Remote
 				// For testing
 				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
 				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
-				m_TempProxyIds[id] = (int)node.Key;
 
 				LazyLoadProxyOriginator("Devices", id, node.Node);
 			}
