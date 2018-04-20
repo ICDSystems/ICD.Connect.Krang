@@ -1,12 +1,20 @@
 ﻿using System;
+using ICD.Common.Utils.EventArguments;
+using ICD.Common.Utils.Extensions;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
+using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 {
 	public sealed class OriginatorsChangeBroadcastHandler : AbstractBroadcastHandler<OriginatorsChangeData>
 	{
+		/// <summary>
+		/// Raised when a remote broadcaster advertises an originator was added/removed.
+		/// </summary>
+		public event EventHandler<GenericEventArgs<HostInfo>> OnRemoteOriginatorsChanged;
+
 		private readonly ICore m_Core;
 
 		/// <summary>
@@ -30,6 +38,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 		/// </summary>
 		public override void Dispose()
 		{
+			OnRemoteOriginatorsChanged = null;
+
 			base.Dispose();
 
 			Unsubscribe(m_Core);
@@ -38,6 +48,10 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs eventArgs)
 		{
 			base.BroadcasterOnBroadcastReceived(sender, eventArgs);
+
+			BroadcastData data = eventArgs.Data;
+
+			OnRemoteOriginatorsChanged.Raise(this, new GenericEventArgs<HostInfo>(data.Source));
 		}
 
 		#region Core Callbacks
@@ -54,7 +68,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 
 		private void OriginatorsOnOnChildrenChanged(object sender, EventArgs eventArgs)
 		{
-			//Broadcaster.Broadcast();
+			Broadcaster.Broadcast();
 		}
 
 		#endregion
