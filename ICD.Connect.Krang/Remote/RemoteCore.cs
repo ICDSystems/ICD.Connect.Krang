@@ -302,6 +302,10 @@ namespace ICD.Connect.Krang.Remote
 			if (deviceInfo == null)
 				throw new ArgumentNullException("deviceInfo");
 
+			// Don't create proxy around existing proxies
+			if (deviceInfo.IsProxy)
+				return;
+
 			IProxyOriginator proxy = LazyLoadProxyOriginator("Devices", (int)index, deviceInfo);
 			proxy.ParseInfo(deviceInfo);
 		}
@@ -328,6 +332,10 @@ namespace ICD.Connect.Krang.Remote
 				// For testing
 				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
 				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
+
+				// Don't create proxy around existing proxies
+				if (node.Node.IsProxy)
+					return;
 
 				LazyLoadProxyOriginator("Devices", id, node.Node);
 			}
