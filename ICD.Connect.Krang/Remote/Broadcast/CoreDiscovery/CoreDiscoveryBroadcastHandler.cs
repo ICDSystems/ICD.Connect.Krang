@@ -27,6 +27,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private readonly SafeTimer m_TimeoutTimer;
 		private readonly ICore m_Core;
 
+		private ILoggerService Logger { get { return ServiceProvider.GetService<ILoggerService>(); } }
+
 		/// <summary>
 		/// Constructor.
 		/// </summary>
@@ -65,7 +67,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				DateTime cutoff = IcdEnvironment.GetLocalTime() - TimeSpan.FromMilliseconds(TIMEOUT_DURATION);
 
 				CoreDiscoveryInfo[] dropped =
-					m_Discovered.Where(kvp => kvp.Value.Discovered <= cutoff)
+					m_Discovered.Where(kvp => kvp.Value.DiscoveryTime <= cutoff)
 					            .Select(kvp => kvp.Value)
 								.ToArray();
 
@@ -92,7 +94,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				if (existing != null)
 					return;
 
-				IcdConsole.PrintLine("Core {0} discovered {1} {2}", info.Id, info.Source, info.Discovered);
+				Logger.AddEntry(eSeverity.Informational, "Core {0} discovered {1} {2}", info.Id, info.Source, info.DiscoveryTime);
 
 				RemoteCore proxy = new RemoteCore
 				{
@@ -120,7 +122,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			{
 				m_Discovered.Remove(item.Id);
 
-				IcdConsole.PrintLine("Core {0} lost {1} {2}", item.Id, item.Source, item.Discovered);
+				Logger.AddEntry(eSeverity.Warning, "Core {0} lost {1} {2}", item.Id, item.Source, item.DiscoveryTime);
 
 				RemoteCore proxy;
 				if (!m_RemoteCoreCollection.TryGetProxy(item.Id, out proxy))
@@ -173,9 +175,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				// Check for conflicts
 				if (existing != null && existing.Conflicts(info))
 				{
-					ServiceProvider.GetService<ILoggerService>()
-								   .AddEntry(eSeverity.Warning, "{0} - Conflict between Core Id={1} at {2} and {3}",
-											 GetType().Name, info.Id, info.Source, existing.Source);
+					Logger.AddEntry(eSeverity.Warning, "{0} - Conflict between Core Id={1} at {2} and {3}",
+					                GetType().Name, info.Id, info.Source, existing.Source);
 					return;
 				}
 

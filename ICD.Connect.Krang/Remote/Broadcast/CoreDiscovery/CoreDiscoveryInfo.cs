@@ -10,7 +10,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		public int Id { get; set; }
 		public string Name { get; set; }
 		public HostInfo Source { get; set; }
-		public DateTime Discovered { get; set; }
+		public DateTime DiscoveryTime { get; set; }
 
 		/// <summary>
 		/// Constructor.
@@ -25,7 +25,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			Id = discovery.Id;
 			Name = discovery.Name;
 			Source = data.Source;
-			Discovered = IcdEnvironment.GetLocalTime();
+			DiscoveryTime = IcdEnvironment.GetLocalTime();
 		}
 
 		/// <summary>
