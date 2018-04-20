@@ -11,7 +11,6 @@ using ICD.Connect.API.Proxies;
 using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Proxies;
 using Newtonsoft.Json;
@@ -329,15 +328,11 @@ namespace ICD.Connect.Krang.Remote
 
 			foreach (ApiNodeGroupKeyInfo node in devicesGroupInfo.GetNodes())
 			{
-				// For testing
-				int subsystemId = IdUtils.GetSubsystemId(IdUtils.SUBSYSTEM_DEVICES);
-				int id = IdUtils.GetNewId(Core.Originators.GetChildrenIds(), subsystemId, 0);
-
 				// Don't create proxy around existing proxies
 				if (node.Node.IsProxy)
 					return;
 
-				LazyLoadProxyOriginator("Devices", id, node.Node);
+				LazyLoadProxyOriginator("Devices", (int)node.Key, node.Node);
 			}
 		}
 
