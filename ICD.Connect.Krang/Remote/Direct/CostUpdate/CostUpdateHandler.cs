@@ -268,19 +268,18 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		{
 			ISource source = m_Core.GetRoutingGraph().Sources.GetChild(id);
 			ServiceProvider.TryGetService<ILoggerService>()
-			               .AddEntry(eSeverity.Error, "Removing remote Source(Device={0}, Output={1}) due to timeout",
-			                         source.Endpoint.Device, source.Endpoint.Address);
+			               .AddEntry(eSeverity.Error, "Removing remote {0} due to timeout", source);
 			IEnumerable<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren();
 
 			// list of connections minus the ones connected to the source
-			List<Connection> connectionsLeft = connections.Where(c => c.Source != source.Endpoint)
+			List<Connection> connectionsLeft = connections.Where(c => !source.Contains(c.Source))
 			                                              .ToList();
 
 			// remove device if no connections left to it
-			if (!connectionsLeft.Any(c => c.Source.Device == source.Endpoint.Device) &&
-			    m_Core.Originators.ContainsChild(source.Endpoint.Device))
+			if (!connectionsLeft.Any(c => c.Source.Device == source.Device) &&
+			    m_Core.Originators.ContainsChild(source.Device))
 			{
-				IOriginator device = m_Core.Originators.GetChild(source.Endpoint.Device);
+				IOriginator device = m_Core.Originators.GetChild(source.Device);
 				m_Core.Originators.RemoveChild(device);
 			}
 
@@ -292,19 +291,18 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		{
 			IDestination destination = m_Core.GetRoutingGraph().Destinations.GetChild(id);
 			ServiceProvider.TryGetService<ILoggerService>()
-			               .AddEntry(eSeverity.Error, "Removing remote Destination(Device={0}, Input={1}) due to timeout",
-			                         destination.Endpoint.Device, destination.Endpoint.Address);
+			               .AddEntry(eSeverity.Error, "Removing remote {0} due to timeout", destination);
 			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
 
 			// list of connections minus the ones connected to the destination
 			List<Connection> connectionsLeft =
-				connections.Where(c => c.Destination != destination.Endpoint).ToList();
+				connections.Where(c => !destination.Contains(c.Destination)).ToList();
 
 			// remove device if no connections left to it
-			if (!connectionsLeft.Any(c => c.Destination.Device == destination.Endpoint.Device) &&
-			    m_Core.Originators.ContainsChild(destination.Endpoint.Device))
+			if (!connectionsLeft.Any(c => c.Destination.Device == destination.Device) &&
+			    m_Core.Originators.ContainsChild(destination.Device))
 			{
-				IOriginator device = m_Core.Originators.GetChild(destination.Endpoint.Device);
+				IOriginator device = m_Core.Originators.GetChild(destination.Device);
 				m_Core.Originators.RemoveChild(device);
 			}
 
@@ -344,7 +342,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				List<Connection> remove =
 					connections.Where(
 					                  c =>
-					                  c.Source == source.Endpoint &&
+					                  source.Contains(c.Source) &&
 					                  (c.Destination.Device != switcher.Id || c.Destination.Control != switcher.SwitcherControl.Id))
 					           .ToList();
 
@@ -379,8 +377,8 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 					continue;
 
 				List<Connection> remove =
-					connections.Where(c => c.Destination == destination.Endpoint && (c.Source.Device != switcher.Id ||
-					                                                                 c.Source.Control != switcher.SwitcherControl.Id))
+					connections.Where(c => destination.Contains(c.Destination) &&
+					                       (c.Source.Device != switcher.Id || c.Source.Control != switcher.SwitcherControl.Id))
 					           .ToList();
 
 				foreach (Connection item in remove)
