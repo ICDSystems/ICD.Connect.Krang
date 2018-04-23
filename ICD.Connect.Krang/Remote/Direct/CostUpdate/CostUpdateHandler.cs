@@ -6,6 +6,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Timers;
+using ICD.Connect.Krang.Remote.Direct.RequestDevices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.Connections;
@@ -16,7 +17,7 @@ using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 {
 	// Based on RIP (https://tools.ietf.org/html/rfc2453#section-3.9.1)
 	public sealed class CostUpdateHandler : AbstractMessageHandler<CostUpdateMessage, IReply>

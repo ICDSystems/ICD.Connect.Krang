@@ -5,29 +5,25 @@ using ICD.Common.Logging.Console;
 using ICD.Common.Logging.Console.Loggers;
 using ICD.Common.Permissions;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
+using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Core;
-#if SIMPLSHARP
-using Crestron.SimplSharp.Reflection;
-#else
-using System.Reflection;
-#endif
 
 namespace ICD.Connect.Krang.Core
 {
+	[ApiClass("ControlSystem", null)]
 	public sealed class KrangBootstrap : IConsoleNode
 	{
 		private readonly KrangCore m_Core;
 
+		private ILoggerService m_Logger;
 		private DirectMessageManager m_DirectMessageManager;
 		private BroadcastManager m_BroadcastManager;
 
@@ -46,7 +42,13 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Gets the Krang instance.
 		/// </summary>
+		[ApiNode("Core", "The core instance for this program")]
 		public KrangCore Krang { get { return m_Core; } }
+
+		/// <summary>
+		/// Gets the broadcast manager instance.
+		/// </summary>
+		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
 
 		#endregion
 
@@ -59,6 +61,7 @@ namespace ICD.Connect.Krang.Core
 
 			m_Core = new KrangCore {Serialize = true};
 
+			ApiHandler.ControlSystem = this;
 			ApiConsole.RegisterChild(this);
 		}
 
@@ -70,20 +73,20 @@ namespace ICD.Connect.Krang.Core
 			// Check for cpz files that are unextracted, indicating a problem
 			if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
 			{
-				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Warning,
-				                         "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY. YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
+				m_Logger.AddEntry(eSeverity.Warning,
+				                  "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY." +
+								  " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
 			}
 #endif
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
+
 			try
 			{
 				FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
 			}
 			catch (Exception e)
 			{
-				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Error, e, "Exception in program initialization");
+				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program initialization");
 			}
 		}
 
@@ -98,8 +101,7 @@ namespace ICD.Connect.Krang.Core
 			}
 			catch (Exception e)
 			{
-				ServiceProvider.TryGetService<ILoggerService>()
-				               .AddEntry(eSeverity.Error, e, "Exception in program stop");
+				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program stop");
 			}
 		}
 
@@ -128,18 +130,23 @@ namespace ICD.Connect.Krang.Core
 
 		private void AddServices()
 		{
-			//Create and add default logger
-			LoggingCore logger = new LoggingCore();
-			logger.AddLogger(new IcdErrorLogger());
+			// Create and add default logger
+			LoggingCore logger = new LoggingCore
+			{
+				SeverityLevel =
 #if DEBUG
-			logger.SeverityLevel = eSeverity.Debug;
+					eSeverity.Debug
 #else
- 			logger.SeverityLevel = eSeverity.Warning;
+ 					eSeverity.Warning
 #endif
+			};
+			logger.AddLogger(new IcdErrorLogger());
+
+			m_Logger = logger;
 			ServiceProvider.TryAddService<ILoggerService>(logger);
 
 			m_DirectMessageManager = new DirectMessageManager();
-			ServiceProvider.AddService(m_DirectMessageManager);
+			ServiceProvider.TryAddService(m_DirectMessageManager);
 
 			m_BroadcastManager = new BroadcastManager();
 			ServiceProvider.TryAddService(m_BroadcastManager);
@@ -157,7 +164,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="addRow"></param>
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("Core", m_Core);
+			KrangBootstrapConsole.BuildConsoleStatus(this, addRow);
 		}
 
 		/// <summary>
@@ -166,7 +173,7 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
-			yield return m_Core;
+			return KrangBootstrapConsole.GetConsoleNodes(this);
 		}
 
 		/// <summary>
@@ -175,92 +182,7 @@ namespace ICD.Connect.Krang.Core
 		/// <returns></returns>
 		public IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
-			yield return new ConsoleCommand("LoadCore", "Loads and applies the XML config.",
-			                                () => m_Core.LoadSettings());
-			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML.",
-			                                () => SaveSettings());
-			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.",
-			                                () => FileOperations.ApplyCoreSettings(m_Core, m_Core.CopySettings()));
-
-			yield return new ConsoleCommand("PrintPlugins", "Prints the loaded plugin assemblies.",
-			                                () => PrintPlugins());
-			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.",
-			                                () => PrintTypes());
-			yield return new ConsoleCommand("VersionInfo", "Prints version information for the loaded assemblies.",
-			                                () => PrintVersionInfo());
-		}
-
-		private void SaveSettings()
-		{
-			// Saving settings involves running some console commands to get processor information.
-			// Executing console commands from a console command thread is extremely slow.
-			ThreadingUtils.SafeInvoke(() =>
-			                          {
-				                          ICoreSettings settings = m_Core.CopySettings();
-				                          FileOperations.SaveSettings(settings);
-			                          });
-		}
-
-		private static string PrintPlugins()
-		{
-			TableBuilder builder = new TableBuilder("Assembly", "Path", "Version", "Date");
-
-			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
-			{
-				string name = assembly.GetName().Name;
-				string path = assembly.GetPath();
-				string version = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
-
-				path = IcdPath.GetDirectoryName(path);
-
-				builder.AddRow(name, path, version, date);
-			}
-
-			return builder.ToString();
-		}
-
-		private static string PrintTypes()
-		{
-			TableBuilder builder = new TableBuilder("Type", "Assembly", "Path", "Version", "Date");
-
-			foreach (string factoryName in PluginFactory.GetFactoryNames().Order())
-			{
-				Assembly assembly = PluginFactory.GetType(factoryName).GetAssembly();
-
-				string name = assembly.GetName().Name;
-				string path = assembly.GetPath();
-				string version = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
-
-				path = IcdPath.GetDirectoryName(path);
-
-				builder.AddRow(factoryName, name, path, version, date);
-			}
-
-			return builder.ToString();
-		}
-
-		private static string PrintVersionInfo()
-		{
-			TableBuilder builder = new TableBuilder("Assembly", "Path", "Informational Version", "Assembly Version", "Date");
-
-			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
-			{
-				string name = assembly.GetName().Name;
-				string path = assembly.GetPath();
-				string version = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
-
-				string infoVersion;
-				assembly.TryGetInformationalVersion(out infoVersion);
-
-				path = IcdPath.GetDirectoryName(path);
-
-				builder.AddRow(name, path, infoVersion, version, date);
-			}
-
-			return builder.ToString();
+			return KrangBootstrapConsole.GetConsoleCommands(this);
 		}
 
 		#endregion

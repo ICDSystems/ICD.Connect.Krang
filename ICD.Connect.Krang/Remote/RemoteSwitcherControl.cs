@@ -5,7 +5,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Krang.Core;
-using ICD.Connect.Krang.Remote.Direct;
+using ICD.Connect.Krang.Remote.Direct.RouteDevices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;

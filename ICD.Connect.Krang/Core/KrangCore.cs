@@ -6,11 +6,20 @@ using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
+using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
-using ICD.Connect.Krang.Remote.Broadcast;
-using ICD.Connect.Krang.Remote.Direct;
+using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
+using ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange;
+using ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery;
+using ICD.Connect.Krang.Remote.Direct.API;
+using ICD.Connect.Krang.Remote.Direct.CostUpdate;
+using ICD.Connect.Krang.Remote.Direct.Disconnect;
+using ICD.Connect.Krang.Remote.Direct.InitiateConnection;
+using ICD.Connect.Krang.Remote.Direct.RequestDevices;
+using ICD.Connect.Krang.Remote.Direct.RouteDevices;
+using ICD.Connect.Krang.Remote.Direct.ShareDevices;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
@@ -24,13 +33,15 @@ using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core
 {
-	public sealed class KrangCore : AbstractCore<KrangCoreSettings>, IConsoleNode
+	public sealed class KrangCore : AbstractCore<KrangCoreSettings>
 	{
 		/// <summary>
 		/// Originator ids are pushed to the stack on load, and popped on clear.
 		/// </summary>
 		private readonly Stack<int> m_LoadedOriginators;
 
+		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
+		private OriginatorsChangeBroadcastHandler m_OriginatorsBroadcastHandler;
 		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
 
 		#region Properties
@@ -38,31 +49,43 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Gets the name of the node in the console.
 		/// </summary>
-		public string ConsoleName { get { return "Core"; } }
-
-		/// <summary>
-		/// Gets the help information for the node.
-		/// </summary>
-		public string ConsoleHelp { get { return string.Empty; } }
+		public override string ConsoleName { get { return "Core"; } }
 
 		/// <summary>
 		/// Gets the routing graph for the program.
 		/// </summary>
 		[CanBeNull]
+		[ApiNode("Routing", "The routing features for the core.")]
 		public RoutingGraph RoutingGraph { get { return Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
 
 		/// <summary>
 		/// Gets the partition manager for the program.
 		/// </summary>
 		[CanBeNull]
+		[ApiNode("Partitioning", "The partitioning features for the core.")]
 		public PartitionManager PartitionManager
 		{
 			get { return Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
 		}
 
-		public BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
+		[ApiNodeGroup("Themes", "The currently active themes")]
+		private IApiNodeGroup Themes { get; set; }
 
-		public DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
+		[ApiNodeGroup("Devices", "The currently active devices")]
+		private IApiNodeGroup Devices { get; set; }
+
+		[ApiNodeGroup("Panels", "The currently active panels")]
+		private IApiNodeGroup Panels { get; set; }
+
+		[ApiNodeGroup("Ports", "The currently active ports")]
+		private IApiNodeGroup Ports { get; set; }
+
+		[ApiNodeGroup("Rooms", "The currently active rooms")]
+		private IApiNodeGroup Rooms { get; set; }
+
+		private BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
+
+		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
 
 		#endregion
 
@@ -76,6 +99,12 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.AddService<ICore>(this);
 
 			m_LoadedOriginators = new Stack<int>();
+
+			Themes = new ApiOriginatorsNodeGroup<ITheme>(Originators);
+			Devices = new ApiOriginatorsNodeGroup<IDevice>(Originators);
+			Panels = new ApiOriginatorsNodeGroup<IPanelDevice>(Originators);
+			Ports = new ApiOriginatorsNodeGroup<IPort>(Originators);
+			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 		}
 
 		#endregion
@@ -92,8 +121,15 @@ namespace ICD.Connect.Krang.Core
 			DisposeOriginators();
 		}
 
+		/// <summary>
+		/// Disposes the existing originators and adds the given originators.
+		/// </summary>
+		/// <param name="originators"></param>
 		private void SetOriginators(IEnumerable<IOriginator> originators)
 		{
+			if (originators == null)
+				throw new ArgumentNullException("originators");
+
 			DisposeOriginators();
 			Originators.SetChildren(originators);
 		}
@@ -104,6 +140,9 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="originator"></param>
 		private void AddOriginator(IOriginator originator)
 		{
+			if (originator == null)
+				throw new ArgumentNullException("originator");
+
 			Originators.AddChild(originator);
 		}
 
@@ -215,6 +254,14 @@ namespace ICD.Connect.Krang.Core
 
 			ResetDefaultPermissions();
 
+			if (m_DiscoveryBroadcastHandler != null)
+				m_DiscoveryBroadcastHandler.Dispose();
+			m_DiscoveryBroadcastHandler = null;
+
+			if (m_OriginatorsBroadcastHandler != null)
+				m_OriginatorsBroadcastHandler.Dispose();
+			m_OriginatorsBroadcastHandler = null;
+
 			if (m_TielineBroadcastHandler != null)
 				m_TielineBroadcastHandler.Dispose();
 			m_TielineBroadcastHandler = null;
@@ -240,6 +287,8 @@ namespace ICD.Connect.Krang.Core
 
 				if (settings.Broadcast)
 				{
+					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler(this);
+					m_OriginatorsBroadcastHandler = new OriginatorsChangeBroadcastHandler(this);
 					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
 
 					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
@@ -248,6 +297,8 @@ namespace ICD.Connect.Krang.Core
 					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
 					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
 					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+					DirectMessageManager.RegisterMessageHandler(new RemoteApiCommandHandler());
+					DirectMessageManager.RegisterMessageHandler(new RemoteApiResultHandler());
 
 					BroadcastManager.Start();
 				}
@@ -306,8 +357,10 @@ namespace ICD.Connect.Krang.Core
 		/// Calls the delegate for each console status item.
 		/// </summary>
 		/// <param name="addRow"></param>
-		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
+			base.BuildConsoleStatus(addRow);
+
 			addRow("Theme count", Originators.GetChildren<ITheme>().Count());
 			addRow("Panel count", Originators.GetChildren<IPanelDevice>().Count());
 			addRow("Device count", Originators.GetChildren<IDevice>().Count());
@@ -319,8 +372,11 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the child console node groups.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		public override IEnumerable<IConsoleNodeBase> GetConsoleNodes()
 		{
+			foreach (IConsoleNodeBase node in GetBaseConsoleNodes())
+				yield return node;
+
 			yield return ConsoleNodeGroup.KeyNodeMap("Themes", Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Panels", Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Devices", Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
@@ -335,12 +391,33 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
+		/// Workaround for "unverifiable code" warning.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<IConsoleNodeBase> GetBaseConsoleNodes()
+		{
+			return base.GetConsoleNodes();
+		}
+
+		/// <summary>
 		/// Gets the child console commands.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<IConsoleCommand> GetConsoleCommands()
+		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
+			foreach (IConsoleCommand command in GetBaseConsoleCommands())
+				yield return command;
+
 			yield return new ConsoleCommand("whoami", "Displays info about Krang", () => PrintKrang(), true);
+		}
+
+		/// <summary>
+		/// Workaround for "unverifiable code" warning.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
+		{
+			return base.GetConsoleCommands();
 		}
 
 		private static string PrintKrang()

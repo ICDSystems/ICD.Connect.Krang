@@ -5,7 +5,7 @@ using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Core;
 
-namespace ICD.Connect.Krang.Remote.Direct
+namespace ICD.Connect.Krang.Remote.Direct.Disconnect
 {
 	public sealed class DisconnectHandler : AbstractMessageHandler<DisconnectMessage, IReply>
 	{
