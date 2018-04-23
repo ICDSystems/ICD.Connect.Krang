@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ## [3.1.0] - 2018-04-15
-
 ### Changed
  - Using new DirectMessageManager features for inter-Krang communication
  
