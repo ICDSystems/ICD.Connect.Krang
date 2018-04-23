@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
@@ -120,17 +121,18 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="group"></param>
 		/// <param name="id"></param>
 		/// <param name="classInfo"></param>
+		[CanBeNull]
 		private IProxyOriginator LazyLoadProxyOriginator(string group, int id, ApiClassInfo classInfo)
 		{
 			if (m_Proxies.ContainsKey(id))
 				return m_Proxies[id];
 
 			if (Core.Originators.ContainsChild(id))
-				return m_Proxies[id];
+				return null;
 
 			Type proxyType = classInfo.GetProxyTypes().FirstOrDefault();
 			if (proxyType == null)
-				throw new InvalidOperationException(string.Format("No proxy type discovered for originator {0}", id));
+				return null;
 
 			// Build the originator
 			IProxyOriginator originator = ReflectionUtils.CreateInstance<IProxyOriginator>(proxyType);
@@ -306,7 +308,8 @@ namespace ICD.Connect.Krang.Remote
 				return;
 
 			IProxyOriginator proxy = LazyLoadProxyOriginator("Devices", (int)index, deviceInfo);
-			proxy.ParseInfo(deviceInfo);
+			if (proxy != null)
+				proxy.ParseInfo(deviceInfo);
 		}
 
 		#endregion
