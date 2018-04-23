@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="Core\ApiOriginatorsNodeGroup.cs" />
     <Compile Include="Core\KrangBootstrapConsole.cs" />
+    <Compile Include="Core\KrangCoreConsole.cs" />
     <Compile Include="Remote\RemoteCore.cs" />
     <Compile Include="Remote\RemoteCoreCollection.cs" />
     <Compile Include="Remote\RemoteCoreSettings.cs" />
