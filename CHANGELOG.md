@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Adding API attributes
  - Adding API messaging features for MultiKrang communication
  - Adding remote core mechanism for creating and managing proxy originators
+ - Added VersionInfo console command to KrangBootstrap
+ - Added informational version info to AssemblyInfo
 
 ### Changed
  - Singificant overhauling of existing message/broadcast features
