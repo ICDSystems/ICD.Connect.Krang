@@ -186,6 +186,8 @@ namespace ICD.Connect.Krang.Core
 			                                () => PrintPlugins());
 			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.",
 			                                () => PrintTypes());
+			yield return new ConsoleCommand("VersionInfo", "Prints version information for the loaded assemblies.",
+			                                () => PrintVersionInfo());
 		}
 
 		private void SaveSettings()
@@ -234,6 +236,28 @@ namespace ICD.Connect.Krang.Core
 				path = IcdPath.GetDirectoryName(path);
 
 				builder.AddRow(factoryName, name, path, version, date);
+			}
+
+			return builder.ToString();
+		}
+
+		private static string PrintVersionInfo()
+		{
+			TableBuilder builder = new TableBuilder("Assembly", "Path", "Informational Version", "Assembly Version", "Date");
+
+			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
+			{
+				string name = assembly.GetName().Name;
+				string path = assembly.GetPath();
+				string version = assembly.GetName().Version.ToString();
+				DateTime date = IcdFile.GetLastWriteTime(path);
+
+				string infoVersion;
+				assembly.TryGetInformationalVersion(out infoVersion);
+
+				path = IcdPath.GetDirectoryName(path);
+
+				builder.AddRow(name, path, infoVersion, version, date);
 			}
 
 			return builder.ToString();
