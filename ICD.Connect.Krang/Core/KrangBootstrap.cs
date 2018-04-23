@@ -45,6 +45,11 @@ namespace ICD.Connect.Krang.Core
 		[ApiNode("Core", "The core instance for this program")]
 		public KrangCore Krang { get { return m_Core; } }
 
+		/// <summary>
+		/// Gets the broadcast manager instance.
+		/// </summary>
+		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
+
 		#endregion
 
 		/// <summary>

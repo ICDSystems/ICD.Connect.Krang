@@ -29,6 +29,7 @@ namespace ICD.Connect.Krang.Core
 				throw new ArgumentNullException("instance");
 
 			yield return instance.Krang;
+			yield return instance.BroadcastManager;
 		}
 
 		/// <summary>
