@@ -105,6 +105,19 @@ namespace ICD.Connect.Krang.Core
 			Panels = new ApiOriginatorsNodeGroup<IPanelDevice>(Originators);
 			Ports = new ApiOriginatorsNodeGroup<IPort>(Originators);
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
+
+			m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler(this);
+			m_OriginatorsBroadcastHandler = new OriginatorsChangeBroadcastHandler(this);
+			m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
+
+			DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
+			DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
+			DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
+			DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
+			DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
+			DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
+			DirectMessageManager.RegisterMessageHandler(new RemoteApiCommandHandler());
+			DirectMessageManager.RegisterMessageHandler(new RemoteApiResultHandler());
 		}
 
 		#endregion
@@ -206,7 +219,6 @@ namespace ICD.Connect.Krang.Core
 			base.CopySettingsFinal(settings);
 
 			settings.OriginatorSettings.Clear();
-
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
 
 			RoutingGraph routingGraph = RoutingGraph;
@@ -286,26 +298,9 @@ namespace ICD.Connect.Krang.Core
 				LoadOriginatorsSkipExceptions(factory);
 
 				if (settings.Broadcast)
-				{
-					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler(this);
-					m_OriginatorsBroadcastHandler = new OriginatorsChangeBroadcastHandler(this);
-					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
-
-					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
-					DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
-					DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
-					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
-					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
-					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
-					DirectMessageManager.RegisterMessageHandler(new RemoteApiCommandHandler());
-					DirectMessageManager.RegisterMessageHandler(new RemoteApiResultHandler());
-
 					BroadcastManager.Start();
-				}
 				else
-				{
 					BroadcastManager.Stop();
-				}
 
 				ResetDefaultPermissions();
 			}
