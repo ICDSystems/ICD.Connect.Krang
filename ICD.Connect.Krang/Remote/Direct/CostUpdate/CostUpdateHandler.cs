@@ -65,7 +65,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			m_RegularUpdateTimer = new SafeTimer(SendRegularUpdate, UPDATE_TIME, UPDATE_TIME);
 		}
 
-		protected override IReply HandleMessage(CostUpdateMessage message)
+		public override IReply HandleMessage(CostUpdateMessage message)
 		{
 			InitializeCostTables();
 

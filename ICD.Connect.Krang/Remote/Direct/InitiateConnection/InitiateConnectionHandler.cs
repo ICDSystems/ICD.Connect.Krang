@@ -7,7 +7,7 @@ namespace ICD.Connect.Krang.Remote.Direct.InitiateConnection
 {
 	public sealed class InitiateConnectionHandler : AbstractMessageHandler<InitiateConnectionMessage, IReply>
 	{
-		protected override IReply HandleMessage(InitiateConnectionMessage message)
+		public override IReply HandleMessage(InitiateConnectionMessage message)
 		{
 			ICore core = ServiceProvider.GetService<ICore>();
 			RemoteSwitcher switcher = (RemoteSwitcher)core.Originators.GetChild(message.DeviceId);
