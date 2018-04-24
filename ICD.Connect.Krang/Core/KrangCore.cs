@@ -264,6 +264,9 @@ namespace ICD.Connect.Krang.Core
 
 			SetOriginators(Enumerable.Empty<IOriginator>());
 
+			BroadcastManager.Stop();
+			BroadcastManager.SetBroadcastAddresses(Enumerable.Empty<string>());
+
 			ResetDefaultPermissions();
 
 			if (m_DiscoveryBroadcastHandler != null)
@@ -297,7 +300,10 @@ namespace ICD.Connect.Krang.Core
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
 
-				if (settings.Broadcast)
+				IEnumerable<string> addresses = settings.BroadcastSettings.GetAddresses();
+				BroadcastManager.SetBroadcastAddresses(addresses);
+
+				if (settings.BroadcastSettings.Enabled)
 					BroadcastManager.Start();
 				else
 					BroadcastManager.Stop();

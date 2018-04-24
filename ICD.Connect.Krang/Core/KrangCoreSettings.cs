@@ -34,10 +34,12 @@ namespace ICD.Connect.Krang.Core
 		private const string ROOMS_ELEMENT = "Rooms";
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
+
 		private const string BROADCAST_ELEMENT = "Broadcast";
 
 		private readonly SettingsCollection m_OriginatorSettings;
 		private readonly ConfigurationHeader m_Header;
+		private readonly BroadcastSettings m_BroadcastSettings;
 
 		#region Properties
 
@@ -119,9 +121,9 @@ namespace ICD.Connect.Krang.Core
 		public ConfigurationHeader Header { get { return m_Header; } }
 
 		/// <summary>
-		/// Gets the broadcast setting.
+		/// Gets the broadcasting configuration.
 		/// </summary>
-		public bool Broadcast { get; private set; }
+		public BroadcastSettings BroadcastSettings { get { return m_BroadcastSettings; } }
 
 		public override string FactoryName { get { return FACTORY_NAME; } }
 
@@ -139,6 +141,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			m_OriginatorSettings = new SettingsCollection();
 			m_Header = new ConfigurationHeader();
+			m_BroadcastSettings = new BroadcastSettings();
 
 			m_OriginatorSettings.OnItemRemoved += DeviceSettingsOnItemRemoved;
 		}
@@ -169,6 +172,8 @@ namespace ICD.Connect.Krang.Core
 
 			new ConfigurationHeader(true).ToXml(writer);
 
+			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
+
 			ThemeSettings.ToXml(writer, THEMES_ELEMENT);
 			PanelSettings.ToXml(writer, PANELS_ELEMENT);
 			PortSettings.ToXml(writer, PORTS_ELEMENT);
@@ -192,8 +197,8 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.ParseXml(xml);
 
-			Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
 			UpdateHeaderFromXml(xml);
+			UpdateBroadcastSettingsFromXml(xml);
 
 			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
 			IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
@@ -273,6 +278,15 @@ namespace ICD.Connect.Krang.Core
 			string child;
 			if (XmlUtils.TryGetChildElementAsString(xml, HEADER_ELEMENT, out child))
 				m_Header.ParseXml(child);
+		}
+
+		private void UpdateBroadcastSettingsFromXml(string xml)
+		{
+			m_BroadcastSettings.Clear();
+
+			string child;
+			if (XmlUtils.TryGetChildElementAsString(xml, BROADCAST_ELEMENT, out child))
+				m_BroadcastSettings.ParseXml(child);
 		}
 
 		private void UpdateRoutingFromXml(string xml)

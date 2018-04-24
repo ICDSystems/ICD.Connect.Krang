@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Changed
  - Multi-routing better resistant to the routing graph being reloaded
+ - Broadcast configuration no longer a simple bool, adding elements for specifying addresses
 
 ## [4.0.0] - 2018-04-23
 ### Added
