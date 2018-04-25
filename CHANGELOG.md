@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Multi-routing better resistant to the routing graph being reloaded
  - Broadcast configuration no longer a simple bool, adding elements for specifying addresses
+ - Moving broadcast/messaging features out of KrangCore
 
 ## [4.0.0] - 2018-04-23
 ### Added

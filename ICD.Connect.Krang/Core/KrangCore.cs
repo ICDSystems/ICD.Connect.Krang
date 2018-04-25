@@ -10,21 +10,10 @@ using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
-using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
-using ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange;
-using ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery;
-using ICD.Connect.Krang.Remote.Direct.API;
-using ICD.Connect.Krang.Remote.Direct.CostUpdate;
-using ICD.Connect.Krang.Remote.Direct.Disconnect;
-using ICD.Connect.Krang.Remote.Direct.InitiateConnection;
-using ICD.Connect.Krang.Remote.Direct.RequestDevices;
-using ICD.Connect.Krang.Remote.Direct.RouteDevices;
-using ICD.Connect.Krang.Remote.Direct.ShareDevices;
+using ICD.Connect.Krang.Remote;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
-using ICD.Connect.Protocol.Network.Broadcast;
-using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
@@ -40,9 +29,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private readonly Stack<int> m_LoadedOriginators;
 
-		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
-		private OriginatorsChangeBroadcastHandler m_OriginatorsBroadcastHandler;
-		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
+		private readonly InterCoreCommunication m_InterCore;
 
 		#region Properties
 
@@ -83,10 +70,6 @@ namespace ICD.Connect.Krang.Core
 		[ApiNodeGroup("Rooms", "The currently active rooms")]
 		private IApiNodeGroup Rooms { get; set; }
 
-		private BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
-
-		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
-
 		#endregion
 
 		#region Constructors
@@ -106,18 +89,7 @@ namespace ICD.Connect.Krang.Core
 			Ports = new ApiOriginatorsNodeGroup<IPort>(Originators);
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 
-			m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler(this);
-			m_OriginatorsBroadcastHandler = new OriginatorsChangeBroadcastHandler(this);
-			m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
-
-			DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
-			DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
-			DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
-			DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
-			DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
-			DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
-			DirectMessageManager.RegisterMessageHandler(new RemoteApiCommandHandler());
-			DirectMessageManager.RegisterMessageHandler(new RemoteApiResultHandler());
+			m_InterCore = new InterCoreCommunication(this);
 		}
 
 		#endregion
@@ -129,6 +101,8 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		protected override void DisposeFinal(bool disposing)
 		{
+			m_InterCore.Dispose();
+
 			base.DisposeFinal(disposing);
 
 			DisposeOriginators();
@@ -264,22 +238,10 @@ namespace ICD.Connect.Krang.Core
 
 			SetOriginators(Enumerable.Empty<IOriginator>());
 
-			BroadcastManager.Stop();
-			BroadcastManager.SetBroadcastAddresses(Enumerable.Empty<string>());
+			m_InterCore.Stop();
+			m_InterCore.SetBroadcastAddresses(Enumerable.Empty<string>());
 
 			ResetDefaultPermissions();
-
-			if (m_DiscoveryBroadcastHandler != null)
-				m_DiscoveryBroadcastHandler.Dispose();
-			m_DiscoveryBroadcastHandler = null;
-
-			if (m_OriginatorsBroadcastHandler != null)
-				m_OriginatorsBroadcastHandler.Dispose();
-			m_OriginatorsBroadcastHandler = null;
-
-			if (m_TielineBroadcastHandler != null)
-				m_TielineBroadcastHandler.Dispose();
-			m_TielineBroadcastHandler = null;
 		}
 
 		/// <summary>
@@ -301,12 +263,12 @@ namespace ICD.Connect.Krang.Core
 				LoadOriginatorsSkipExceptions(factory);
 
 				IEnumerable<string> addresses = settings.BroadcastSettings.GetAddresses();
-				BroadcastManager.SetBroadcastAddresses(addresses);
+				m_InterCore.SetBroadcastAddresses(addresses);
 
 				if (settings.BroadcastSettings.Enabled)
-					BroadcastManager.Start();
+					m_InterCore.Start();
 				else
-					BroadcastManager.Stop();
+					m_InterCore.Stop();
 
 				ResetDefaultPermissions();
 			}

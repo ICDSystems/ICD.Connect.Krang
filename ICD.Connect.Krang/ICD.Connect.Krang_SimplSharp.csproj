@@ -73,6 +73,8 @@
     <Compile Include="Core\BroadcastSettings.cs" />
     <Compile Include="Core\KrangBootstrapConsole.cs" />
     <Compile Include="Core\KrangCoreConsole.cs" />
+    <Compile Include="Remote\Broadcast\IBroadcastHandler.cs" />
+    <Compile Include="Remote\InterCoreCommunication.cs" />
     <Compile Include="Remote\RemoteCore.cs" />
     <Compile Include="Remote\RemoteCoreCollection.cs" />
     <Compile Include="Remote\RemoteCoreSettings.cs" />
