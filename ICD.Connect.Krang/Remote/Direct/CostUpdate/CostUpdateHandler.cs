@@ -14,6 +14,7 @@ using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Extensions;
+using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Core;
 
@@ -113,6 +114,10 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		private void InitializeCostTables()
 		{
 			HostInfo hostInfo = ServiceProvider.GetService<DirectMessageManager>().GetHostInfo();
+
+			IRoutingGraph routingGraph;
+			if (!m_Core.TryGetRoutingGraph(out routingGraph))
+				return;
 
 			m_CostsCriticalSection.Enter();
 
