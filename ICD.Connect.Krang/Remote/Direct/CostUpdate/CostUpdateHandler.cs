@@ -25,8 +25,10 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		private const double MAX_COST = 16;
 
 		private readonly double m_Addition =
-			new Random(ServiceProvider.GetService<DirectMessageManager>().GetHostInfo().ToString().GetHashCode()).NextDouble() /
-			100;
+			new Random(ServiceProvider.GetService<DirectMessageManager>()
+			                          .GetHostInfo()
+			                          .ToString()
+			                          .GetHashCode()).NextDouble() / 100;
 
 		private const int TIMEOUT_TIME = 120 * 1000;
 		private const int DELETION_TIME = 120 * 1000;
@@ -79,6 +81,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			List<int> missingSources;
 			List<int> missingDestinations;
 			List<int> missingDestinationGroups;
+
 			bool triggerUpdate = HandleCostUpdates(message.SourceCosts, message.MessageFrom, m_SourceCosts, out missingSources);
 			triggerUpdate =
 				HandleCostUpdates(message.DestinationCosts, message.MessageFrom, m_DestinationCosts, out missingDestinations) ||
