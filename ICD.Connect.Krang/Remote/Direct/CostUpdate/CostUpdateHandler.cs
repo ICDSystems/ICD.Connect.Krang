@@ -112,100 +112,116 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		private void InitializeCostTables()
 		{
-			m_CostsCriticalSection.Enter();
 			HostInfo hostInfo = ServiceProvider.GetService<DirectMessageManager>().GetHostInfo();
 
-			// fill with local sources/destinations with cost 0 and no timeout
-			if (m_SourceCosts.Count == 0)
+			m_CostsCriticalSection.Enter();
+
+			try
 			{
-				m_SourceCosts.AddRange(m_Core.GetRoutingGraph()
-				                             .Sources.Where(s => !s.Remote)
-				                             .ToDictionary(s => s.Id, s => new Row {Cost = 0, RouteTo = hostInfo}));
+				// fill with local sources/destinations with cost 0 and no timeout
+				if (m_SourceCosts.Count == 0)
+				{
+					m_SourceCosts.AddRange(m_Core.GetRoutingGraph()
+					                             .Sources.Where(s => !s.Remote)
+					                             .ToDictionary(s => s.Id, s => new Row {Cost = 0, RouteTo = hostInfo}));
+				}
+
+				if (m_DestinationCosts.Count == 0)
+				{
+					m_DestinationCosts.AddRange(m_Core.GetRoutingGraph()
+					                                  .Destinations.Where(d => !d.Remote)
+					                                  .ToDictionary(d => d.Id, d => new Row {Cost = 0, RouteTo = hostInfo}));
+				}
+
+				if (m_DestinationGroupCosts.Count == 0)
+				{
+					m_DestinationGroupCosts.AddRange(m_Core.GetRoutingGraph()
+					                                       .DestinationGroups.Where(d => !d.Remote)
+					                                       .ToDictionary(d => d.Id, d => new Row {Cost = 0, RouteTo = hostInfo}));
+				}
 			}
-			if (m_DestinationCosts.Count == 0)
+			finally
 			{
-				m_DestinationCosts.AddRange(m_Core.GetRoutingGraph()
-				                                  .Destinations.Where(d => !d.Remote)
-				                                  .ToDictionary(d => d.Id, d => new Row {Cost = 0, RouteTo = hostInfo}));
+				m_CostsCriticalSection.Leave();
 			}
-			if (m_DestinationGroupCosts.Count == 0)
-			{
-				m_DestinationGroupCosts.AddRange(
-				                                 m_Core.GetRoutingGraph()
-				                                       .DestinationGroups.Where(d => !d.Remote)
-				                                       .ToDictionary(d => d.Id, d => new Row {Cost = 0, RouteTo = hostInfo}));
-			}
-			m_CostsCriticalSection.Leave();
 		}
 
 		private bool HandleCostUpdates(Dictionary<int, double> costs, HostInfo messageFrom, Dictionary<int, Row> table,
 		                               out List<int> missing)
 		{
 			bool triggerUpdate = false;
+			missing = new List<int>();
+
 			m_CostsCriticalSection.Enter();
 
-			missing = new List<int>();
-			foreach (KeyValuePair<int, double> entry in costs)
+			try
 			{
-				// make sure source/dest is valid
-				if (((table == m_SourceCosts && !m_Core.GetRoutingGraph().Sources.ContainsChild(entry.Key)) ||
-				     (table == m_DestinationCosts && !m_Core.GetRoutingGraph().Destinations.ContainsChild(entry.Key)) ||
-				     (table == m_DestinationGroupCosts && !m_Core.GetRoutingGraph().DestinationGroups.ContainsChild(entry.Key))) &&
-				    entry.Value < MAX_COST)
+				foreach (KeyValuePair<int, double> entry in costs)
 				{
-					missing.Add(entry.Key);
-					continue;
-				}
-
-				// add cost of local routing graph, up to maximum
-				double cost = MathUtils.Clamp(entry.Value + CalculateSourceCost(entry.Key), 0, MAX_COST);
-
-				// if source exists
-				if (table.ContainsKey(entry.Key))
-				{
-					Row row = table[entry.Key];
-
-					// if from same host, restart timeout timer
-					if (row.RouteTo == messageFrom)
+					// Make sure source/dest is valid
+					if (((table == m_SourceCosts && !m_Core.GetRoutingGraph().Sources.ContainsChild(entry.Key)) ||
+					     (table == m_DestinationCosts && !m_Core.GetRoutingGraph().Destinations.ContainsChild(entry.Key)) ||
+					     (table == m_DestinationGroupCosts && !m_Core.GetRoutingGraph().DestinationGroups.ContainsChild(entry.Key))) &&
+					    entry.Value < MAX_COST)
 					{
-						row.Deletion.Stop();
-						row.Timeout.Reset(TIMEOUT_TIME);
+						missing.Add(entry.Key);
+						continue;
 					}
 
-					if ((row.RouteTo == messageFrom && Math.Abs(row.Cost - cost) > 0.0000000001) || cost < row.Cost)
+					// Add cost of local routing graph, up to maximum
+					double cost = MathUtils.Clamp(entry.Value + CalculateSourceCost(entry.Key), 0, MAX_COST);
+
+					// If source exists
+					if (table.ContainsKey(entry.Key))
 					{
-						if (row.RouteTo != messageFrom)
+						Row row = table[entry.Key];
+
+						// If from same host, restart timeout timer
+						if (row.RouteTo == messageFrom)
 						{
-							ServiceProvider.TryGetService<ILoggerService>()
-							               .AddEntry(eSeverity.Informational, "Replacing {0} with {1}", row.RouteTo, messageFrom);
+							row.Deletion.Stop();
+							row.Timeout.Reset(TIMEOUT_TIME);
 						}
-						row.RouteTo = messageFrom;
-						row.Cost = cost;
-						row.Deletion.Stop();
-						row.Timeout.Reset(TIMEOUT_TIME);
-						row.RouteChanged = true;
 
-						if (cost >= MAX_COST)
-							row.Timeout.Trigger();
-						triggerUpdate = true;
+						if ((row.RouteTo == messageFrom && Math.Abs(row.Cost - cost) > 0.0000000001) || cost < row.Cost)
+						{
+							if (row.RouteTo != messageFrom)
+							{
+								ServiceProvider.TryGetService<ILoggerService>()
+								               .AddEntry(eSeverity.Informational, "Replacing {0} with {1}", row.RouteTo, messageFrom);
+							}
+							row.RouteTo = messageFrom;
+							row.Cost = cost;
+							row.Deletion.Stop();
+							row.Timeout.Reset(TIMEOUT_TIME);
+							row.RouteChanged = true;
 
+							if (cost >= MAX_COST)
+								row.Timeout.Trigger();
+							triggerUpdate = true;
+
+						}
 					}
-				}
-				// add source to table if it isn't infinite cost
-				else if (cost < MAX_COST)
-				{
-					table.Add(entry.Key, new Row
+					// Add source to table if it isn't infinite cost
+					else if (cost < MAX_COST)
 					{
-						Cost = cost,
-						RouteTo = messageFrom,
-						RouteChanged = true,
-						Timeout = new SafeTimer(TimeoutCallback(entry.Key, table), TIMEOUT_TIME, -1),
-						Deletion = SafeTimer.Stopped(DeletionCallback(entry.Key, table))
-					});
-					triggerUpdate = true;
+						table.Add(entry.Key, new Row
+						{
+							Cost = cost,
+							RouteTo = messageFrom,
+							RouteChanged = true,
+							Timeout = new SafeTimer(TimeoutCallback(entry.Key, table), TIMEOUT_TIME, -1),
+							Deletion = SafeTimer.Stopped(DeletionCallback(entry.Key, table))
+						});
+						triggerUpdate = true;
+					}
 				}
 			}
-			m_CostsCriticalSection.Leave();
+			finally
+			{
+				m_CostsCriticalSection.Leave();
+			}
+
 			return triggerUpdate;
 		}
 
@@ -214,36 +230,43 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			return () =>
 			       {
 				       m_CostsCriticalSection.Enter();
-				       if (!table.ContainsKey(id))
-					       return;
 
-				       ServiceProvider.TryGetService<ILoggerService>()
-				                      .AddEntry(eSeverity.Warning,
-				                                "Remote {0} {1} has timed out or reached max cost, and will be deleted in {2} seconds",
-				                                table == m_SourceCosts ? "Source" : "Destination", id, DELETION_TIME / 1000);
-				       table[id].Cost = MAX_COST;
-				       table[id].Deletion.Reset(DELETION_TIME);
-				       table[id].Timeout.Stop();
-				       table[id].RouteChanged = true;
-
-				       if (
-					       m_SourceCosts.Union(m_DestinationCosts)
-					                    .Union(m_DestinationGroupCosts)
-					                    .Where(r => r.Value.RouteTo == table[id].RouteTo)
-					                    .All(r => r.Value.Cost >= MAX_COST))
+				       try
 				       {
+					       if (!table.ContainsKey(id))
+						       return;
+
 					       ServiceProvider.TryGetService<ILoggerService>()
 					                      .AddEntry(eSeverity.Warning,
-					                                "All sources and destinations from {0} have timed out, resetting remote switcher to discovery mode",
-					                                table[id].RouteTo);
-					       RemoteSwitcher switcher =
-						       m_Core.Originators.GetChildren<RemoteSwitcher>()
-						             .FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == table[id].RouteTo);
-					       if (switcher != null)
-						       switcher.HostInfo = default(HostInfo);
+					                                "Remote {0} {1} has timed out or reached max cost, and will be deleted in {2} seconds",
+					                                table == m_SourceCosts ? "Source" : "Destination", id, DELETION_TIME / 1000);
+					       table[id].Cost = MAX_COST;
+					       table[id].Deletion.Reset(DELETION_TIME);
+					       table[id].Timeout.Stop();
+					       table[id].RouteChanged = true;
+
+					       if (
+						       m_SourceCosts.Union(m_DestinationCosts)
+						                    .Union(m_DestinationGroupCosts)
+						                    .Where(r => r.Value.RouteTo == table[id].RouteTo)
+						                    .All(r => r.Value.Cost >= MAX_COST))
+					       {
+						       ServiceProvider.TryGetService<ILoggerService>()
+						                      .AddEntry(eSeverity.Warning,
+						                                "All sources and destinations from {0} have timed out, resetting remote switcher to discovery mode",
+						                                table[id].RouteTo);
+						       RemoteSwitcher switcher =
+							       m_Core.Originators.GetChildren<RemoteSwitcher>()
+							             .FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == table[id].RouteTo);
+						       if (switcher != null)
+							       switcher.HostInfo = default(HostInfo);
+					       }
+				       }
+				       finally
+				       {
+					       m_CostsCriticalSection.Leave();
 				       }
 
-				       m_CostsCriticalSection.Leave();
 				       QueueTriggeredUpdate();
 			       };
 		}
@@ -253,17 +276,24 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			return () =>
 			       {
 				       m_CostsCriticalSection.Enter();
-				       if (!table.ContainsKey(id))
-					       return;
 
-				       if (table == m_SourceCosts)
-					       RemoveSource(id);
-				       else if (table == m_DestinationCosts)
-					       RemoveDestination(id);
-				       else if (table == m_DestinationGroupCosts)
-					       RemoveDestinationGroup(id);
-				       table.Remove(id);
-				       m_CostsCriticalSection.Leave();
+				       try
+				       {
+					       if (!table.ContainsKey(id))
+						       return;
+
+					       if (table == m_SourceCosts)
+						       RemoveSource(id);
+					       else if (table == m_DestinationCosts)
+						       RemoveDestination(id);
+					       else if (table == m_DestinationGroupCosts)
+						       RemoveDestinationGroup(id);
+					       table.Remove(id);
+				       }
+				       finally
+				       {
+					       m_CostsCriticalSection.Leave();
+				       }
 			       };
 		}
 
@@ -439,23 +469,29 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			m_CostsCriticalSection.Enter();
 
-			//generate and send messages
-			foreach (HostInfo host in GetHosts())
+			try
 			{
-				CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts.Where(s => s.Value.RouteChanged).ToDictionary(),
-				                                                  m_DestinationCosts.Where(s => s.Value.RouteChanged).ToDictionary(),
-				                                                  m_DestinationGroupCosts.Where(s => s.Value.RouteChanged)
-				                                                                         .ToDictionary(), host);
-				dmManager.Send(host, message);
+				//generate and send messages
+				foreach (HostInfo host in GetHosts())
+				{
+					CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts.Where(s => s.Value.RouteChanged).ToDictionary(),
+					                                                  m_DestinationCosts.Where(s => s.Value.RouteChanged)
+					                                                                    .ToDictionary(),
+					                                                  m_DestinationGroupCosts.Where(s => s.Value.RouteChanged)
+					                                                                         .ToDictionary(), host);
+					dmManager.Send(host, message);
+				}
+
+				// set route change flags to false
+				foreach (KeyValuePair<int, Row> row in m_SourceCosts)
+					row.Value.RouteChanged = false;
+				foreach (KeyValuePair<int, Row> row in m_DestinationCosts)
+					row.Value.RouteChanged = false;
 			}
-
-			// set route change flags to false
-			foreach (KeyValuePair<int, Row> row in m_SourceCosts)
-				row.Value.RouteChanged = false;
-			foreach (KeyValuePair<int, Row> row in m_DestinationCosts)
-				row.Value.RouteChanged = false;
-
-			m_CostsCriticalSection.Leave();
+			finally
+			{
+				m_CostsCriticalSection.Leave();
+			}
 
 			m_TriggeredUpdateQueued = false;
 			m_TriggeredUpdateCooldownTimer = new SafeTimer(TriggeredUpdateCallback, new Random().Next(5), -1);
