@@ -30,7 +30,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns>Returns an AbstractMessage as a reply, or null for no reply</returns>
-		protected override RemoteApiReply HandleMessage(RemoteApiMessage message)
+		public override RemoteApiReply HandleMessage(RemoteApiMessage message)
 		{
 			ApiRequestor requestor = LazyLoadRequestor(message.ClientId);
 

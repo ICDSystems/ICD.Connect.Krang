@@ -68,7 +68,7 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			return output;
 		}
 
-		protected override RouteDevicesReply HandleMessage(RouteDevicesMessage message)
+		public override RouteDevicesReply HandleMessage(RouteDevicesMessage message)
 		{
 			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(message));
 

@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 			m_Core = ServiceProvider.GetService<ICore>();
 		}
 
-		protected override IReply HandleMessage(ShareDevicesMessage message)
+		public override IReply HandleMessage(ShareDevicesMessage message)
 		{
 			RemoteSwitcher switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
 			                                .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);

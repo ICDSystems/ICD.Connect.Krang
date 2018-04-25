@@ -11,7 +11,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// </summary>
 		public event RemoteApiReplyCallback OnApiResult;
 
-		protected override IReply HandleMessage(RemoteApiReply message)
+		public override IReply HandleMessage(RemoteApiReply message)
 		{
 			RemoteApiReplyCallback handler = OnApiResult;
 			if (handler != null)
