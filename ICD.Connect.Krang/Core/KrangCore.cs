@@ -10,21 +10,10 @@ using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
-using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
-using ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange;
-using ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery;
-using ICD.Connect.Krang.Remote.Direct.API;
-using ICD.Connect.Krang.Remote.Direct.CostUpdate;
-using ICD.Connect.Krang.Remote.Direct.Disconnect;
-using ICD.Connect.Krang.Remote.Direct.InitiateConnection;
-using ICD.Connect.Krang.Remote.Direct.RequestDevices;
-using ICD.Connect.Krang.Remote.Direct.RouteDevices;
-using ICD.Connect.Krang.Remote.Direct.ShareDevices;
+using ICD.Connect.Krang.Remote;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
-using ICD.Connect.Protocol.Network.Broadcast;
-using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
@@ -40,9 +29,8 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private readonly Stack<int> m_LoadedOriginators;
 
-		private CoreDiscoveryBroadcastHandler m_DiscoveryBroadcastHandler;
-		private OriginatorsChangeBroadcastHandler m_OriginatorsBroadcastHandler;
-		private TielineDiscoveryBroadcastHandler m_TielineBroadcastHandler;
+		private readonly InterCoreCommunication m_InterCore;
+		private readonly BroadcastSettings m_BroadcastSettings;
 
 		#region Properties
 
@@ -83,10 +71,6 @@ namespace ICD.Connect.Krang.Core
 		[ApiNodeGroup("Rooms", "The currently active rooms")]
 		private IApiNodeGroup Rooms { get; set; }
 
-		private BroadcastManager BroadcastManager { get { return ServiceProvider.TryGetService<BroadcastManager>(); } }
-
-		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.TryGetService<DirectMessageManager>(); } }
-
 		#endregion
 
 		#region Constructors
@@ -105,6 +89,9 @@ namespace ICD.Connect.Krang.Core
 			Panels = new ApiOriginatorsNodeGroup<IPanelDevice>(Originators);
 			Ports = new ApiOriginatorsNodeGroup<IPort>(Originators);
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
+
+			m_InterCore = new InterCoreCommunication(this);
+			m_BroadcastSettings = new BroadcastSettings();
 		}
 
 		#endregion
@@ -116,6 +103,8 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		protected override void DisposeFinal(bool disposing)
 		{
+			m_InterCore.Dispose();
+
 			base.DisposeFinal(disposing);
 
 			DisposeOriginators();
@@ -205,8 +194,9 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.OriginatorSettings.Clear();
+			settings.BroadcastSettings.Update(m_BroadcastSettings);
 
+			settings.OriginatorSettings.Clear();
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
 
 			RoutingGraph routingGraph = RoutingGraph;
@@ -252,19 +242,12 @@ namespace ICD.Connect.Krang.Core
 
 			SetOriginators(Enumerable.Empty<IOriginator>());
 
+			m_InterCore.Stop();
+			m_InterCore.SetBroadcastAddresses(Enumerable.Empty<string>());
+
+			m_BroadcastSettings.Clear();
+
 			ResetDefaultPermissions();
-
-			if (m_DiscoveryBroadcastHandler != null)
-				m_DiscoveryBroadcastHandler.Dispose();
-			m_DiscoveryBroadcastHandler = null;
-
-			if (m_OriginatorsBroadcastHandler != null)
-				m_OriginatorsBroadcastHandler.Dispose();
-			m_OriginatorsBroadcastHandler = null;
-
-			if (m_TielineBroadcastHandler != null)
-				m_TielineBroadcastHandler.Dispose();
-			m_TielineBroadcastHandler = null;
 		}
 
 		/// <summary>
@@ -285,34 +268,27 @@ namespace ICD.Connect.Krang.Core
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
 
-				if (settings.Broadcast)
-				{
-					m_DiscoveryBroadcastHandler = new CoreDiscoveryBroadcastHandler(this);
-					m_OriginatorsBroadcastHandler = new OriginatorsChangeBroadcastHandler(this);
-					m_TielineBroadcastHandler = new TielineDiscoveryBroadcastHandler();
-
-					DirectMessageManager.RegisterMessageHandler(new InitiateConnectionHandler());
-					DirectMessageManager.RegisterMessageHandler(new ShareDevicesHandler());
-					DirectMessageManager.RegisterMessageHandler(new CostUpdateHandler());
-					DirectMessageManager.RegisterMessageHandler(new RequestDevicesHandler());
-					DirectMessageManager.RegisterMessageHandler(new DisconnectHandler());
-					DirectMessageManager.RegisterMessageHandler(new RouteDevicesHandler());
-					DirectMessageManager.RegisterMessageHandler(new RemoteApiCommandHandler());
-					DirectMessageManager.RegisterMessageHandler(new RemoteApiResultHandler());
-
-					BroadcastManager.Start();
-				}
-				else
-				{
-					BroadcastManager.Stop();
-				}
-
 				ResetDefaultPermissions();
+
+				ApplyBroadcastSettings(settings.BroadcastSettings);
 			}
 			finally
 			{
 				factory.OnOriginatorLoaded -= FactoryOnOriginatorLoaded;
 			}
+		}
+
+		private void ApplyBroadcastSettings(BroadcastSettings settings)
+		{
+			m_BroadcastSettings.Update(settings);
+
+			IEnumerable<string> addresses = m_BroadcastSettings.GetAddresses();
+			m_InterCore.SetBroadcastAddresses(addresses);
+
+			if (m_BroadcastSettings.Enabled)
+				m_InterCore.Start();
+			else
+				m_InterCore.Stop();
 		}
 
 		private void LoadOriginatorsSkipExceptions(IDeviceFactory factory)
@@ -354,22 +330,7 @@ namespace ICD.Connect.Krang.Core
 		#region Console
 
 		/// <summary>
-		/// Calls the delegate for each console status item.
-		/// </summary>
-		/// <param name="addRow"></param>
-		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
-		{
-			base.BuildConsoleStatus(addRow);
-
-			addRow("Theme count", Originators.GetChildren<ITheme>().Count());
-			addRow("Panel count", Originators.GetChildren<IPanelDevice>().Count());
-			addRow("Device count", Originators.GetChildren<IDevice>().Count());
-			addRow("Port count", Originators.GetChildren<IPort>().Count());
-			addRow("Room count", Originators.GetChildren<IRoom>().Count());
-		}
-
-		/// <summary>
-		/// Gets the child console node groups.
+		/// Gets the child console nodes.
 		/// </summary>
 		/// <returns></returns>
 		public override IEnumerable<IConsoleNodeBase> GetConsoleNodes()
@@ -377,17 +338,8 @@ namespace ICD.Connect.Krang.Core
 			foreach (IConsoleNodeBase node in GetBaseConsoleNodes())
 				yield return node;
 
-			yield return ConsoleNodeGroup.KeyNodeMap("Themes", Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Panels", Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Devices", Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Ports", Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
-
-			if (RoutingGraph != null)
-				yield return RoutingGraph;
-
-			if (PartitionManager != null)
-				yield return PartitionManager;
+			foreach (IConsoleNodeBase node in KrangCoreConsole.GetConsoleNodes(this))
+				yield return node;
 		}
 
 		/// <summary>
@@ -400,6 +352,17 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			base.BuildConsoleStatus(addRow);
+
+			KrangCoreConsole.BuildConsoleStatus(this, addRow);
+		}
+
+		/// <summary>
 		/// Gets the child console commands.
 		/// </summary>
 		/// <returns></returns>
@@ -408,7 +371,8 @@ namespace ICD.Connect.Krang.Core
 			foreach (IConsoleCommand command in GetBaseConsoleCommands())
 				yield return command;
 
-			yield return new ConsoleCommand("whoami", "Displays info about Krang", () => PrintKrang(), true);
+			foreach (IConsoleCommand command in KrangCoreConsole.GetConsoleCommands(this))
+				yield return command;
 		}
 
 		/// <summary>
@@ -418,55 +382,6 @@ namespace ICD.Connect.Krang.Core
 		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
 		{
 			return base.GetConsoleCommands();
-		}
-
-		private static string PrintKrang()
-		{
-			return @"................................................................................
-................................................................................
-...................................~?IIIIII?~,?.................................
-..................................,IIIIIIIIIIII+,...............................
-............................,~+?III++III?~:~+III?+..............................
-...........................:IIIIII,IIIIIIIIIIII~?????:..........................
-......................=IIIIIIIIIIIII,II??~,=IIII?=????+=,.......................
-.....................IIIIIIIIIIIIII?IIIIIIIIIII:?????????+:.....................
-....................,IIII?IIIIIIIIIIIIIIIIIIIII?????????????,...................
-..................:7IIII+IIIIIIIII:IIIIIIIII?=:??????????????+..................
-..............:IIIIIIIIIIIII:IIIIIIIIIIIIIIIII+?,?????????????,.................
-.............?IIIII+IIIIII~7IIIIIIIII?IIIIIIII+??IIII+????????~.................
-............~IIIIIIIIIIIIIIIIIIIII??IIIIIIII?~??IIIIII++++????+.................
-...........+IIIIIIIIIIIIIIII+IIIIIIIIIIIIIIII?:IIIIIIII??:+?????+...............
-.........~IIIIIIIIIIIIIIIIIIII?IIIIIIIIIIIII??+IIIIIIII++:+:?????:..............
-........:IIIIIIIIIIIIIIIIIIIIIIIIII==IIII?=:++?IIIIIIII???????????..............
-........I7IIIIIIIIIIIIIIIIIIIIII+IIIIIIIIIII?IIIIIIIII+??+????????..............
-.......~I..?IIIIII+IIIIIIIIIIIIIIIII~??II?~?IIIIIIIII++III?????:??..............
-........+.7IIIIIIIIIIII=IIII,IIIIIIIIIIIIIIIIIIIIIIIIIIIII?????+:~..............
-.........II,IIII:7IIIIIIIIII7,IIIIIIII==+?IIIIIIIIIIIIIII??????+?+I.............
-....~:...IIIIIII=IIII,IIIIIIII,IIIIIIIIIIII+IIIIIIIIIIII+?????????,.............
-..II??+.:IIIIIIIIIIIIIIIIIIIII:IIIIIIIIIIIIIIIIIIIIIIII+??????????,.............
-..++,:,..=?=IIIII?III=IIIIIIII~IIIIIIIII~IIIIIIIIIII+????~+???????++,...........
-.=I+?=...I7IIIIIIIII:IIIIIIII::~IIIIIIII:IIIIIII?+????=::+??????????~...........
-.,II???,.=IIIIIIIII:IIIIIIIIIIII+IIIII?IIIIIII?IIII+????+?+??????????...........
-..+I+???::II?III?I?II,III+,~IIIIIIIII?+IIIIIIII:I????+,??+,+????????+~..........
-..,II???,.=7IIIIII~7IIII:++++:~?III=~I???IIII?+??????????+,=?????????:..........
-...,II??+,?I+IIIIIII7IIIII,+++~,,???+?,+?+,=?+???=,,=???????:?????????=.........
-....~I+???,IIIIIIIIIIIIIII~~I=::.+,?:+??~?+=:,,,,++,~++?????=???????=??,........
-....,III+??7IIIIIIIIIIIIIII7II~~??I~?????+??,++++,?????????:???????=.I+,........
-....~IIIIII?+IIIIIIIII:IIIIIIIIIIIIII???I??~++~~=+??????????????????+...........
-....:IIIIIII+,I~~?III,,~:::~,=IIIIIIIIIIIII?+~II??+?:????????????+?=............
-.....IIIIIIIII,IIIIII,:::,~=+=~::~~~:~:,,:IIIIIII,::~~??????????+?~:............
-......=7IIIIIIIIIIIII?:=7,+:+++++~:~++~,::::~:::::::~,?????????????++:..........
-.......=IIIIIIIIIIIIIIIIII?++IIIIIIIIIIII?::~?:,:+~,???????????????+???+........
-.......?IIIIIIIIIIII?IIIIIIIIIIII+=:,,,?I?????~~=????????+??????????????:.......
-........,:~~~IIIIIII?IIIIIII:+=~I+??????~=++:???????+???????????????????=I=.....
-...........?IIIIIII???+:IIIIIIIIIIIIIIII????+???????,????,+???????????+???+?,...
-.............,IIII?++:,I..~.....:IIIIIII??????????=~+????,.,??+:???+:?:=,+??=...
-................,.,.............:I:....,I~.......................::+,::??????...
-...............................,I,....,I:...................::+....:??????I7+...
-...............................?I..........................??+++??????????+I,...
-.............................................................~,+????????I:?.....
-.................................................................?,,:+..........
-................................................................................";
 		}
 
 		#endregion

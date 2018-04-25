@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -11,6 +12,7 @@ using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
 using ICD.Connect.Routing.Mock.Source;
+using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
@@ -34,8 +36,19 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 			base.BroadcasterOnBroadcasting(sender, e);
 
 			int[] remoteSwitchers =
-				m_Core.Originators.GetChildren<RemoteSwitcher>().Where(d => !d.HasHostInfo).Select(d => d.Id).ToArray();
-			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
+				m_Core.Originators
+				      .GetChildren<RemoteSwitcher>(d => !d.HasHostInfo)
+				      .Select(d => d.Id)
+				      .ToArray();
+
+			IRoutingGraph graph = GetRoutingGraph();
+
+			List<Connection> connections =
+				graph == null
+					? new List<Connection>()
+					: graph.Connections
+					       .GetChildren()
+					       .ToList();
 
 			Dictionary<int, int> devices = new Dictionary<int, int>();
 			Dictionary<int, IEnumerable<Connection>> deviceConnections = new Dictionary<int, IEnumerable<Connection>>();
@@ -92,16 +105,21 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 						switcher.HostInfo = e.Data.Source;
 				}
 
-				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
-				foreach (Connection tieline in data.Tielines[pair.Key])
-				{
-					// Workaround for compiler warning
-					Connection tieline1 = tieline;
+				IRoutingGraph graph = GetRoutingGraph();
 
-					if (connections.All(c => c.Id != tieline1.Id))
-						connections.Add(tieline);
+				if (graph != null)
+				{
+					List<Connection> connections = graph.Connections.ToList();
+					foreach (Connection tieline in data.Tielines[pair.Key])
+					{
+						// Workaround for compiler warning
+						Connection tieline1 = tieline;
+
+						if (connections.All(c => c.Id != tieline1.Id))
+							connections.Add(tieline);
+					}
+					graph.Connections.SetChildren(connections);
 				}
-				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				ServiceProvider.TryGetService<ILoggerService>()
 				               .AddEntry(eSeverity.Informational,
@@ -110,6 +128,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 
 				DirectMessageManager.Send(e.Data.Source, new InitiateConnectionMessage {DeviceId = pair.Key});
 			}
+		}
+
+		[CanBeNull]
+		private IRoutingGraph GetRoutingGraph()
+		{
+			IRoutingGraph output;
+			m_Core.TryGetRoutingGraph(out output);
+			return output;
 		}
 	}
 }

@@ -6,7 +6,7 @@ using ICD.Connect.Protocol.Network.Direct;
 
 namespace ICD.Connect.Krang.Remote.Broadcast
 {
-	public abstract class AbstractBroadcastHandler<TData> : IDisposable
+	public abstract class AbstractBroadcastHandler<TData> : IBroadcastHandler
 	{
 		protected BroadcastManager BroadcastManager { get { return ServiceProvider.GetService<BroadcastManager>(); } }
 		protected DirectMessageManager DirectMessageManager { get { return ServiceProvider.GetService<DirectMessageManager>(); } }
