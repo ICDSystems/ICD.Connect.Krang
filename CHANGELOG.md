@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [4.1.0] - 2018-04-25
 ### Changed
  - Multi-routing better resistant to the routing graph being reloaded
  - Broadcast configuration no longer a simple bool, adding elements for specifying addresses
