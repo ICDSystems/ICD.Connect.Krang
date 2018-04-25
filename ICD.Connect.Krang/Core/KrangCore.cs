@@ -30,6 +30,7 @@ namespace ICD.Connect.Krang.Core
 		private readonly Stack<int> m_LoadedOriginators;
 
 		private readonly InterCoreCommunication m_InterCore;
+		private readonly BroadcastSettings m_BroadcastSettings;
 
 		#region Properties
 
@@ -90,6 +91,7 @@ namespace ICD.Connect.Krang.Core
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 
 			m_InterCore = new InterCoreCommunication(this);
+			m_BroadcastSettings = new BroadcastSettings();
 		}
 
 		#endregion
@@ -192,6 +194,8 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.CopySettingsFinal(settings);
 
+			settings.BroadcastSettings.Update(m_BroadcastSettings);
+
 			settings.OriginatorSettings.Clear();
 			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
 
@@ -241,6 +245,8 @@ namespace ICD.Connect.Krang.Core
 			m_InterCore.Stop();
 			m_InterCore.SetBroadcastAddresses(Enumerable.Empty<string>());
 
+			m_BroadcastSettings.Clear();
+
 			ResetDefaultPermissions();
 		}
 
@@ -262,20 +268,27 @@ namespace ICD.Connect.Krang.Core
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
 
-				IEnumerable<string> addresses = settings.BroadcastSettings.GetAddresses();
-				m_InterCore.SetBroadcastAddresses(addresses);
-
-				if (settings.BroadcastSettings.Enabled)
-					m_InterCore.Start();
-				else
-					m_InterCore.Stop();
-
 				ResetDefaultPermissions();
+
+				ApplyBroadcastSettings(settings.BroadcastSettings);
 			}
 			finally
 			{
 				factory.OnOriginatorLoaded -= FactoryOnOriginatorLoaded;
 			}
+		}
+
+		private void ApplyBroadcastSettings(BroadcastSettings settings)
+		{
+			m_BroadcastSettings.Update(settings);
+
+			IEnumerable<string> addresses = m_BroadcastSettings.GetAddresses();
+			m_InterCore.SetBroadcastAddresses(addresses);
+
+			if (m_BroadcastSettings.Enabled)
+				m_InterCore.Start();
+			else
+				m_InterCore.Stop();
 		}
 
 		private void LoadOriginatorsSkipExceptions(IDeviceFactory factory)

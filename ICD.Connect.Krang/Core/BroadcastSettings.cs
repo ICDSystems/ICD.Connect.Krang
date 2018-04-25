@@ -45,6 +45,20 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
+		/// Copies the settings from the given other settings instance.
+		/// </summary>
+		/// <param name="settings"></param>
+		public void Update(BroadcastSettings settings)
+		{
+			if (settings == null)
+				throw new ArgumentNullException("settings");
+
+			Enabled = settings.Enabled;
+
+			SetAddresses(settings.GetAddresses());
+		}
+
+		/// <summary>
 		/// Sets the addresses to be broadcast to.
 		/// </summary>
 		/// <param name="addresses"></param>
