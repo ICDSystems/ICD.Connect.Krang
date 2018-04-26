@@ -22,11 +22,9 @@ namespace ICD.Connect.Krang.Core
 	/// <summary>
 	/// Settings for the Krang core.
 	/// </summary>
-	[KrangSettings(FACTORY_NAME)]
+	[KrangSettings("Krang", typeof(KrangCore))]
 	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
-		private const string FACTORY_NAME = "Krang";
-
 		private const string HEADER_ELEMENT = "Header";
 		private const string THEMES_ELEMENT = "Themes";
 		private const string PANELS_ELEMENT = "Panels";
@@ -138,13 +136,6 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the broadcasting configuration.
 		/// </summary>
 		public BroadcastSettings BroadcastSettings { get { return m_BroadcastSettings; } }
-
-		public override string FactoryName { get { return FACTORY_NAME; } }
-
-		/// <summary>
-		/// Gets the type of the originator for this settings instance.
-		/// </summary>
-		public override Type OriginatorType { get { return typeof(KrangCore); } }
 
 		#endregion
 
