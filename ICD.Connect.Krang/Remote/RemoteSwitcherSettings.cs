@@ -1,34 +1,16 @@
-﻿using System;
-using ICD.Common.Utils.Xml;
+﻿using ICD.Common.Utils.Xml;
 using ICD.Connect.Devices;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Remote
 {
-	[KrangSettings(FACTORY_NAME)]
+	[KrangSettings("RemoteSwitcher", typeof(RemoteSwitcher))]
 	public sealed class RemoteSwitcherSettings : AbstractDeviceSettings
 	{
-		private const string FACTORY_NAME = "RemoteSwitcher";
 		private const string ADDRESS_ELEMENT = "Address";
 
-		#region Properties
-
-		/// <summary>
-		/// Gets the originator factory name.
-		/// </summary>
-		public override string FactoryName { get { return FACTORY_NAME; } }
-
-		/// <summary>
-		/// Gets the type of the originator for this settings instance.
-		/// </summary>
-		public override Type OriginatorType { get { return typeof(RemoteSwitcher); } }
-
 		public HostInfo Address { get; set; }
-
-		#endregion
-
-		#region Methods
 
 		protected override void WriteElements(IcdXmlTextWriter writer)
 		{
@@ -54,7 +36,5 @@ namespace ICD.Connect.Krang.Remote
 			if (HostInfo.TryParse(address, out info))
 				Address = info;
 		}
-
-		#endregion
 	}
 }
