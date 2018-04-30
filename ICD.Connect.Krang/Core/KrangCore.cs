@@ -229,8 +229,8 @@ namespace ICD.Connect.Krang.Core
 		private IEnumerable<ISettings> GetSerializableOriginators()
 		{
 			return Originators.GetChildren()
-			                    .Where(c => c.Serialize)
-			                    .Select(p => p.CopySettings());
+			                  .Where(c => c.Serialize)
+			                  .Select(p => p.CopySettings());
 		}
 
 		/// <summary>
