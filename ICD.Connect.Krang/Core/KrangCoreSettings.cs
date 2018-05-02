@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
+using ICD.Connect.Audio.VolumePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.PartitionManagers;
@@ -15,7 +16,6 @@ using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Themes;
-using ICD.Connect.Partitioning.VolumePoints;
 
 namespace ICD.Connect.Krang.Core
 {
