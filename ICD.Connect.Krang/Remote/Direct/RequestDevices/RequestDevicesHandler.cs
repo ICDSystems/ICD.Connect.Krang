@@ -2,7 +2,6 @@
 using System.Linq;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Devices;
-using ICD.Connect.Devices.Controls;
 using ICD.Connect.Krang.Remote.Direct.ShareDevices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
@@ -43,7 +42,6 @@ namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 
 			foreach (IDestination destination in destinations)
 			{
-				DeviceControlInfo info = new DeviceControlInfo(destination.Device, destination.Control);
 				IRouteDestinationControl control =
 					core.Originators.GetChild<IDeviceBase>(destination.Device)
 					    .Controls.GetControl<IRouteDestinationControl>(destination.Control);
