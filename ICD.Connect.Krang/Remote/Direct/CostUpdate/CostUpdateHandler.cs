@@ -314,7 +314,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			                                              .ToList();
 
 			// remove device if no connections left to it
-			if (!connectionsLeft.Any(c => c.Source.Device == source.Device) &&
+			if (connectionsLeft.All(c => c.Source.Device != source.Device) &&
 			    m_Core.Originators.ContainsChild(source.Device))
 			{
 				IOriginator device = m_Core.Originators.GetChild(source.Device);
@@ -337,7 +337,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				connections.Where(c => !destination.Contains(c.Destination)).ToList();
 
 			// remove device if no connections left to it
-			if (!connectionsLeft.Any(c => c.Destination.Device == destination.Device) &&
+			if (connectionsLeft.All(c => c.Destination.Device != destination.Device) &&
 			    m_Core.Originators.ContainsChild(destination.Device))
 			{
 				IOriginator device = m_Core.Originators.GetChild(destination.Device);
