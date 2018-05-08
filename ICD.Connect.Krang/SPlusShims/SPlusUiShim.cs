@@ -1,23 +1,23 @@
-﻿using ICD.Common.Utils.Services;
-using ICD.Common.Utils.Services.Logging;
-#if SIMPLSHARP
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Krang.Rooms;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
+#if SIMPLSHARP
 
-namespace ICD.Connect.Krang.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusShims
 {
 	[PublicAPI("S+")]
-	public sealed class SPlusUiInterface : IDisposable
+	public sealed class SPlusUiShim : IDisposable
 	{
 		private const ushort INDEX_NOT_FOUND = 0;
 		private const ushort INDEX_START = 1;
@@ -92,7 +92,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public SPlusUiInterface()
+		public SPlusUiShim()
 		{
 			m_RoomListDictionary = new Dictionary<ushort, SimplRoom>();
 			m_RoomListDictionaryReverse = new Dictionary<SimplRoom, ushort>();
@@ -105,7 +105,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 			}
 			catch (Exception e)
 			{
-				IcdErrorLog.Exception(e.GetBaseException(), "Failed to create Krang SPlusUiInterface - {0}",
+				IcdErrorLog.Exception(e.GetBaseException(), "Failed to create Krang SPlusUiShim - {0}",
 				                      e.GetBaseException().Message);
 			}
 		}

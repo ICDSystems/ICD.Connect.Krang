@@ -5,7 +5,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Core;
 
-namespace ICD.Connect.Krang.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusShims
 {
 	[PublicAPI("SPlus")]
 	public static class SPlusKrangBootstrap
