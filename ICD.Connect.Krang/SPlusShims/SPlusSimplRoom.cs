@@ -8,7 +8,7 @@ using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusShims
 {
 	[PublicAPI("S+")]
 	public sealed class SPlusSimplRoom : IDisposable

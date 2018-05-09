@@ -9,10 +9,10 @@ using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.SPlus;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusShims
 {
 	[PublicAPI("SPlus")]
-	public sealed class SPlusSwitcherInterface : IDisposable
+	public sealed class SPlusSwitcherShim : IDisposable
 	{
 		#region S+ Delegates
 
@@ -62,7 +62,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public SPlusSwitcherInterface()
+		public SPlusSwitcherShim()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
 		}

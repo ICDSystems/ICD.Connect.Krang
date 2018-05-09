@@ -7,9 +7,9 @@ using ICD.Connect.Panels.EventArguments;
 using ICD.Connect.Protocol.Sigs;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusShims
 {
-	public sealed class SPlusPanelInterface : IDisposable
+	public sealed class SPlusPanelShim : IDisposable
 	{
 		#region S+ Callbacks
 
@@ -38,7 +38,7 @@ namespace ICD.Connect.Krang.SPlusInterfaces
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public SPlusPanelInterface()
+		public SPlusPanelShim()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
 		}

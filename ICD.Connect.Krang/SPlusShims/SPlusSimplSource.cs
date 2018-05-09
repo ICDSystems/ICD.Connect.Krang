@@ -5,7 +5,7 @@ using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
 
-namespace ICD.Connect.Krang.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusShims
 {
 	[PublicAPI("SPlus")]
 	public sealed class SPlusSimplSource

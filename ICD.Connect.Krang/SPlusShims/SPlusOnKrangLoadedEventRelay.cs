@@ -3,7 +3,7 @@ using ICD.Common.Utils.Extensions;
 
 #if SIMPLSHARP
 
-namespace ICD.Connect.Krang.SPlusInterfaces
+namespace ICD.Connect.Krang.SPlusShims
 {
 	public sealed class SPlusOnKrangLoadedEventRelay : IDisposable
 	{
