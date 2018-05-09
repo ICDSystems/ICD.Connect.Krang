@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SIMPLSHARP
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
@@ -12,7 +13,6 @@ using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
-#if SIMPLSHARP
 
 namespace ICD.Connect.Krang.SPlusShims
 {
