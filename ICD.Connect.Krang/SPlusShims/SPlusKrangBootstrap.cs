@@ -1,4 +1,5 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Connect.Settings.SPlusShims.GlobalEvents;
+#if SIMPLSHARP
 using System;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
@@ -47,11 +48,13 @@ namespace ICD.Connect.Krang.SPlusShims
 		private static void KrangOnSettingsApplied(object sender, EventArgs eventArgs)
 		{
 			OnKrangLoaded.Raise(null);
+			SPlusGlobalEvents.RaiseEvent(new EnvironmentLoadedEventInfo());
 		}
 
 		private static void KrangOnSettingsCleared(object sender, EventArgs eventArgs)
 		{
 			OnKrangCleared.Raise(null);
+			SPlusGlobalEvents.RaiseEvent(new EnvironmentUnloadedEventInfo());
 		}
 	}
 }
