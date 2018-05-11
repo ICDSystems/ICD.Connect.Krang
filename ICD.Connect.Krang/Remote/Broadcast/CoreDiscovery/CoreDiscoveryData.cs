@@ -1,5 +1,5 @@
 ﻿using System;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 using Newtonsoft.Json;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery

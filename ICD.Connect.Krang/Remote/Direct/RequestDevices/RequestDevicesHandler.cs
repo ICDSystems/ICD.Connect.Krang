@@ -10,7 +10,7 @@ using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Groups;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Extensions;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 {

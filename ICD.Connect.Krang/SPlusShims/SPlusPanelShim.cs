@@ -1,4 +1,5 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Connect.Settings.Originators;
+#if SIMPLSHARP
 using System;
 using Crestron.SimplSharp;
 using ICD.Common.Properties;

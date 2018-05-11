@@ -3,7 +3,7 @@ using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote.Direct.Disconnect;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.Remote
 {
