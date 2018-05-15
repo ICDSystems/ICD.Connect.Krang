@@ -26,16 +26,24 @@ namespace ICD.Connect.Krang.Core
 	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
 		private const string HEADER_ELEMENT = "Header";
+
 		private const string THEMES_ELEMENT = "Themes";
+		private const string THEME_ELEMENT = "Theme";
 		private const string PANELS_ELEMENT = "Panels";
+		private const string PANEL_ELEMENT = "Panel";
 		private const string PORTS_ELEMENT = "Ports";
+		private const string PORT_ELEMENT = "Port";
 		private const string DEVICES_ELEMENT = "Devices";
+		private const string DEVICE_ELEMENT = "Device";
 		private const string ROOMS_ELEMENT = "Rooms";
+		private const string ROOM_ELEMENT = "Room";
+		private const string VOLUME_POINTS_ELEMENT = "VolumePoints";
+		private const string VOLUME_POINT_ELEMENT = "VolumePoint";
+
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
 
 		private const string BROADCAST_ELEMENT = "Broadcast";
-		private const string VOLUME_POINTS_ELEMENT = "VolumePoints";
 
 		private readonly SettingsCollection m_OriginatorSettings;
 		private readonly ConfigurationHeader m_Header;
@@ -179,20 +187,20 @@ namespace ICD.Connect.Krang.Core
 
 			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
 
-			ThemeSettings.ToXml(writer, THEMES_ELEMENT);
-			PanelSettings.ToXml(writer, PANELS_ELEMENT);
-			PortSettings.ToXml(writer, PORTS_ELEMENT);
-			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
-			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
-			VolumePointSettings.ToXml(writer, VOLUME_POINTS_ELEMENT);
+			ThemeSettings.ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
+			PanelSettings.ToXml(writer, PANELS_ELEMENT, PANEL_ELEMENT);
+			PortSettings.ToXml(writer, PORTS_ELEMENT, PORT_ELEMENT);
+			DeviceSettings.ToXml(writer, DEVICES_ELEMENT, DEVICE_ELEMENT);
+			RoomSettings.ToXml(writer, ROOMS_ELEMENT, ROOM_ELEMENT);
+			VolumePointSettings.ToXml(writer, VOLUME_POINTS_ELEMENT, VOLUME_POINT_ELEMENT);
 
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
 			if (routingGraphSettings != null)
-				routingGraphSettings.ToXml(writer);
+				routingGraphSettings.ToXml(writer, ROUTING_ELEMENT);
 
 			PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
 			if (partitionManagerSettings != null)
-				partitionManagerSettings.ToXml(writer);
+				partitionManagerSettings.ToXml(writer, PARTITIONING_ELEMENT);
 		}
 
 		/// <summary>
