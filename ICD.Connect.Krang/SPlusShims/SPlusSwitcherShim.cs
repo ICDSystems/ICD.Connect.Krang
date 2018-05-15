@@ -1,5 +1,4 @@
-﻿#if SIMPLSHARP
-using System;
+﻿using System;
 using System.Collections.Generic;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
@@ -258,5 +257,3 @@ namespace ICD.Connect.Krang.SPlusShims
 		#endregion
 	}
 }
-
-#endif
