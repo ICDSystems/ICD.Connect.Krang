@@ -1,8 +1,6 @@
 ﻿using System;
 using ICD.Common.Utils.Extensions;
 
-#if SIMPLSHARP
-
 namespace ICD.Connect.Krang.SPlusShims
 {
 	public sealed class SPlusOnKrangLoadedEventRelay : IDisposable
@@ -25,5 +23,3 @@ namespace ICD.Connect.Krang.SPlusShims
 		}
 	}
 }
-
-#endif
