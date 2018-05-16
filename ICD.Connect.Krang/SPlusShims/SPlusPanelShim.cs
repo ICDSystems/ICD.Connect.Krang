@@ -1,4 +1,3 @@
-#if SIMPLSHARP
 using System;
 using ICD.Common.Properties;
 using ICD.Connect.Panels;
