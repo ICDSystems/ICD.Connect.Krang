@@ -1,10 +1,9 @@
-﻿using ICD.Connect.Settings.SPlusShims.GlobalEvents;
-#if SIMPLSHARP
-using System;
+﻿using System;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Core;
+using ICD.Connect.Settings.SPlusShims.GlobalEvents;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
@@ -58,5 +57,3 @@ namespace ICD.Connect.Krang.SPlusShims
 		}
 	}
 }
-
-#endif

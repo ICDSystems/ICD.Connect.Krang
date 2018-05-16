@@ -1,4 +1,3 @@
-﻿using ICD.Connect.Settings.Originators;
 #if SIMPLSHARP
 using System;
 using System.Collections.Generic;
@@ -9,6 +8,7 @@ using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.SPlus;
 using ICD.Connect.Settings;
+﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
@@ -259,5 +259,3 @@ namespace ICD.Connect.Krang.SPlusShims
 		#endregion
 	}
 }
-
-#endif

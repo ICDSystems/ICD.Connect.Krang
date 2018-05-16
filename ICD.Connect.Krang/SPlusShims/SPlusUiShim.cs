@@ -1,9 +1,7 @@
-﻿using ICD.Connect.Settings.Originators;
 #if SIMPLSHARP
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
@@ -14,6 +12,7 @@ using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
+﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
@@ -25,18 +24,18 @@ namespace ICD.Connect.Krang.SPlusShims
 		private const ushort AUDIO_LIST_INDEX = 0;
 		private const ushort VIDEO_LIST_INDEX = 1;
 
-		public delegate void RoomInfoCallback(ushort id, SimplSharpString name, ushort index);
+		public delegate void RoomInfoCallback(ushort id, string name, ushort index);
 
 		public delegate void SourceInfoCallback(
-			ushort id, SimplSharpString name, ushort crosspointId, ushort crosspointType, ushort sourceListIndex,
+			ushort id, string name, ushort crosspointId, ushort crosspointType, ushort sourceListIndex,
 			ushort sourceIndex);
 
-		public delegate void RoomListCallback(ushort index, ushort roomId, SimplSharpString roomName);
+		public delegate void RoomListCallback(ushort index, ushort roomId, string roomName);
 
 		public delegate void RoomListSizeCallback(ushort size);
 
 		public delegate void SourceListCallback(
-			ushort listIndex, ushort index, ushort sourceId, SimplSharpString sourceName, ushort crosspointId,
+			ushort listIndex, ushort index, ushort sourceId, string sourceName, ushort crosspointId,
 			ushort crosspointType);
 
 		public delegate void SourceListSizeCallback(ushort listIndex, ushort size);
@@ -257,7 +256,7 @@ namespace ICD.Connect.Krang.SPlusShims
 			if (m_Room == null)
 			{
 				if (handler != null)
-					handler(0, new SimplSharpString(string.Empty), INDEX_NOT_FOUND);
+					handler(0, string.Empty, INDEX_NOT_FOUND);
 				return;
 			}
 
@@ -266,7 +265,7 @@ namespace ICD.Connect.Krang.SPlusShims
 				index = INDEX_NOT_FOUND;
 
 			if (handler != null)
-				handler((ushort)m_Room.Id, new SimplSharpString(m_Room.Name ?? string.Empty), index);
+				handler((ushort)m_Room.Id, m_Room.Name ?? string.Empty, index);
 
 			RaiseSourceList();
 		}
@@ -282,7 +281,7 @@ namespace ICD.Connect.Krang.SPlusShims
 				roomListDictionary[i] = room;
 				roomListDictionaryReverse[room] = i;
 				if (handler != null)
-					handler(i, (ushort)room.Id, new SimplSharpString(room.Name));
+					handler(i, (ushort)room.Id, room.Name);
 				i++;
 			}
 
@@ -326,7 +325,7 @@ namespace ICD.Connect.Krang.SPlusShims
 					sourceListDictionaryReverse[ss][AUDIO_LIST_INDEX] = audioListIndexCounter;
 					if (handler != null)
 					{
-						handler(AUDIO_LIST_INDEX, audioListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId,
+						handler(AUDIO_LIST_INDEX, audioListIndexCounter, (ushort)ss.Id, ss.Name, ss.CrosspointId,
 						        ss.CrosspointType);
 					}
 					audioListIndexCounter++;
@@ -338,7 +337,7 @@ namespace ICD.Connect.Krang.SPlusShims
 					sourceListDictionaryReverse[ss][VIDEO_LIST_INDEX] = videoListIndexCounter;
 					if (handler != null)
 					{
-						handler(VIDEO_LIST_INDEX, videoListIndexCounter, (ushort)ss.Id, new SimplSharpString(ss.Name), ss.CrosspointId,
+						handler(VIDEO_LIST_INDEX, videoListIndexCounter, (ushort)ss.Id, ss.Name, ss.CrosspointId,
 						        ss.CrosspointType);
 					}
 					videoListIndexCounter++;
@@ -410,11 +409,9 @@ namespace ICD.Connect.Krang.SPlusShims
 			ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
 			ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
 
-			handler(id, new SimplSharpString(name), crosspointId, crosspointType, 0, 0);
+			handler(id, name, crosspointId, crosspointType, 0, 0);
 		}
 
 		#endregion
 	}
 }
-
-#endif

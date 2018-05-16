@@ -1,22 +1,21 @@
-﻿using ICD.Connect.Settings.Originators;
 #if SIMPLSHARP
 using System;
-using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Connect.Krang.Rooms;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
+﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
 	[PublicAPI("S+")]
 	public sealed class SPlusSimplRoom : IDisposable
 	{
-		public delegate void RoomInfoCallback(ushort id, SimplSharpString name);
+		public delegate void RoomInfoCallback(ushort id, string name);
 
-		public delegate void SourceInfoCallback(ushort id, SimplSharpString name, ushort crosspointId, ushort crosspointType);
+		public delegate void SourceInfoCallback(ushort id, string name, ushort crosspointId, ushort crosspointType);
 
 		#region Properties
 
@@ -111,7 +110,7 @@ namespace ICD.Connect.Krang.SPlusShims
 			if (m_Room == null)
 				return;
 
-			handler((ushort)m_Room.Id, new SimplSharpString(m_Room.Name ?? string.Empty));
+			handler((ushort)m_Room.Id, m_Room.Name ?? string.Empty);
 
 			// Hack to raise the current routed source as well
 			RoomOnActiveSourcesChange(null, EventArgs.Empty);
@@ -191,11 +190,9 @@ namespace ICD.Connect.Krang.SPlusShims
 			ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
 			ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
 
-			handler(id, new SimplSharpString(name), crosspointId, crosspointType);
+			handler(id, name, crosspointId, crosspointType);
 		}
 
 		#endregion
 	}
 }
-
-#endif

@@ -1,9 +1,7 @@
-﻿using ICD.Connect.Routing.RoutingGraphs;
-#if SIMPLSHARP
-using System;
-using Crestron.SimplSharp;
+﻿using System;
 using ICD.Common.Properties;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
+using ICD.Connect.Routing.RoutingGraphs;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
@@ -14,7 +12,7 @@ namespace ICD.Connect.Krang.SPlusShims
 		private ushort m_SourceId;
 
 		public delegate void SPlusSourceInfoCallback(
-			SimplSharpString sourceName, ushort sourceId, ushort sourceControlId, ushort sourceControlType);
+			string sourceName, ushort sourceId, ushort sourceControlId, ushort sourceControlType);
 
 		public SPlusSourceInfoCallback SPlusSourceInfo { get; set; }
 
@@ -47,9 +45,9 @@ namespace ICD.Connect.Krang.SPlusShims
 				return;
 
 			if (m_Source == null)
-				callback(new SimplSharpString(""), 0, 0, 0);
+				callback(string.Empty, 0, 0, 0);
 			else
-				callback(new SimplSharpString(m_Source.Name), (ushort)m_Source.Id, m_Source.CrosspointId, m_Source.CrosspointType);
+				callback(m_Source.Name, (ushort)m_Source.Id, m_Source.CrosspointId, m_Source.CrosspointType);
 		}
 
 		private void SPlusKrangBootstrapOnKrangLoaded(object sender, EventArgs eventArgs)
@@ -58,5 +56,3 @@ namespace ICD.Connect.Krang.SPlusShims
 		}
 	}
 }
-
-#endif

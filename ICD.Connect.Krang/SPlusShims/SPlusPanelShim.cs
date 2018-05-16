@@ -1,12 +1,11 @@
-﻿using ICD.Connect.Settings.Originators;
 #if SIMPLSHARP
 using System;
-using Crestron.SimplSharp;
 using ICD.Common.Properties;
 using ICD.Connect.Panels;
 using ICD.Connect.Panels.EventArguments;
 using ICD.Connect.Protocol.Sigs;
 using ICD.Connect.Settings;
+﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
@@ -14,7 +13,7 @@ namespace ICD.Connect.Krang.SPlusShims
 	{
 		#region S+ Callbacks
 
-		public delegate void DelJoinXsig(ushort smartObject, SimplSharpString xsig);
+		public delegate void DelJoinXsig(ushort smartObject, string xsig);
 
 		[PublicAPI("SPlus")]
 		public DelJoinXsig DigitalSigReceivedXsigCallback { get; set; }
@@ -85,7 +84,7 @@ namespace ICD.Connect.Krang.SPlusShims
 		/// <param name="number"></param>
 		/// <param name="text"></param>
 		[PublicAPI("S+")]
-		public void SendInputSerial(ushort number, SimplSharpString text)
+		public void SendInputSerial(ushort number, string text)
 		{
 			if (m_PanelDevice == null)
 				return;
@@ -201,5 +200,3 @@ namespace ICD.Connect.Krang.SPlusShims
 		#endregion
 	}
 }
-
-#endif
