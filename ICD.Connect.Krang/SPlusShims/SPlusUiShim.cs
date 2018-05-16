@@ -10,7 +10,6 @@ using ICD.Connect.Krang.Rooms;
 using ICD.Connect.Krang.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
-using ICD.Connect.Settings;
 ﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims

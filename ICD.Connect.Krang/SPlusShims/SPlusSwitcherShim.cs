@@ -6,7 +6,6 @@ using ICD.Common.Utils.Extensions;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.SPlus;
-using ICD.Connect.Settings;
 ﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims

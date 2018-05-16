@@ -3,7 +3,6 @@ using ICD.Common.Properties;
 using ICD.Connect.Panels;
 using ICD.Connect.Panels.EventArguments;
 using ICD.Connect.Protocol.Sigs;
-using ICD.Connect.Settings;
 ﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims

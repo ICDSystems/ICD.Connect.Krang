@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Connect.API.Nodes;
-using ICD.Connect.Settings;
 using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.Core
