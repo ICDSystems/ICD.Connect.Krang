@@ -70,14 +70,6 @@ namespace ICD.Connect.Krang
 				                                                            HowToResolve =
 					                                                            "Are you using this license on the correct system?"
 			                                                            })
-			                                                .And()
-			                                                .AssertThat(ValidateProgramSlot,
-			                                                            new GeneralValidationFailure
-			                                                            {
-				                                                            Message = "License Program Slot does not match system",
-				                                                            HowToResolve =
-					                                                            "Are you using this license on the correct slot?"
-			                                                            })
 			                                                .AssertValidLicense()
 			                                                .ToArray();
 
@@ -90,25 +82,6 @@ namespace ICD.Connect.Krang
 
 			Logger.AddEntry(eSeverity.Informational, "Successfully Loaded license");
 			m_License = license;
-		}
-
-		/// <summary>
-		/// Returns true if the program slot in the license is valid for this program.
-		/// </summary>
-		/// <param name="license"></param>
-		/// <returns></returns>
-		private bool ValidateProgramSlot(License license)
-		{
-			if (!license.AdditionalAttributes.Contains("ProgramSlot"))
-				return true;
-
-			string slotString = license.AdditionalAttributes.Get("ProgramSlot");
-
-			uint programSlot;
-			if (!StringUtils.TryParse(slotString, out programSlot))
-				return false;
-
-			return programSlot == ProgramUtils.ProgramNumber;
 		}
 
 		/// <summary>
