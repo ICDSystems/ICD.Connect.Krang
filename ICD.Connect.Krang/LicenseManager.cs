@@ -21,6 +21,9 @@ namespace ICD.Connect.Krang
 {
 	public sealed class LicenseManager : IConsoleNode
 	{
+		private const string PUBLIC_KEY =
+			@"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXfvikzhAIAOkoqwCXFTpcmr98LJ6CcndaTm+appVLBEo4Evo9c9en0cS8VbmwTWq+8/nnunEIlx4IdildXuNvg==";
+
 		private string m_PublicKey;
 		private License m_License;
 		private string m_LicensePath;
@@ -30,8 +33,6 @@ namespace ICD.Connect.Krang
 		public string ConsoleName { get { return GetType().Name; } }
 
 		public string ConsoleHelp { get { return "Features for software license registration"; } }
-
-		private string PublicKey { get { return m_PublicKey ?? (m_PublicKey = LoadPublicKey()); } }
 
 		private static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
 
@@ -60,7 +61,7 @@ namespace ICD.Connect.Krang
 			string licenseData = IcdFile.ReadToEnd(m_LicensePath, Encoding.ASCII);
 			License license = License.Load(licenseData);
 			IValidationFailure[] validationResults = license.Validate()
-			                                                .Signature(PublicKey)
+			                                                .Signature(PUBLIC_KEY)
 			                                                .And()
 			                                                .AssertThat(ValidateMacAddress,
 			                                                            new GeneralValidationFailure
@@ -160,20 +161,6 @@ namespace ICD.Connect.Krang
 		public bool IsValid(IOriginator originator)
 		{
 			return IsValid();
-		}
-
-		#endregion
-
-		#region Private Methods
-
-		/// <summary>
-		/// Gets the contents of the publickey file from disk.
-		/// </summary>
-		/// <returns></returns>
-		private string LoadPublicKey()
-		{
-			string publicKeyPath = PathUtils.Join(IcdDirectory.GetApplicationDirectory(), "licensekey");
-			return IcdFile.ReadToEnd(publicKeyPath, Encoding.ASCII);
 		}
 
 		#endregion
