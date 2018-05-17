@@ -47,10 +47,4 @@
     <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_NetStandard.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="licensekey">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
