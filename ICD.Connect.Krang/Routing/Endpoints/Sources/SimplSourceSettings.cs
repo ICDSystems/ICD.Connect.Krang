@@ -1,31 +1,18 @@
-﻿using System;
-using ICD.Common.Properties;
+﻿using ICD.Common.Properties;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Routing.Endpoints.Sources
 {
-	[KrangSettings(FACTORY_NAME)]
+	[KrangSettings("SimplSource", typeof(SimplSource))]
 	public sealed class SimplSourceSettings : AbstractSourceSettings
 	{
-		private const string FACTORY_NAME = "SimplSource";
-
 		private const string CROSSPOINT_ID_ELEMENT = "CrosspointId";
 		private const string CROSSPOINT_TYPE_ELEMENT = "CrosspointType";
 		private const string SOURCE_VISIBILITY_ELEMENT = "SourceVisibility";
 
 		#region Properties
-
-		/// <summary>
-		/// Gets the originator factory name.
-		/// </summary>
-		public override string FactoryName { get { return FACTORY_NAME; } }
-
-		/// <summary>
-		/// Gets the type of the originator for this settings instance.
-		/// </summary>
-		public override Type OriginatorType { get { return typeof(SimplSource); } }
 
 		[PublicAPI]
 		public ushort CrosspointId { get; set; }

@@ -9,11 +9,9 @@ using ICD.Connect.Settings.Attributes;
 
 namespace ICD.Connect.Krang.Rooms
 {
-	[KrangSettings(FACTORY_NAME)]
+	[KrangSettings("SimplRoom", typeof(SimplRoom))]
 	public sealed class SimplRoomSettings : AbstractRoomSettings
 	{
-		private const string FACTORY_NAME = "SimplRoom";
-
 		private const string CROSSPOINTS_ELEMENT = "Crosspoints";
 		private const string CROSSPOINT_ELEMENT = "Crosspoint";
 		private const string CROSSPOINT_ID_ELEMENT = "Id";
@@ -21,20 +19,6 @@ namespace ICD.Connect.Krang.Rooms
 
 		private readonly Dictionary<ushort, SimplRoom.eCrosspointType> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
-
-		#region Properties
-
-		/// <summary>
-		/// Gets the originator factory name.
-		/// </summary>
-		public override string FactoryName { get { return FACTORY_NAME; } }
-
-		/// <summary>
-		/// Gets the type of the originator for this settings instance.
-		/// </summary>
-		public override Type OriginatorType { get { return typeof(SimplRoom); } }
-
-		#endregion
 
 		/// <summary>
 		/// Constructor.

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils.Extensions;
-using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
+using ICD.Connect.Audio.VolumePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Panels;
 using ICD.Connect.Partitioning.PartitionManagers;
@@ -22,23 +22,32 @@ namespace ICD.Connect.Krang.Core
 	/// <summary>
 	/// Settings for the Krang core.
 	/// </summary>
-	[KrangSettings(FACTORY_NAME)]
+	[KrangSettings("Krang", typeof(KrangCore))]
 	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
-		private const string FACTORY_NAME = "Krang";
-
 		private const string HEADER_ELEMENT = "Header";
+
 		private const string THEMES_ELEMENT = "Themes";
+		private const string THEME_ELEMENT = "Theme";
 		private const string PANELS_ELEMENT = "Panels";
+		private const string PANEL_ELEMENT = "Panel";
 		private const string PORTS_ELEMENT = "Ports";
+		private const string PORT_ELEMENT = "Port";
 		private const string DEVICES_ELEMENT = "Devices";
+		private const string DEVICE_ELEMENT = "Device";
 		private const string ROOMS_ELEMENT = "Rooms";
+		private const string ROOM_ELEMENT = "Room";
+		private const string VOLUME_POINTS_ELEMENT = "VolumePoints";
+		private const string VOLUME_POINT_ELEMENT = "VolumePoint";
+
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
+
 		private const string BROADCAST_ELEMENT = "Broadcast";
 
 		private readonly SettingsCollection m_OriginatorSettings;
 		private readonly ConfigurationHeader m_Header;
+		private readonly BroadcastSettings m_BroadcastSettings;
 
 		#region Properties
 
@@ -52,7 +61,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-				                                                         s.GetType().IsAssignableTo(typeof(IThemeSettings))));
+																		 s.GetType().IsAssignableTo(typeof(IThemeSettings))));
 			}
 		}
 
@@ -64,7 +73,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-				                                                         s.GetType().IsAssignableTo(typeof(IDeviceSettings))));
+																		 s.GetType().IsAssignableTo(typeof(IDeviceSettings))));
 			}
 		}
 
@@ -76,7 +85,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-				                                                         s.GetType().IsAssignableTo(typeof(IPortSettings))));
+																		 s.GetType().IsAssignableTo(typeof(IPortSettings))));
 			}
 		}
 
@@ -88,7 +97,7 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-				                                                         s.GetType().IsAssignableTo(typeof(IPanelDeviceSettings))));
+																		 s.GetType().IsAssignableTo(typeof(IPanelDeviceSettings))));
 			}
 		}
 
@@ -100,7 +109,19 @@ namespace ICD.Connect.Krang.Core
 			get
 			{
 				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-				                                                         s.GetType().IsAssignableTo(typeof(IRoomSettings))));
+																		 s.GetType().IsAssignableTo(typeof(IRoomSettings))));
+			}
+		}
+
+		/// <summary>
+		/// Gets the volume point settings.
+		/// </summary>
+		private SettingsCollection VolumePointSettings
+		{
+			get
+			{
+				return new SettingsCollection(m_OriginatorSettings.Where(s =>
+																		 s.GetType().IsAssignableTo(typeof(IVolumePointSettings))));
 			}
 		}
 
@@ -120,18 +141,9 @@ namespace ICD.Connect.Krang.Core
 		public ConfigurationHeader Header { get { return m_Header; } }
 
 		/// <summary>
-		/// Gets the broadcast setting.
+		/// Gets the broadcasting configuration.
 		/// </summary>
-		public bool Broadcast { get; private set; }
-
-		public override string FactoryName { get { return FACTORY_NAME; } }
-
-		/// <summary>
-		/// Gets the type of the originator for this settings instance.
-		/// </summary>
-		public override Type OriginatorType { get { return typeof(KrangCore); } }
-
-		private ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
+		public BroadcastSettings BroadcastSettings { get { return m_BroadcastSettings; } }
 
 		#endregion
 
@@ -142,6 +154,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			m_OriginatorSettings = new SettingsCollection();
 			m_Header = new ConfigurationHeader();
+			m_BroadcastSettings = new BroadcastSettings();
 
 			m_OriginatorSettings.OnItemRemoved += DeviceSettingsOnItemRemoved;
 		}
@@ -172,19 +185,22 @@ namespace ICD.Connect.Krang.Core
 
 			new ConfigurationHeader(true).ToXml(writer);
 
-			ThemeSettings.ToXml(writer, THEMES_ELEMENT);
-			PanelSettings.ToXml(writer, PANELS_ELEMENT);
-			PortSettings.ToXml(writer, PORTS_ELEMENT);
-			DeviceSettings.ToXml(writer, DEVICES_ELEMENT);
-			RoomSettings.ToXml(writer, ROOMS_ELEMENT);
+			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
+
+			ThemeSettings.ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
+			PanelSettings.ToXml(writer, PANELS_ELEMENT, PANEL_ELEMENT);
+			PortSettings.ToXml(writer, PORTS_ELEMENT, PORT_ELEMENT);
+			DeviceSettings.ToXml(writer, DEVICES_ELEMENT, DEVICE_ELEMENT);
+			RoomSettings.ToXml(writer, ROOMS_ELEMENT, ROOM_ELEMENT);
+			VolumePointSettings.ToXml(writer, VOLUME_POINTS_ELEMENT, VOLUME_POINT_ELEMENT);
 
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
 			if (routingGraphSettings != null)
-				routingGraphSettings.ToXml(writer);
+				routingGraphSettings.ToXml(writer, ROUTING_ELEMENT);
 
 			PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
 			if (partitionManagerSettings != null)
-				partitionManagerSettings.ToXml(writer);
+				partitionManagerSettings.ToXml(writer, PARTITIONING_ELEMENT);
 		}
 
 		/// <summary>
@@ -195,20 +211,22 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.ParseXml(xml);
 
-			Broadcast = XmlUtils.TryReadChildElementContentAsBoolean(xml, BROADCAST_ELEMENT) ?? false;
 			UpdateHeaderFromXml(xml);
+			UpdateBroadcastSettingsFromXml(xml);
 
 			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
 			IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
 			IEnumerable<ISettings> ports = PluginFactory.GetSettingsFromXml(xml, PORTS_ELEMENT);
 			IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
 			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
+			IEnumerable<ISettings> volumePoints = PluginFactory.GetSettingsFromXml(xml, VOLUME_POINTS_ELEMENT);
 
 			IEnumerable<ISettings> concat =
 				themes.Concat(panels)
-				      .Concat(ports)
-				      .Concat(devices)
-				      .Concat(rooms);
+					  .Concat(ports)
+					  .Concat(devices)
+					  .Concat(rooms)
+					  .Concat(volumePoints);
 
 			AddSettingsSkipDuplicateIds(concat);
 
@@ -278,6 +296,15 @@ namespace ICD.Connect.Krang.Core
 				m_Header.ParseXml(child);
 		}
 
+		private void UpdateBroadcastSettingsFromXml(string xml)
+		{
+			m_BroadcastSettings.Clear();
+
+			string child;
+			if (XmlUtils.TryGetChildElementAsString(xml, BROADCAST_ELEMENT, out child))
+				m_BroadcastSettings.ParseXml(child);
+		}
+
 		private void UpdateRoutingFromXml(string xml)
 		{
 			RoutingGraphSettings routing = new RoutingGraphSettings
@@ -333,7 +360,7 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="settings"></param>
 		/// <param name="deviceIds"></param>
 		private static void RemoveSettingsWithBadDeviceDependency(ICollection<ISettings> settings,
-		                                                          IEnumerable<int> deviceIds)
+																  IEnumerable<int> deviceIds)
 		{
 			IEnumerable<ISettings> remove = settings.Where(s => HasBadDeviceDependency(s, deviceIds)).ToArray();
 			foreach (ISettings item in remove)

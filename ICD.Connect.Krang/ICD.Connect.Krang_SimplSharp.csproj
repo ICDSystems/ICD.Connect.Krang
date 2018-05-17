@@ -69,24 +69,43 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\ApiOriginatorsNodeGroup.cs" />
+    <Compile Include="Core\BroadcastSettings.cs" />
+    <Compile Include="Core\KrangBootstrapConsole.cs" />
+    <Compile Include="Core\KrangCoreConsole.cs" />
+    <Compile Include="Remote\Broadcast\IBroadcastHandler.cs" />
+    <Compile Include="Remote\InterCoreCommunication.cs" />
+    <Compile Include="Remote\RemoteCore.cs" />
+    <Compile Include="Remote\RemoteCoreCollection.cs" />
+    <Compile Include="Remote\RemoteCoreSettings.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
     <Compile Include="Remote\Broadcast\AbstractBroadcastHandler.cs" />
-    <Compile Include="Remote\Direct\CostUpdateHandler.cs" />
-    <Compile Include="Remote\Direct\CostUpdateMessage.cs" />
-    <Compile Include="Remote\Direct\DisconnectHandler.cs" />
-    <Compile Include="Remote\Direct\InitiateConnectionHandler.cs" />
-    <Compile Include="Remote\Broadcast\TielineDiscoveryData.cs" />
-    <Compile Include="Remote\Broadcast\TielineDiscoveryBroadcastHandler.cs" />
-    <Compile Include="Remote\Direct\InitiateConnectionMessage.cs" />
-    <Compile Include="Remote\Direct\InitiateConnectionReply.cs" />
-    <Compile Include="Remote\Direct\RequestDevicesHandler.cs" />
-    <Compile Include="Remote\Direct\RequestDevicesMessage.cs" />
-    <Compile Include="Remote\Direct\RouteDevicesHandler.cs" />
-    <Compile Include="Remote\Direct\RouteDevicesMessage.cs" />
-    <Compile Include="Remote\Direct\RouteDevicesReply.cs" />
-    <Compile Include="Remote\Direct\ShareDevicesHandler.cs" />
-    <Compile Include="Remote\Direct\ShareDevicesMessage.cs" />
+    <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryBroadcastHandler.cs" />
+    <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryData.cs" />
+    <Compile Include="Remote\Broadcast\CoreDiscovery\CoreDiscoveryInfo.cs" />
+    <Compile Include="Remote\Broadcast\OriginatorsChange\OriginatorsChangeBroadcastHandler.cs" />
+    <Compile Include="Remote\Broadcast\OriginatorsChange\OriginatorsChangeData.cs" />
+    <Compile Include="Remote\Direct\API\AbstractApiMessage.cs" />
+    <Compile Include="Remote\Direct\API\RemoteApiResultHandler.cs" />
+    <Compile Include="Remote\Direct\CostUpdate\CostUpdateHandler.cs" />
+    <Compile Include="Remote\Direct\CostUpdate\CostUpdateMessage.cs" />
+    <Compile Include="Remote\Direct\Disconnect\DisconnectHandler.cs" />
+    <Compile Include="Remote\Direct\InitiateConnection\InitiateConnectionHandler.cs" />
+    <Compile Include="Remote\Broadcast\TielineDiscovery\TielineDiscoveryData.cs" />
+    <Compile Include="Remote\Broadcast\TielineDiscovery\TielineDiscoveryBroadcastHandler.cs" />
+    <Compile Include="Remote\Direct\InitiateConnection\InitiateConnectionMessage.cs" />
+    <Compile Include="Remote\Direct\InitiateConnection\InitiateConnectionReply.cs" />
+    <Compile Include="Remote\Direct\API\RemoteApiCommandHandler.cs" />
+    <Compile Include="Remote\Direct\API\RemoteApiMessage.cs" />
+    <Compile Include="Remote\Direct\API\RemoteApiReply.cs" />
+    <Compile Include="Remote\Direct\RequestDevices\RequestDevicesHandler.cs" />
+    <Compile Include="Remote\Direct\RequestDevices\RequestDevicesMessage.cs" />
+    <Compile Include="Remote\Direct\RouteDevices\RouteDevicesHandler.cs" />
+    <Compile Include="Remote\Direct\RouteDevices\RouteDevicesMessage.cs" />
+    <Compile Include="Remote\Direct\RouteDevices\RouteDevicesReply.cs" />
+    <Compile Include="Remote\Direct\ShareDevices\ShareDevicesHandler.cs" />
+    <Compile Include="Remote\Direct\ShareDevices\ShareDevicesMessage.cs" />
     <Compile Include="Remote\RemoteSwitcher.cs" />
     <Compile Include="Remote\RemoteSwitcherControl.cs" />
     <Compile Include="Remote\RemoteSwitcherSettings.cs" />
@@ -99,13 +118,13 @@
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LicenseManager.cs" />
-    <Compile Include="SPlusInterfaces\SPlusKrangBootstrap.cs" />
-    <Compile Include="SPlusInterfaces\SPlusOnKrangLoadedEventRelay.cs" />
-    <Compile Include="SPlusInterfaces\SPlusPanelInterface.cs" />
-    <Compile Include="SPlusInterfaces\SPlusSimplRoom.cs" />
-    <Compile Include="SPlusInterfaces\SPlusSimplSource.cs" />
-    <Compile Include="SPlusInterfaces\SPlusSwitcherInterface.cs" />
-    <Compile Include="SPlusInterfaces\SPlusUiInterface.cs" />
+    <Compile Include="SPlusShims\SPlusKrangBootstrap.cs" />
+    <Compile Include="SPlusShims\SPlusOnKrangLoadedEventRelay.cs" />
+    <Compile Include="SPlusShims\SPlusPanelShim.cs" />
+    <Compile Include="SPlusShims\SPlusSimplRoom.cs" />
+    <Compile Include="SPlusShims\SPlusSimplSource.cs" />
+    <Compile Include="SPlusShims\SPlusSwitcherShim.cs" />
+    <Compile Include="SPlusShims\SPlusUiShim.cs" />
     <None Include="Properties\ControlSystem.cfg" />
     <None Include="licensekey">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -131,6 +150,10 @@
     <ProjectReference Include="..\..\ICD.Connect.API\ICD.Connect.API\ICD.Connect.API_SimplSharp.csproj">
       <Project>{727F5820-5A61-440D-8899-E454FE8238D7}</Project>
       <Name>ICD.Connect.API_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Audio\ICD.Connect.Audio\ICD.Connect.Audio_SimplSharp.csproj">
+      <Project>{8ED25D96-E9A5-4E9A-A890-B4EF3AB62041}</Project>
+      <Name>ICD.Connect.Audio_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Devices\ICD.Connect.Devices\ICD.Connect.Devices_SimplSharp.csproj">
       <Project>{FD46A717-5836-4B73-ADD0-2706639DA8ED}</Project>

@@ -4,4 +4,9 @@ using System.Reflection;
 [assembly: AssemblyCompany("ICD Systems")]
 [assembly: AssemblyProduct("ICD.Connect.Krang")]
 [assembly: AssemblyCopyright("Copyright © ICD Systems 2018")]
-[assembly: AssemblyVersion("3.1.0.0")]
+[assembly: AssemblyVersion("6.0.0.0")]
+
+[assembly: AssemblyInformationalVersion("2.0.0")]
+#if SIMPLSHARP
+[assembly: Crestron.SimplSharp.Reflection.AssemblyInformationalVersion("2.0.0")]
+#endif
