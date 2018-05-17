@@ -26,9 +26,7 @@ namespace ICD.Connect.Krang.Core
 		private ILoggerService m_Logger;
 		private DirectMessageManager m_DirectMessageManager;
 		private BroadcastManager m_BroadcastManager;
-#if LICENSING
 		private LicenseManager m_LicenseManager;
-#endif
 
 		#region Properties
 
@@ -82,18 +80,14 @@ namespace ICD.Connect.Krang.Core
 			}
 #endif
 
-#if LICENSING
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
-#endif
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
 			try
 			{
-#if LICENSING
 				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
 				if (m_LicenseManager.IsValid())
-#endif
-				FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
+					FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
 			}
 			catch (Exception e)
 			{
@@ -164,10 +158,8 @@ namespace ICD.Connect.Krang.Core
 
 			ServiceProvider.TryAddService(new PermissionsManager());
 
-#if LICENSING
 			m_LicenseManager = new LicenseManager();
 			ServiceProvider.AddService(m_LicenseManager);
-#endif
 		}
 
 		#endregion
