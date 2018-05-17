@@ -126,9 +126,6 @@
     <Compile Include="SPlusShims\SPlusSwitcherShim.cs" />
     <Compile Include="SPlusShims\SPlusUiShim.cs" />
     <None Include="Properties\ControlSystem.cfg" />
-    <None Include="licensekey">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ICD.Common.Licensing\ICD.Common.Licensing\ICD.Common.Licensing_SimplSharp.csproj">
