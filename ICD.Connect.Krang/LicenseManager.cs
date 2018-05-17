@@ -31,6 +31,8 @@ namespace ICD.Connect.Krang
 		private const string PUBLIC_KEY =
 			@"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXfvikzhAIAOkoqwCXFTpcmr98LJ6CcndaTm+appVLBEo4Evo9c9en0cS8VbmwTWq+8/nnunEIlx4IdildXuNvg==";
 
+		private static readonly string REQUIRED_LICENSE_VERSION = new Version(1, 0).ToString();
+
 		private License m_License;
 		private eValidationState m_Validation;
 		private string m_LicensePath;
@@ -136,6 +138,13 @@ namespace ICD.Connect.Krang
 					                   Message = "License MAC Address does not match system",
 					                   HowToResolve = "Are you using this license on the correct system?"
 				                   })
+					   .And()
+					   .AssertThat(ValidateLicenseVersion,
+								   new GeneralValidationFailure
+					               {
+									   Message = string.Format("License Version does not match checked version {0}", REQUIRED_LICENSE_VERSION),
+									   HowToResolve = "Are you using this license on the correct version of the program?"
+					               })
 				       .AssertValidLicense()
 				       .ToArray();
 
@@ -158,11 +167,25 @@ namespace ICD.Connect.Krang
 		/// <returns></returns>
 		private static bool ValidateMacAddress(License license)
 		{
-			if (!license.AdditionalAttributes.Contains("MacAddress"))
+			if (!license.AdditionalAttributes.Contains(KrangLicenseAttributes.MacAddress))
 				return true;
 
-			string macAddress = license.AdditionalAttributes.Get("MacAddress");
+			string macAddress = license.AdditionalAttributes.Get(KrangLicenseAttributes.MacAddress);
 			return IcdEnvironment.MacAddresses.Any(m => macAddress.Equals(m, StringComparison.OrdinalIgnoreCase));
+		}
+
+		/// <summary>
+		/// Returns true if the license version is valid for this version of the program.
+		/// </summary>
+		/// <param name="license"></param>
+		/// <returns></returns>
+		private static bool ValidateLicenseVersion(License license)
+		{
+			if (!license.AdditionalAttributes.Contains(KrangLicenseAttributes.LicenseVersion))
+				return true;
+
+			string licenseVersion = license.AdditionalAttributes.Get(KrangLicenseAttributes.LicenseVersion);
+			return REQUIRED_LICENSE_VERSION.Equals(licenseVersion);
 		}
 
 		#endregion
