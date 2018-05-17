@@ -10,12 +10,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;STANDARD</DefineConstants>
+    <OutputPath>binNetCoreApp\$(Configuration)\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;STANDARD;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
   
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>binNetCoreApp\$(Configuration)\</OutputPath>
-    <DefineConstants>TRACE;STANDARD</DefineConstants>
+    <DefineConstants>LICENSING;RELEASE;TRACE;STANDARD;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

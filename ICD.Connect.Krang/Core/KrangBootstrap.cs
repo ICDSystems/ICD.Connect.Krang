@@ -90,8 +90,10 @@ namespace ICD.Connect.Krang.Core
 
 			try
 			{
+#if LICENSING
 				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
 				if (m_LicenseManager.IsValid())
+#endif
 					m_Core.LoadSettings();
 			}
 			catch (Exception e)
