@@ -51,6 +51,11 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
 
+		/// <summary>
+		/// Gets the license manager instance.
+		/// </summary>
+		public LicenseManager LicenseManager { get { return m_LicenseManager; } }
+
 		#endregion
 
 		/// <summary>
@@ -87,7 +92,7 @@ namespace ICD.Connect.Krang.Core
 			{
 				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
 				if (m_LicenseManager.IsValid())
-					FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
+					m_Core.LoadSettings();
 			}
 			catch (Exception e)
 			{
