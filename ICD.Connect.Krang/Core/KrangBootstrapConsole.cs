@@ -68,8 +68,9 @@ namespace ICD.Connect.Krang.Core
 		{
 			if (instance == null)
 				throw new ArgumentNullException("instance");
-
+#if LICENSING
 			if (instance.LicenseManager.IsValid())
+#endif
 				instance.Krang.LoadSettings();
 		}
 
