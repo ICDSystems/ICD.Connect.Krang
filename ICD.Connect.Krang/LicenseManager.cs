@@ -130,23 +130,23 @@ namespace ICD.Connect.Krang
 
 			IValidationFailure[] validationResults =
 				license.Validate()
-				       .Signature(PUBLIC_KEY)
-				       .And()
-				       .AssertThat(ValidateMacAddress,
-				                   new GeneralValidationFailure
-				                   {
-					                   Message = "License MAC Address does not match system",
-					                   HowToResolve = "Are you using this license on the correct system?"
-				                   })
+					   .Signature(PUBLIC_KEY)
+					   .And()
+					   .AssertThat(ValidateMacAddress,
+								   new GeneralValidationFailure
+								   {
+									   Message = "License MAC Address does not match system",
+									   HowToResolve = "Are you using this license on the correct system?"
+								   })
 					   .And()
 					   .AssertThat(ValidateLicenseVersion,
 								   new GeneralValidationFailure
-					               {
+								   {
 									   Message = string.Format("License Version does not match checked version {0}", REQUIRED_LICENSE_VERSION),
 									   HowToResolve = "Are you using this license on the correct version of the program?"
-					               })
-				       .AssertValidLicense()
-				       .ToArray();
+								   })
+					   .AssertValidLicense()
+					   .ToArray();
 
 			foreach (IValidationFailure failure in validationResults)
 				Logger.AddEntry(eSeverity.Warning, "{0} - {1} - {2}", GetType().Name, failure.Message, failure.HowToResolve);
