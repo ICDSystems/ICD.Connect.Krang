@@ -21,11 +21,18 @@ namespace ICD.Connect.Krang
 {
 	public sealed class LicenseManager : IConsoleNode
 	{
+		private enum eValidationState
+		{
+			None,
+			Invalid,
+			Valid,
+		}
+
 		private const string PUBLIC_KEY =
 			@"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXfvikzhAIAOkoqwCXFTpcmr98LJ6CcndaTm+appVLBEo4Evo9c9en0cS8VbmwTWq+8/nnunEIlx4IdildXuNvg==";
 
-		private string m_PublicKey;
 		private License m_License;
+		private eValidationState m_Validation;
 		private string m_LicensePath;
 
 		#region Properties
@@ -59,43 +66,10 @@ namespace ICD.Connect.Krang
 			}
 
 			string licenseData = IcdFile.ReadToEnd(m_LicensePath, Encoding.ASCII);
-			License license = License.Load(licenseData);
-			IValidationFailure[] validationResults = license.Validate()
-			                                                .Signature(PUBLIC_KEY)
-			                                                .And()
-			                                                .AssertThat(ValidateMacAddress,
-			                                                            new GeneralValidationFailure
-			                                                            {
-				                                                            Message = "License MAC Address does not match system",
-				                                                            HowToResolve =
-					                                                            "Are you using this license on the correct system?"
-			                                                            })
-			                                                .AssertValidLicense()
-			                                                .ToArray();
 
-			foreach (IValidationFailure failure in validationResults)
-				Logger.AddEntry(eSeverity.Warning, "{0} - {1} - {2}", GetType().Name, failure.Message, failure.HowToResolve);
+			m_License = License.Load(licenseData);
 
-			// Only take the license if it passed validation.
-			if (validationResults.Length > 0)
-				return;
-
-			Logger.AddEntry(eSeverity.Informational, "Successfully Loaded license");
-			m_License = license;
-		}
-
-		/// <summary>
-		/// Returns true if the mac address in the license is valid for this program.
-		/// </summary>
-		/// <param name="license"></param>
-		/// <returns></returns>
-		private bool ValidateMacAddress(License license)
-		{
-			if (!license.AdditionalAttributes.Contains("MacAddress"))
-				return true;
-
-			string macAddress = license.AdditionalAttributes.Get("MacAddress");
-			return IcdEnvironment.MacAddresses.Any(m => macAddress.Equals(m, StringComparison.OrdinalIgnoreCase));
+			m_Validation = ValidateLicense(m_License);
 		}
 
 		/// <summary>
@@ -104,7 +78,7 @@ namespace ICD.Connect.Krang
 		public void UnloadLicense()
 		{
 			m_License = null;
-			m_PublicKey = null;
+			m_Validation = eValidationState.None;
 		}
 
 		/// <summary>
@@ -113,7 +87,10 @@ namespace ICD.Connect.Krang
 		/// <returns></returns>
 		public bool IsValid()
 		{
-			return m_License != null;
+			if (m_License == null)
+				return false;
+
+			return m_Validation == eValidationState.Valid;
 		}
 
 		/// <summary>
@@ -138,6 +115,58 @@ namespace ICD.Connect.Krang
 
 		#endregion
 
+		#region Validation
+
+		/// <summary>
+		/// Validates the loaded license.
+		/// </summary>
+		/// <param name="license"></param>
+		private eValidationState ValidateLicense(License license)
+		{
+			if (license == null)
+				throw new InvalidOperationException("No loaded license to validate.");
+
+			IValidationFailure[] validationResults =
+				license.Validate()
+				       .Signature(PUBLIC_KEY)
+				       .And()
+				       .AssertThat(ValidateMacAddress,
+				                   new GeneralValidationFailure
+				                   {
+					                   Message = "License MAC Address does not match system",
+					                   HowToResolve = "Are you using this license on the correct system?"
+				                   })
+				       .AssertValidLicense()
+				       .ToArray();
+
+			foreach (IValidationFailure failure in validationResults)
+				Logger.AddEntry(eSeverity.Warning, "{0} - {1} - {2}", GetType().Name, failure.Message, failure.HowToResolve);
+
+			// Only take the license if it passed validation.
+			if (validationResults.Length > 0)
+				return eValidationState.Invalid;
+
+			Logger.AddEntry(eSeverity.Informational, "Successfully validated license");
+
+			return eValidationState.Valid;
+		}
+
+		/// <summary>
+		/// Returns true if the mac address in the license is valid for this program.
+		/// </summary>
+		/// <param name="license"></param>
+		/// <returns></returns>
+		private static bool ValidateMacAddress(License license)
+		{
+			if (!license.AdditionalAttributes.Contains("MacAddress"))
+				return true;
+
+			string macAddress = license.AdditionalAttributes.Get("MacAddress");
+			return IcdEnvironment.MacAddresses.Any(m => macAddress.Equals(m, StringComparison.OrdinalIgnoreCase));
+		}
+
+		#endregion
+
 		#region Console
 
 		public IEnumerable<IConsoleCommand> GetConsoleCommands()
@@ -152,7 +181,6 @@ namespace ICD.Connect.Krang
 
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("Public Key", m_PublicKey);
 			addRow("License", m_LicensePath);
 		}
 
