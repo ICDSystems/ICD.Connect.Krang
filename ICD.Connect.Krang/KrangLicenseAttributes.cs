@@ -2,7 +2,7 @@
 {
 	public static class KrangLicenseAttributes
 	{
-		public const string MacAddress = "MacAddress";
-		public const string LicenseVersion = "LicenseVersion";
+		public const string MAC_ADDRESS = "MacAddress";
+		public const string LICENSE_VERSION = "LicenseVersion";
 	}
 }
