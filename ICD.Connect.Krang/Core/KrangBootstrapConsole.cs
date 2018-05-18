@@ -30,6 +30,7 @@ namespace ICD.Connect.Krang.Core
 
 			yield return instance.Krang;
 			yield return instance.BroadcastManager;
+			yield return instance.LicenseManager;
 		}
 
 		/// <summary>
@@ -67,8 +68,10 @@ namespace ICD.Connect.Krang.Core
 		{
 			if (instance == null)
 				throw new ArgumentNullException("instance");
-
-			instance.Krang.LoadSettings();
+#if LICENSING
+			if (instance.LicenseManager.IsValid())
+#endif
+				instance.Krang.LoadSettings();
 		}
 
 		private static void SaveSettings(KrangBootstrap instance)
