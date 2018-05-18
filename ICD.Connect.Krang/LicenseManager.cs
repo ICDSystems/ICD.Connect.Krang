@@ -171,8 +171,16 @@ namespace ICD.Connect.Krang
 			if (!license.AdditionalAttributes.Contains(KrangLicenseAttributes.MAC_ADDRESS))
 				return true;
 
-			string macAddress = StandardizeMacAddress(license.AdditionalAttributes.Get(KrangLicenseAttributes.MAC_ADDRESS));
-			return IcdEnvironment.MacAddresses.Any(m => StandardizeMacAddress(macAddress).Equals(m, StringComparison.OrdinalIgnoreCase));
+			string macAddress = license.AdditionalAttributes.Get(KrangLicenseAttributes.MAC_ADDRESS);
+			return IcdEnvironment.MacAddresses.Any(m => CompareMacAddresses(m, macAddress));
+		}
+
+		private static bool CompareMacAddresses(string a, string b)
+		{
+			a = StandardizeMacAddress(a);
+			b = StandardizeMacAddress(b);
+
+			return a.Equals(b, StringComparison.OrdinalIgnoreCase);
 		}
 
 	    private static string StandardizeMacAddress(string str)
