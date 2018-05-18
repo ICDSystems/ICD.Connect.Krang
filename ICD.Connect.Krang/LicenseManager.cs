@@ -11,6 +11,7 @@ using Crestron.SimplSharp.Reflection;
 using System.Reflection;
 #endif
 using System.Text;
+using System.Text.RegularExpressions;
 using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Connect.API.Commands;
@@ -170,11 +171,16 @@ namespace ICD.Connect.Krang
 			if (!license.AdditionalAttributes.Contains(KrangLicenseAttributes.MacAddress))
 				return true;
 
-			string macAddress = license.AdditionalAttributes.Get(KrangLicenseAttributes.MacAddress);
-			return IcdEnvironment.MacAddresses.Any(m => macAddress.Equals(m, StringComparison.OrdinalIgnoreCase));
+			string macAddress = StandardizeMacAddress(license.AdditionalAttributes.Get(KrangLicenseAttributes.MacAddress));
+			return IcdEnvironment.MacAddresses.Any(m => StandardizeMacAddress(macAddress).Equals(m, StringComparison.OrdinalIgnoreCase));
 		}
 
-		/// <summary>
+	    private static string StandardizeMacAddress(string str)
+	    {
+	        return Regex.Replace(str, "[^0-9A-Fa-f]", "").ToUpper();
+	    }
+
+	    /// <summary>
 		/// Returns true if the license version is valid for this version of the program.
 		/// </summary>
 		/// <param name="license"></param>
