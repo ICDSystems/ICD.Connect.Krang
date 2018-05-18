@@ -119,7 +119,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SPlusShims\SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusShims\SPlusOnKrangLoadedEventRelay.cs" />
-    <Compile Include="SPlusShims\SPlusPanelShim.cs" />
     <Compile Include="SPlusShims\SPlusSimplRoom.cs" />
     <Compile Include="SPlusShims\SPlusSimplSource.cs" />
     <Compile Include="SPlusShims\SPlusUiShim.cs" />
