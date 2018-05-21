@@ -44,7 +44,6 @@
     <ProjectReference Include="..\..\ICD.Connect.Partitioning\ICD.Connect.Partitioning\ICD.Connect.Partitioning_NetStandard.csproj" />
     <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Network\ICD.Connect.Protocol.Network_NetStandard.csproj" />
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.Mock\ICD.Connect.Routing.Mock_NetStandard.csproj" />
-    <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.SPlus\ICD.Connect.Routing.SPlus_NetStandard.csproj" />
     <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_NetStandard.csproj" />
   </ItemGroup>
 
