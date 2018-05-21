@@ -26,6 +26,7 @@ namespace ICD.Connect.Krang.Core
 		private ILoggerService m_Logger;
 		private DirectMessageManager m_DirectMessageManager;
 		private BroadcastManager m_BroadcastManager;
+		private LicenseManager m_LicenseManager;
 
 		#region Properties
 
@@ -49,6 +50,11 @@ namespace ICD.Connect.Krang.Core
 		/// Gets the broadcast manager instance.
 		/// </summary>
 		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
+
+		/// <summary>
+		/// Gets the license manager instance.
+		/// </summary>
+		public LicenseManager LicenseManager { get { return m_LicenseManager; } }
 
 		#endregion
 
@@ -78,11 +84,17 @@ namespace ICD.Connect.Krang.Core
 								  " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
 			}
 #endif
+
+			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
 			try
 			{
-				FileOperations.LoadCoreSettings<KrangCore, KrangCoreSettings>(m_Core);
+#if LICENSING
+				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
+				if (m_LicenseManager.IsValid())
+#endif
+					m_Core.LoadSettings();
 			}
 			catch (Exception e)
 			{
@@ -152,6 +164,9 @@ namespace ICD.Connect.Krang.Core
 			ServiceProvider.TryAddService(m_BroadcastManager);
 
 			ServiceProvider.TryAddService(new PermissionsManager());
+
+			m_LicenseManager = new LicenseManager();
+			ServiceProvider.AddService(m_LicenseManager);
 		}
 
 		#endregion

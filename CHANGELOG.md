@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Removed the SPlusPanelShim, as it doesnt make sense
  - Removed the SPlusSwitcherShim, relocated to ICD.Connect.Routing
 
+## [7.0.0] - 2018-05-18
+### Added
+ - Adding license validation, prevent loading Krang config if license is invalid
+
 ## [6.0.0] - 2018-05-09
 ### Changed
  - Renamed ambiguous s+interface to shim
