@@ -29,7 +29,7 @@ namespace ICD.Connect.Core
 			m_Bootstrap = new KrangBootstrap();
 			IcdEnvironment.OnProgramStatusEvent += IcdEnvironmentOnProgramStatusEvent;
 
-			Thread.MaxNumberOfUserThreads = 20;
+			Thread.MaxNumberOfUserThreads = 200;
 
 			// Delay other program loads until we are done
 			SystemMonitor.ProgramInitialization.ProgramInitializationUnderUserControl = true;
