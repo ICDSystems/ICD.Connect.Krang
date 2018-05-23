@@ -111,19 +111,6 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
-		/// Disposes the existing originators and adds the given originators.
-		/// </summary>
-		/// <param name="originators"></param>
-		private void SetOriginators(IEnumerable<IOriginator> originators)
-		{
-			if (originators == null)
-				throw new ArgumentNullException("originators");
-
-			DisposeOriginators();
-			Originators.SetChildren(originators);
-		}
-
-		/// <summary>
 		/// Adds the given originator to the cor.
 		/// </summary>
 		/// <param name="originator"></param>
@@ -240,7 +227,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.ClearSettingsFinal();
 
-			SetOriginators(Enumerable.Empty<IOriginator>());
+			DisposeOriginators();
 
 			m_InterCore.Stop();
 			m_InterCore.SetBroadcastAddresses(Enumerable.Empty<string>());
