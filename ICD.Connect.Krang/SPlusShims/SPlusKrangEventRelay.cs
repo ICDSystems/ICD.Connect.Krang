@@ -3,12 +3,12 @@ using ICD.Common.Utils.Extensions;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
-	public sealed class SPlusOnKrangLoadedEventRelay : IDisposable
+	public sealed class SPlusKrangEventRelay : IDisposable
 	{
 		public event EventHandler OnKrangLoaded;
 		public event EventHandler OnKrangCleared;
 
-		public SPlusOnKrangLoadedEventRelay()
+		public SPlusKrangEventRelay()
 		{
 			SPlusKrangBootstrap.OnKrangLoaded += SPlusKrangBootstrapOnKrangLoaded;
 			SPlusKrangBootstrap.OnKrangCleared += SPlusKrangBootstrapOnKrangCleared;
