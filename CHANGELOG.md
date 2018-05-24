@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+ - Changed SPlusOnKrangLoadedEventRelay to SPlusKrangEventRelay
+ 
+### Added
+ - Added OnKrangCleared event to SPlusKrangEventRelay for completeness
+ 
 ### Removed
  - Removed the SPlusPanelShim, as it doesnt make sense
  - Removed the SPlusSwitcherShim, relocated to ICD.Connect.Routing
