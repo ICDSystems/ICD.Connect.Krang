@@ -1,11 +1,21 @@
 ﻿using System;
+using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
 	public sealed class SPlusKrangEventRelay : IDisposable
 	{
+		/// <summary>
+		/// Raised when Krang loads
+		/// </summary>
+		[PublicAPI("SPlus")]
 		public event EventHandler OnKrangLoaded;
+
+		/// <summary>
+		/// Raised when Krang unloads
+		/// </summary>
+		[PublicAPI("SPlus")]
 		public event EventHandler OnKrangCleared;
 
 		public SPlusKrangEventRelay()
