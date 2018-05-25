@@ -7,7 +7,7 @@ using ICD.Connect.Settings.SPlusShims.GlobalEvents;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
-	[PublicAPI("SPlus")]
+	[PublicAPI("S+")]
 	public static class SPlusKrangBootstrap
 	{
 		public static event EventHandler OnKrangLoaded;

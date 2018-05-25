@@ -9,13 +9,13 @@ namespace ICD.Connect.Krang.SPlusShims
 		/// <summary>
 		/// Raised when Krang loads
 		/// </summary>
-		[PublicAPI("SPlus")]
+		[PublicAPI("S+")]
 		public event EventHandler OnKrangLoaded;
 
 		/// <summary>
 		/// Raised when Krang unloads
 		/// </summary>
-		[PublicAPI("SPlus")]
+		[PublicAPI("S+")]
 		public event EventHandler OnKrangCleared;
 
 		public SPlusKrangEventRelay()

@@ -5,7 +5,7 @@ using ICD.Connect.Routing.RoutingGraphs;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
-	[PublicAPI("SPlus")]
+	[PublicAPI("S+")]
 	public sealed class SPlusSimplSource
 	{
 		private SimplSource m_Source;
