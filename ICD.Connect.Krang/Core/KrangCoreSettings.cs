@@ -58,11 +58,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private SettingsCollection ThemeSettings
 		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IThemeSettings))));
-			}
+			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IThemeSettings)); }
 		}
 
 		/// <summary>
@@ -70,11 +66,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private SettingsCollection DeviceSettings
 		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IDeviceSettings))));
-			}
+			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IDeviceSettings)); }
 		}
 
 		/// <summary>
@@ -82,11 +74,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private SettingsCollection PortSettings
 		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IPortSettings))));
-			}
+			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IPortSettings)); }
 		}
 
 		/// <summary>
@@ -94,11 +82,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private SettingsCollection PanelSettings
 		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IPanelDeviceSettings))));
-			}
+			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IPanelDeviceSettings)); }
 		}
 
 		/// <summary>
@@ -106,11 +90,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private SettingsCollection RoomSettings
 		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IRoomSettings))));
-			}
+			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IRoomSettings)); }
 		}
 
 		/// <summary>
@@ -118,11 +98,7 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private SettingsCollection VolumePointSettings
 		{
-			get
-			{
-				return new SettingsCollection(m_OriginatorSettings.Where(s =>
-																		 s.GetType().IsAssignableTo(typeof(IVolumePointSettings))));
-			}
+			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IVolumePointSettings)); }
 		}
 
 		private RoutingGraphSettings RoutingGraphSettings
