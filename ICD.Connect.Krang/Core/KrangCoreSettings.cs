@@ -131,8 +131,6 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		public override Type OriginatorType { get { return typeof(KrangCore); } }
 
-		private ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
-
 		#endregion
 
 		/// <summary>
