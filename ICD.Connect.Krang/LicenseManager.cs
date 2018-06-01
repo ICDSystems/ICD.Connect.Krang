@@ -68,7 +68,7 @@ namespace ICD.Connect.Krang
 				return;
 			}
 
-			string licenseData = IcdFile.ReadToEnd(m_LicensePath, new UTF7Encoding(false));
+			string licenseData = IcdFile.ReadToEnd(m_LicensePath, new UTF8Encoding(false));
 			licenseData = EncodingUtils.StripUtf8Bom(licenseData);
 
 			m_License = License.Load(licenseData);
