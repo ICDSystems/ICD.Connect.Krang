@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
  - Removed the SPlusPanelShim, as it doesnt make sense
  - Removed the SPlusSwitcherShim, relocated to ICD.Connect.Routing
+ 
+### Changed
+ - Drastically increasing thread count for pooling
 
 ## [7.0.0] - 2018-05-18
 ### Added
