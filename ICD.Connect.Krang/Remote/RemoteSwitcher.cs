@@ -9,14 +9,13 @@ namespace ICD.Connect.Krang.Remote
 {
 	public sealed class RemoteSwitcher : AbstractDevice<RemoteSwitcherSettings>
 	{
-		private HostInfo m_HostInfo;
 		private readonly RemoteSwitcherControl m_SwitcherControl;
 
 		#region Properties
 
-		public HostInfo HostInfo { get { return m_HostInfo; } set { m_HostInfo = value; } }
+		public HostInfo HostInfo { get; set; }
 
-		public bool HasHostInfo { get { return m_HostInfo != default(HostInfo); } }
+		public bool HasHostInfo { get { return HostInfo != default(HostInfo); } }
 
 		public RemoteSwitcherControl SwitcherControl { get { return m_SwitcherControl; } }
 
