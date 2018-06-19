@@ -166,10 +166,10 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.CopySettingsFinal(settings);
 
+			// Clear the old originators
 			settings.OriginatorSettings.Clear();
-
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
-
+			
+			// Routing
 			RoutingGraph routingGraph = RoutingGraph;
 			RoutingGraphSettings routingSettings = routingGraph == null || !routingGraph.Serialize
 				                                       ? new RoutingGraphSettings
@@ -185,6 +185,7 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationGroupSettings);
 
+			// Partitioning
 			PartitionManager partitionManager = PartitionManager;
 			PartitionManagerSettings partitionSettings = partitionManager == null || !partitionManager.Serialize
 				                                             ? new PartitionManagerSettings
@@ -195,6 +196,9 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.Add(partitionSettings);
 
 			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
+
+			// Finally grab a copy of anything that may have been missed
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
 		}
 
 		private IEnumerable<ISettings> GetSerializableOriginators()
