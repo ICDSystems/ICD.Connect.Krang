@@ -8,6 +8,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
+using ICD.Common.Utils.Services.Scheduler;
 using ICD.Connect.API;
 using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
@@ -27,6 +28,7 @@ namespace ICD.Connect.Krang.Core
 		private DirectMessageManager m_DirectMessageManager;
 		private BroadcastManager m_BroadcastManager;
 		private LicenseManager m_LicenseManager;
+		private ActionSchedulerService m_ActionSchedulerService;
 
 		#region Properties
 
@@ -167,6 +169,9 @@ namespace ICD.Connect.Krang.Core
 
 			m_LicenseManager = new LicenseManager();
 			ServiceProvider.AddService(m_LicenseManager);
+
+			m_ActionSchedulerService = new ActionSchedulerService();
+			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
 		}
 
 		#endregion
