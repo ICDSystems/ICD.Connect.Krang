@@ -5,8 +5,10 @@ using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Direct;
+using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
+using ICD.Connect.Routing.Pathfinding;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings.Core;
 
@@ -20,6 +22,12 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 		private readonly SafeCriticalSection m_PendingMessagesSection;
 
 		private IRoutingGraph m_SubscribedRoutingGraph;
+		private IPathFinder m_PathFinder;
+
+		private IPathFinder PathFinder
+		{
+			get { return m_PathFinder = m_PathFinder ?? new DefaultPathFinder(m_SubscribedRoutingGraph); }
+		}
 
 		/// <summary>
 		/// Constructor.
@@ -73,8 +81,15 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(message));
 
 			IRoutingGraph graph = m_SubscribedRoutingGraph;
-			if (graph != null)
-				graph.Route(message.Operation);
+			if (graph == null)
+				return null;
+
+			IEnumerable<ConnectionPath> paths =
+				PathBuilder.FindPaths()
+				           .ForOperation(message.Operation)
+				           .With(PathFinder);
+
+			graph.RoutePaths(paths, message.Operation.RoomId);
 
 			return null;
 		}
