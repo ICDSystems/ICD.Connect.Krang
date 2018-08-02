@@ -47,7 +47,7 @@ namespace ICD.Connect.Krang.Rooms
 
 		private IPathFinder PathFinder
 		{
-			get { return m_PathFinder = m_PathFinder ?? new DefaultPathFinder(m_SubscribedRoutingGraph); }
+			get { return m_PathFinder = m_PathFinder ?? new DefaultPathFinder(m_SubscribedRoutingGraph, Id); }
 		}
 
 		#region Properties

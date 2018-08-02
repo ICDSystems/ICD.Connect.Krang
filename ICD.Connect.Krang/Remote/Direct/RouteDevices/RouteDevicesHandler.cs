@@ -22,12 +22,6 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 		private readonly SafeCriticalSection m_PendingMessagesSection;
 
 		private IRoutingGraph m_SubscribedRoutingGraph;
-		private IPathFinder m_PathFinder;
-
-		private IPathFinder PathFinder
-		{
-			get { return m_PathFinder = m_PathFinder ?? new DefaultPathFinder(m_SubscribedRoutingGraph); }
-		}
 
 		/// <summary>
 		/// Constructor.
@@ -84,10 +78,12 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			if (graph == null)
 				return null;
 
+			IPathFinder pathFinder = new DefaultPathFinder(m_SubscribedRoutingGraph, message.Operation.RoomId);
+
 			IEnumerable<ConnectionPath> paths =
 				PathBuilder.FindPaths()
 				           .ForOperation(message.Operation)
-				           .With(PathFinder);
+						   .With(pathFinder);
 
 			graph.RoutePaths(paths, message.Operation.RoomId);
 
