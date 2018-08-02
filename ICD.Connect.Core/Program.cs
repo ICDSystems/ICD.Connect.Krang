@@ -16,8 +16,7 @@ namespace ICD.Connect.Core
 		static Program()
 		{
 			s_Bootstrap = new KrangBootstrap();
-
-			AssemblyLoadContext.Default.Unloading += context => s_Bootstrap.Stop();
+			Console.CancelKeyPress += (a, b) => s_Bootstrap.Stop();
 		}
 
 		public static void Main()
@@ -35,6 +34,8 @@ namespace ICD.Connect.Core
 
 				ApiConsole.ExecuteCommand(command);
 			}
+
+			s_Bootstrap.Stop();
 		}
 	}
 }
