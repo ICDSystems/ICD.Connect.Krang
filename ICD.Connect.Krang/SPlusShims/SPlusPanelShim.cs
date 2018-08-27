@@ -87,7 +87,7 @@ namespace ICD.Connect.Krang.SPlusShims
 			if (m_PanelDevice == null)
 				return;
 
-			m_PanelDevice.SendInputSerial(number, text.ToString());
+			m_PanelDevice.SendInputSerial(number, text);
 		}
 
 		/// <summary>
