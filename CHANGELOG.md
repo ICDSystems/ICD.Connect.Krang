@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [9.0.0] - 2018-09-14
+### Changed
+ - Originators are constrained to class type
+ - Significant improvements to routing performance
+ - Only starting the direct message manager when broadcasting is configured
+
 ## [8.1.0] - 2018-07-19
 ### Added
  - Added ActionSchedulerService to ServiceProvider
