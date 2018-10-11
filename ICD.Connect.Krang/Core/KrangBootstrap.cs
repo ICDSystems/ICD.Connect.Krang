@@ -85,10 +85,18 @@ namespace ICD.Connect.Krang.Core
 				                  "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY." +
 								  " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
 			}
+
 #endif
 
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
+
+			var nvramCommonConfig = IcdPath.Combine(IcdPath.Combine(PathUtils.RootPath, "NVRAM"), "CommonConfig");
+			MigrateDirectory(nvramCommonConfig, PathUtils.CommonConfigPath);
+
+			var nvramProgramConfig = IcdPath.Combine(IcdPath.Combine(PathUtils.RootPath, "NVRAM"),
+				string.Format("Program{0:D2}Config", ProgramUtils.ProgramNumber));
+			MigrateDirectory(nvramProgramConfig, PathUtils.ProgramConfigPath);
 
 			try
 			{
@@ -172,6 +180,52 @@ namespace ICD.Connect.Krang.Core
 
 			m_ActionSchedulerService = new ActionSchedulerService();
 			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
+		}
+
+		#endregion
+
+		#region Migration
+
+		/// <summary>
+		/// Copies all the files and folders from oldDirectory to newDirectory, creating folders if needed.
+		/// Does not remove the files/folders at oldDirectory.
+		/// </summary>
+		/// <param name="oldDirectory"></param>
+		/// <param name="newDirectory"></param>
+		public void MigrateDirectory(string oldDirectory, string newDirectory)
+		{
+			// abandon if new folder exists and isn't empty
+			if (IcdDirectory.Exists(newDirectory) &&
+			    (IcdDirectory.GetFiles(newDirectory).Length > 0 || IcdDirectory.GetDirectories(newDirectory).Length > 0))
+				return;
+
+			if (!IcdDirectory.Exists(newDirectory))
+				IcdDirectory.CreateDirectory(newDirectory);
+
+			// abandon if old folder is empty or doesn't exist
+			if (!IcdDirectory.Exists(oldDirectory) ||
+			    (IcdDirectory.GetFiles(oldDirectory).Length == 0 && IcdDirectory.GetDirectories(oldDirectory).Length == 0))
+				return;
+
+			m_Logger.AddEntry(eSeverity.Informational, "Migrating {0} to {1}", oldDirectory, newDirectory);
+
+			// migrate files
+			foreach (var oldFile in IcdDirectory.GetFiles(oldDirectory))
+			{
+				var relativePath = IcdPath.GetRelativePath(oldDirectory, oldFile);
+				var newFile = IcdPath.Combine(newDirectory, relativePath);
+
+				// copy file
+				IcdFile.Copy(oldFile, newFile);
+			}
+			// migrate directories
+			foreach (var oldSubdirectory in IcdDirectory.GetDirectories(oldDirectory))
+			{
+				var relativePath = IcdPath.GetRelativePath(oldDirectory, oldSubdirectory);
+				var newSubdirectory = IcdPath.Combine(newDirectory, relativePath);
+
+				MigrateDirectory(oldSubdirectory, newSubdirectory);
+			}
 		}
 
 		#endregion
