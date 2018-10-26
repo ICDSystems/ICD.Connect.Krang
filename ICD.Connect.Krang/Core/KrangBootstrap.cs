@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ICD.Common.Logging.Console;
 using ICD.Common.Logging.Console.Loggers;
 using ICD.Common.Permissions;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -23,6 +25,7 @@ namespace ICD.Connect.Krang.Core
 	public sealed class KrangBootstrap : IConsoleNode
 	{
 		private readonly KrangCore m_Core;
+		private const string NVRAM_FILE = "NVRAM_DEPRECATED.txt";
 
 		private ILoggerService m_Logger;
 		private DirectMessageManager m_DirectMessageManager;
@@ -194,6 +197,8 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="newDirectory"></param>
 		public void MigrateDirectory(string oldDirectory, string newDirectory)
 		{
+			CreateNvramDeprecatedFile();
+
 			// abandon if new folder exists and isn't empty
 			if (IcdDirectory.Exists(newDirectory) &&
 			    (IcdDirectory.GetFiles(newDirectory).Length > 0 || IcdDirectory.GetDirectories(newDirectory).Length > 0))
@@ -225,6 +230,29 @@ namespace ICD.Connect.Krang.Core
 				var newSubdirectory = IcdPath.Combine(newDirectory, relativePath);
 
 				MigrateDirectory(oldSubdirectory, newSubdirectory);
+			}
+		}
+
+		/// <summary>
+		/// Creates a file with info about the NVRAM deprection in the NVRAM folder.
+		/// Does not override if file exists.
+		/// </summary>
+		public void CreateNvramDeprecatedFile()
+		{
+			string directory = IcdPath.Combine(PathUtils.RootPath, "NVRAM");
+			string deprecationFile = IcdPath.Combine(directory, NVRAM_FILE);
+			if (!IcdDirectory.Exists(directory) || IcdFile.Exists(deprecationFile))
+				return;
+
+			try
+			{
+				string subDirectory = PathUtils.RootConfigPath.Remove(PathUtils.RootPath);
+				IcdFileStream stream = IcdFile.Create(deprecationFile);
+				stream.WrappedFileStream.Write(String.Format("The 'NVRAM' directory has been depricated in favor of the '{0}' directory", subDirectory), Encoding.UTF8);
+			}
+			catch (Exception e)
+			{
+				m_Logger.AddEntry(eSeverity.Error, e, "Error in Create Nvram Deprecated File");
 			}
 		}
 
