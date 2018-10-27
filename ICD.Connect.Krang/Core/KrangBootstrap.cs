@@ -24,8 +24,9 @@ namespace ICD.Connect.Krang.Core
 	[ApiClass("ControlSystem", null)]
 	public sealed class KrangBootstrap : IConsoleNode
 	{
+		private const string NVRAM_FILE = "NVRAM_DEPRECATED";
+
 		private readonly KrangCore m_Core;
-		private const string NVRAM_FILE = "NVRAM_DEPRECATED.txt";
 
 		private ILoggerService m_Logger;
 		private DirectMessageManager m_DirectMessageManager;
@@ -241,18 +242,24 @@ namespace ICD.Connect.Krang.Core
 		{
 			string directory = IcdPath.Combine(PathUtils.RootPath, "NVRAM");
 			string deprecationFile = IcdPath.Combine(directory, NVRAM_FILE);
+
 			if (!IcdDirectory.Exists(directory) || IcdFile.Exists(deprecationFile))
 				return;
 
 			try
 			{
 				string subDirectory = PathUtils.RootConfigPath.Remove(PathUtils.RootPath);
-				IcdFileStream stream = IcdFile.Create(deprecationFile);
-				stream.WrappedFileStream.Write(String.Format("The 'NVRAM' directory has been depricated in favor of the '{0}' directory", subDirectory), Encoding.UTF8);
+
+				using (IcdFileStream stream = IcdFile.Create(deprecationFile))
+				{
+					stream.WrappedFileStream
+						  .Write(string.Format("The 'NVRAM' directory has been deprecated in favor of the '{0}' directory", subDirectory),
+								 Encoding.UTF8);
+				}
 			}
 			catch (Exception e)
 			{
-				m_Logger.AddEntry(eSeverity.Error, e, "Error in Create Nvram Deprecated File");
+				m_Logger.AddEntry(eSeverity.Error, e, "Error writing NVRAM Deprecated File");
 			}
 		}
 
