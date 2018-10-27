@@ -252,9 +252,9 @@ namespace ICD.Connect.Krang.Core
 
 				using (IcdFileStream stream = IcdFile.Create(deprecationFile))
 				{
-					stream.WrappedFileStream
-						  .Write(string.Format("The 'NVRAM' directory has been deprecated in favor of the '{0}' directory", subDirectory),
-								 Encoding.UTF8);
+					string data = string.Format("The 'NVRAM' directory has been deprecated in favor of the '{0}' directory",
+												subDirectory);
+					stream.Write(data, Encoding.UTF8);
 				}
 			}
 			catch (Exception e)
