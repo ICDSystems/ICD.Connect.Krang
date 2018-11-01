@@ -168,7 +168,7 @@ namespace ICD.Connect.Krang.Core
 			}
 			catch (Exception e)
 			{
-				Logger.AddEntry(eSeverity.Error, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
+				Logger.AddEntry(eSeverity.Error, e, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
 			}
 		}
 
