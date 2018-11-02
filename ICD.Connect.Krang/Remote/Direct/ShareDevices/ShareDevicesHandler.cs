@@ -8,7 +8,6 @@ using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints.Destinations;
-using ICD.Connect.Routing.Endpoints.Groups;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
@@ -35,11 +34,6 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 
 			AddSources(message, switcher);
 			AddDestinations(message, switcher);
-			foreach (IDestinationGroup destinationGroup in message.DestinationGroups)
-			{
-				destinationGroup.Remote = true;
-				m_Core.GetRoutingGraph().DestinationGroups.AddChild(destinationGroup);
-			}
 
 			return null;
 		}

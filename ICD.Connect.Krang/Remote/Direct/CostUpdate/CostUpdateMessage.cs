@@ -7,6 +7,5 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 	{
 		public Dictionary<int, double> SourceCosts { get; set; }
 		public Dictionary<int, double> DestinationCosts { get; set; }
-		public Dictionary<int, double> DestinationGroupCosts { get; set; }
 	}
 }

@@ -203,7 +203,6 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(routingSettings.StaticRouteSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.SourceSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationSettings);
-			settings.OriginatorSettings.AddRange(routingSettings.DestinationGroupSettings);
 
 			// Partitioning
 			PartitionManager partitionManager = PartitionManager;

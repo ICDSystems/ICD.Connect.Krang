@@ -7,6 +7,5 @@ namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 	{
 		public IEnumerable<int> Sources { get; set; }
 		public IEnumerable<int> Destinations { get; set; }
-		public IEnumerable<int> DestinationGroups { get; set; }
 	}
 }
