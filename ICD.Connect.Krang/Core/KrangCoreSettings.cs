@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
@@ -132,24 +133,8 @@ namespace ICD.Connect.Krang.Core
 			m_Header = new ConfigurationHeader();
 			m_BroadcastSettings = new BroadcastSettings();
 
-			m_OriginatorSettings.OnItemRemoved += DeviceSettingsOnItemRemoved;
+			m_OriginatorSettings.OnItemRemoved += SettingsOnItemRemoved;
 		}
-
-		/// <summary>
-		/// Returns true if the settings depend on a device with the given ID.
-		/// For example, to instantiate an IR Port from settings, the device the physical port
-		/// belongs to will need to be instantiated first.
-		/// </summary>
-		/// <returns></returns>
-		public override bool HasDeviceDependency(int id)
-		{
-			return m_OriginatorSettings.Select(o => o.Id).Contains(Id);
-		}
-
-		/// <summary>
-		/// Returns the count from the collection of ids that the settings depends on.
-		/// </summary>
-		public override int DependencyCount { get { return m_OriginatorSettings.Count; } }
 
 		/// <summary>
 		/// Writes property elements to xml.
@@ -323,37 +308,37 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="eventArgs"></param>
-		private void DeviceSettingsOnItemRemoved(object sender, EventArgs eventArgs)
+		private void SettingsOnItemRemoved(object sender, GenericEventArgs<ISettings> eventArgs)
 		{
-			int[] ids = m_OriginatorSettings.Select(s => s.Id).ToArray();
-			RemoveSettingsWithBadDeviceDependency(m_OriginatorSettings, ids);
+			RemoveDependentSettings(m_OriginatorSettings, eventArgs.Data);
+
+			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
+			if (routingGraphSettings != null)
+			{
+				RemoveDependentSettings(routingGraphSettings.ConnectionSettings, eventArgs.Data);
+				RemoveDependentSettings(routingGraphSettings.DestinationSettings, eventArgs.Data);
+				RemoveDependentSettings(routingGraphSettings.SourceSettings, eventArgs.Data);
+				RemoveDependentSettings(routingGraphSettings.StaticRouteSettings, eventArgs.Data);
+			}
+
+			PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
+			if (partitionManagerSettings != null)
+			{
+				RemoveDependentSettings(partitionManagerSettings.PartitionSettings, eventArgs.Data);
+			}
 		}
 
 		/// <summary>
-		/// Removes settings from the settings collection where a dependency has been lost.
+		/// Removes settings from the collection that are dependent on the given settings instance.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="deviceIds"></param>
-		private static void RemoveSettingsWithBadDeviceDependency(ICollection<ISettings> settings,
-																  IEnumerable<int> deviceIds)
+		/// <param name="collection"></param>
+		/// <param name="dependency"></param>
+		private static void RemoveDependentSettings(SettingsCollection collection, ISettings dependency)
 		{
-			IEnumerable<ISettings> remove = settings.Where(s => HasBadDeviceDependency(s, deviceIds)).ToArray();
+			ISettings[] remove = collection.Where(s => s.HasDependency(dependency.Id))
+			                               .ToArray();
 			foreach (ISettings item in remove)
-				settings.Remove(item);
-		}
-
-		/// <summary>
-		/// Returns true if the settings instance depends on a device that is not in the given device ids.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="deviceIds"></param>
-		/// <returns></returns>
-		private static bool HasBadDeviceDependency(ISettings settings, IEnumerable<int> deviceIds)
-		{
-			int expectedSettingsDependencyCount = settings.DependencyCount;
-			foreach (int id in deviceIds.Where(settings.HasDeviceDependency))
-				expectedSettingsDependencyCount--;
-			return expectedSettingsDependencyCount != 0;
+				collection.Remove(item);
 		}
 
 		#endregion
