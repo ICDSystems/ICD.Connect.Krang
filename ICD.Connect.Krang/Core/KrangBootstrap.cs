@@ -95,6 +95,8 @@ namespace ICD.Connect.Krang.Core
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
+			CreateNvramDeprecatedFile();
+
 			var nvramCommonConfig = IcdPath.Combine(IcdPath.Combine(PathUtils.RootPath, "NVRAM"), "CommonConfig");
 			MigrateDirectory(nvramCommonConfig, PathUtils.CommonConfigPath);
 
@@ -198,15 +200,10 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="newDirectory"></param>
 		public void MigrateDirectory(string oldDirectory, string newDirectory)
 		{
-			CreateNvramDeprecatedFile();
-
 			// abandon if new folder exists and isn't empty
 			if (IcdDirectory.Exists(newDirectory) &&
 			    (IcdDirectory.GetFiles(newDirectory).Length > 0 || IcdDirectory.GetDirectories(newDirectory).Length > 0))
 				return;
-
-			if (!IcdDirectory.Exists(newDirectory))
-				IcdDirectory.CreateDirectory(newDirectory);
 
 			// abandon if old folder is empty or doesn't exist
 			if (!IcdDirectory.Exists(oldDirectory) ||
@@ -220,6 +217,9 @@ namespace ICD.Connect.Krang.Core
 			{
 				var relativePath = IcdPath.GetRelativePath(oldDirectory, oldFile);
 				var newFile = IcdPath.Combine(newDirectory, relativePath);
+
+				if (!IcdDirectory.Exists(newDirectory))
+					IcdDirectory.CreateDirectory(newDirectory);
 
 				// copy file
 				IcdFile.Copy(oldFile, newFile);
