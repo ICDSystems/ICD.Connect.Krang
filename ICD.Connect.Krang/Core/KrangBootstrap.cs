@@ -89,20 +89,12 @@ namespace ICD.Connect.Krang.Core
 				                  "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY." +
 								  " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
 			}
-
 #endif
+
+			MigrateNvram();
 
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
-
-			CreateNvramDeprecatedFile();
-
-			var nvramCommonConfig = IcdPath.Combine(IcdPath.Combine(PathUtils.RootPath, "NVRAM"), "CommonConfig");
-			MigrateDirectory(nvramCommonConfig, PathUtils.CommonConfigPath);
-
-			var nvramProgramConfig = IcdPath.Combine(IcdPath.Combine(PathUtils.RootPath, "NVRAM"),
-				string.Format("Program{0:D2}Config", ProgramUtils.ProgramNumber));
-			MigrateDirectory(nvramProgramConfig, PathUtils.ProgramConfigPath);
 
 			try
 			{
@@ -193,73 +185,106 @@ namespace ICD.Connect.Krang.Core
 		#region Migration
 
 		/// <summary>
+		/// Migrates the contents of NVRAM to the USER directory.
+		/// </summary>
+		private void MigrateNvram()
+		{
+			string nvramPath = PathUtils.Join(PathUtils.RootPath, "NVRAM");
+			if (!IcdDirectory.Exists(nvramPath))
+				return;
+
+			string configPath = PathUtils.RootConfigPath;
+			if (configPath == nvramPath)
+				return;
+
+			// Abandon if new folder exists and isn't empty
+			if (IcdDirectory.Exists(configPath) &&
+				(IcdDirectory.GetFiles(configPath).Length > 0 || IcdDirectory.GetDirectories(configPath).Length > 0))
+				return;
+
+			m_Logger.AddEntry(eSeverity.Informational, "Migrating {0} to {1}", nvramPath, configPath);
+
+			bool migrated = MigrateDirectory(nvramPath, configPath);
+			if (migrated)
+				CreateNvramDeprecatedFile();
+		}
+
+		/// <summary>
 		/// Copies all the files and folders from oldDirectory to newDirectory, creating folders if needed.
 		/// Does not remove the files/folders at oldDirectory.
 		/// </summary>
-		/// <param name="oldDirectory"></param>
-		/// <param name="newDirectory"></param>
-		public void MigrateDirectory(string oldDirectory, string newDirectory)
+		/// <param name="oldPath"></param>
+		/// <param name="newPath"></param>
+		private static bool MigrateDirectory(string oldPath, string newPath)
 		{
-			// abandon if new folder exists and isn't empty
-			if (IcdDirectory.Exists(newDirectory) &&
-			    (IcdDirectory.GetFiles(newDirectory).Length > 0 || IcdDirectory.GetDirectories(newDirectory).Length > 0))
-				return;
+			bool migrated = false;
 
-			// abandon if old folder is empty or doesn't exist
-			if (!IcdDirectory.Exists(oldDirectory) ||
-			    (IcdDirectory.GetFiles(oldDirectory).Length == 0 && IcdDirectory.GetDirectories(oldDirectory).Length == 0))
-				return;
-
-			m_Logger.AddEntry(eSeverity.Informational, "Migrating {0} to {1}", oldDirectory, newDirectory);
-
-			// migrate files
-			foreach (var oldFile in IcdDirectory.GetFiles(oldDirectory))
+			// Migrate files
+			foreach (string oldFile in IcdDirectory.GetFiles(oldPath))
 			{
-				var relativePath = IcdPath.GetRelativePath(oldDirectory, oldFile);
-				var newFile = IcdPath.Combine(newDirectory, relativePath);
+				string relativePath = IcdPath.GetRelativePath(oldPath, oldFile);
+				string newFile = IcdPath.Combine(newPath, relativePath);
 
-				if (!IcdDirectory.Exists(newDirectory))
-					IcdDirectory.CreateDirectory(newDirectory);
-
-				// copy file
-				IcdFile.Copy(oldFile, newFile);
+				migrated |= MigrateFile(oldFile, newFile);
 			}
-			// migrate directories
-			foreach (var oldSubdirectory in IcdDirectory.GetDirectories(oldDirectory))
+
+			// Migrate directories
+			foreach (string oldSubdirectory in IcdDirectory.GetDirectories(oldPath))
 			{
-				var relativePath = IcdPath.GetRelativePath(oldDirectory, oldSubdirectory);
-				var newSubdirectory = IcdPath.Combine(newDirectory, relativePath);
+				string relativePath = IcdPath.GetRelativePath(oldPath, oldSubdirectory);
+				string newSubdirectory = IcdPath.Combine(newPath, relativePath);
 
-				MigrateDirectory(oldSubdirectory, newSubdirectory);
+				migrated |= MigrateDirectory(oldSubdirectory, newSubdirectory);
 			}
+
+			return migrated;
+		}
+
+		/// <summary>
+		/// Copies the file at the old path to the new path.
+		/// Does nothing if a file already exists at the new path.
+		/// </summary>
+		/// <param name="oldPath"></param>
+		/// <param name="newPath"></param>
+		/// <returns></returns>
+		private static bool MigrateFile(string oldPath, string newPath)
+		{
+			if (!IcdFile.Exists(oldPath))
+				throw new InvalidOperationException("File does not exist");
+
+			if (IcdFile.Exists(newPath))
+				return false;
+
+			string directory = IcdPath.GetDirectoryName(newPath);
+			IcdDirectory.CreateDirectory(directory);
+
+			// Copy file
+			IcdFile.Copy(oldPath, newPath);
+
+			return true;
 		}
 
 		/// <summary>
 		/// Creates a file with info about the NVRAM deprection in the NVRAM folder.
 		/// Does not override if file exists.
 		/// </summary>
-		public void CreateNvramDeprecatedFile()
+		private static void CreateNvramDeprecatedFile()
 		{
 			string directory = IcdPath.Combine(PathUtils.RootPath, "NVRAM");
-			string deprecationFile = IcdPath.Combine(directory, NVRAM_FILE);
-
-			if (!IcdDirectory.Exists(directory) || IcdFile.Exists(deprecationFile))
+			if (!IcdDirectory.Exists(directory))
 				return;
 
-			try
-			{
-				string subDirectory = PathUtils.RootConfigPath.Remove(PathUtils.RootPath);
+			string deprecationFile = IcdPath.Combine(directory, NVRAM_FILE);
+			if (IcdFile.Exists(deprecationFile))
+				return;
 
-				using (IcdFileStream stream = IcdFile.Create(deprecationFile))
-				{
-					string data = string.Format("The 'NVRAM' directory has been deprecated in favor of the '{0}' directory",
-												subDirectory);
-					stream.Write(data, Encoding.UTF8);
-				}
-			}
-			catch (Exception e)
+			string subDirectory = PathUtils.RootConfigPath.Remove(PathUtils.RootPath);
+
+			using (IcdFileStream stream = IcdFile.Create(deprecationFile))
 			{
-				m_Logger.AddEntry(eSeverity.Error, e, "Error writing NVRAM Deprecated File");
+				string data = string.Format("The 'NVRAM' directory has been deprecated in favor of the '{0}' directory",
+											subDirectory);
+				stream.Write(data, Encoding.UTF8);
 			}
 		}
 
