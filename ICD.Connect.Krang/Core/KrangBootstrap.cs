@@ -79,6 +79,9 @@ namespace ICD.Connect.Krang.Core
 
 		#region Methods
 
+		/// <summary>
+		/// Load the core configuration.
+		/// </summary>
 		public void Start()
 		{
 #if SIMPLSHARP
@@ -102,7 +105,7 @@ namespace ICD.Connect.Krang.Core
 				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
 				if (m_LicenseManager.IsValid())
 #endif
-					m_Core.LoadSettings();
+				m_Core.LoadSettings();
 			}
 			catch (Exception e)
 			{
@@ -110,6 +113,9 @@ namespace ICD.Connect.Krang.Core
 			}
 		}
 
+		/// <summary>
+		/// Unload the core configuration.
+		/// </summary>
 		public void Stop()
 		{
 			try
