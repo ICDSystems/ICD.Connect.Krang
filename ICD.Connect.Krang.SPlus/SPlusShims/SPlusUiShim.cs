@@ -6,13 +6,13 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
-using ICD.Connect.Krang.Rooms;
-using ICD.Connect.Krang.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.Rooms;
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.SPlusShims
+namespace ICD.Connect.Krang.SPlus.SPlusShims
 {
 	[PublicAPI("S+")]
 	public sealed class SPlusUiShim : IDisposable

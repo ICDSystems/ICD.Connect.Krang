@@ -16,10 +16,11 @@ using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.PathFinding;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Simpl;
 
-namespace ICD.Connect.Krang.Rooms
+namespace ICD.Connect.Krang.SPlus.Rooms
 {
-	public sealed class SimplRoom : AbstractRoom<SimplRoomSettings>
+	public sealed class SimplRoom : AbstractRoom<SimplRoomSettings>, ISimplOriginator
 	{
 		public enum eCrosspointType
 		{

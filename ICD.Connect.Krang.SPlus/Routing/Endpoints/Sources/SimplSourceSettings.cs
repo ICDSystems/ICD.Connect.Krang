@@ -2,11 +2,12 @@
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Attributes;
+using ICD.Connect.Settings.Simpl;
 
-namespace ICD.Connect.Krang.Routing.Endpoints.Sources
+namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
 	[KrangSettings("SimplSource", typeof(SimplSource))]
-	public sealed class SimplSourceSettings : AbstractSourceSettings
+	public sealed class SimplSourceSettings : AbstractSourceSettings, ISimplOriginatorSettings
 	{
 		private const string CROSSPOINT_ID_ELEMENT = "CrosspointId";
 		private const string CROSSPOINT_TYPE_ELEMENT = "CrosspointType";

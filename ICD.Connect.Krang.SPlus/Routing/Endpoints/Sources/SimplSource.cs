@@ -2,10 +2,11 @@
 using ICD.Common.Properties;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Simpl;
 
-namespace ICD.Connect.Krang.Routing.Endpoints.Sources
+namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
-	public sealed class SimplSource : AbstractSource<SimplSourceSettings>
+	public sealed class SimplSource : AbstractSource<SimplSourceSettings>, ISimplOriginator
 	{
 		[Flags]
 		public enum eSourceVisibility

@@ -5,7 +5,7 @@ using ICD.Connect.Panels.EventArguments;
 using ICD.Connect.Protocol.Sigs;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.SPlusShims
+namespace ICD.Connect.Krang.SPlus.SPlusShims
 {
 	public sealed class SPlusPanelShim : IDisposable
 	{

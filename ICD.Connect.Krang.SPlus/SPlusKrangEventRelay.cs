@@ -2,7 +2,7 @@
 using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
 
-namespace ICD.Connect.Krang.SPlusShims
+namespace ICD.Connect.Krang.SPlus
 {
 	public sealed class SPlusKrangEventRelay : IDisposable
 	{

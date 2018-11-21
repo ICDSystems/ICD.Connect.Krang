@@ -5,7 +5,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Core;
 using ICD.Connect.Settings.SPlusShims.GlobalEvents;
 
-namespace ICD.Connect.Krang.SPlusShims
+namespace ICD.Connect.Krang.SPlus
 {
 	[PublicAPI("S+")]
 	public static class SPlusKrangBootstrap

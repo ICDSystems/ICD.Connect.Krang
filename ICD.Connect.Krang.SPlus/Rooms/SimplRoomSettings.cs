@@ -6,11 +6,12 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Attributes;
+using ICD.Connect.Settings.Simpl;
 
-namespace ICD.Connect.Krang.Rooms
+namespace ICD.Connect.Krang.SPlus.Rooms
 {
 	[KrangSettings("SimplRoom", typeof(SimplRoom))]
-	public sealed class SimplRoomSettings : AbstractRoomSettings
+	public sealed class SimplRoomSettings : AbstractRoomSettings, ISimplOriginatorSettings
 	{
 		private const string CROSSPOINTS_ELEMENT = "Crosspoints";
 		private const string CROSSPOINT_ELEMENT = "Crosspoint";
