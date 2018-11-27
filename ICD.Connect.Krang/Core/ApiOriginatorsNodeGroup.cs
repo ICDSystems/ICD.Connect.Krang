@@ -6,7 +6,7 @@ using ICD.Connect.Settings.Originators;
 namespace ICD.Connect.Krang.Core
 {
 	public sealed class ApiOriginatorsNodeGroup<TOriginator> : AbstractApiNodeGroup
-		where TOriginator : IOriginator
+		where TOriginator : class, IOriginator
 	{
 		private readonly IOriginatorCollection<IOriginator> m_Originators;
 

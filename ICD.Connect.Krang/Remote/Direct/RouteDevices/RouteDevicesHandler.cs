@@ -5,8 +5,10 @@ using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Direct;
+using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
+using ICD.Connect.Routing.PathFinding;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings.Cores;
 
@@ -73,8 +75,17 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(message));
 
 			IRoutingGraph graph = m_SubscribedRoutingGraph;
-			if (graph != null)
-				graph.Route(message.Operation);
+			if (graph == null)
+				return null;
+
+			IPathFinder pathFinder = new DefaultPathFinder(m_SubscribedRoutingGraph, message.Operation.RoomId);
+
+			IEnumerable<ConnectionPath> paths =
+				PathBuilder.FindPaths()
+				           .ForOperation(message.Operation)
+						   .With(pathFinder);
+
+			graph.RoutePaths(paths, message.Operation.RoomId);
 
 			return null;
 		}

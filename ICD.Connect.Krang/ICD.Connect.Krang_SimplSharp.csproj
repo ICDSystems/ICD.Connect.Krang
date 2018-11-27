@@ -1,4 +1,5 @@
-﻿<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -44,7 +45,7 @@
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
     <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
-    <DefineConstants>SIMPLSHARP</DefineConstants>
+    <DefineConstants>SIMPLSHARP;LICENSING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -117,16 +118,21 @@
     <Compile Include="Core\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="LicenseManager.cs" />
+    <Compile Include="KrangLicenseAttributes.cs" />
     <Compile Include="SPlusShims\SPlusKrangBootstrap.cs" />
-    <Compile Include="SPlusShims\SPlusOnKrangLoadedEventRelay.cs" />
+    <Compile Include="SPlusShims\SPlusKrangEventRelay.cs" />
     <Compile Include="SPlusShims\SPlusPanelShim.cs" />
     <Compile Include="SPlusShims\SPlusSimplRoom.cs" />
     <Compile Include="SPlusShims\SPlusSimplSource.cs" />
-    <Compile Include="SPlusShims\SPlusSwitcherShim.cs" />
     <Compile Include="SPlusShims\SPlusUiShim.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ICD.Common.Licensing\ICD.Common.Licensing\ICD.Common.Licensing_SimplSharp.csproj">
+      <Project>{57BDBCF2-FBD4-4F2C-AA5D-A0B79B730749}</Project>
+      <Name>ICD.Common.Licensing_SimplSharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ICD.Common.Logging\ICD.Common.Logging.Console\ICD.Common.Logging.Console_SimplSharp.csproj">
       <Project>{8093AE94-7250-411E-9C55-68AB2B5D705A}</Project>
       <Name>ICD.Common.Logging.Console_SimplSharp</Name>
@@ -170,10 +176,6 @@
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.Mock\ICD.Connect.Routing.Mock_SimplSharp.csproj">
       <Project>{97A3B247-7928-461D-A083-077B4C875FFB}</Project>
       <Name>ICD.Connect.Routing.Mock_SimplSharp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing.SPlus\ICD.Connect.Routing.SPlus_SimplSharp.csproj">
-      <Project>{6A03FD4D-3620-4B08-8C57-5291A3F0A213}</Project>
-      <Name>ICD.Connect.Routing.SPlus_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Routing\ICD.Connect.Routing\ICD.Connect.Routing_SimplSharp.csproj">
       <Project>{B0C0CA1C-FA55-4BEA-8A8B-EDB2141C523E}</Project>

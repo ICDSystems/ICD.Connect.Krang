@@ -7,7 +7,6 @@ using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.Endpoints.Destinations;
-using ICD.Connect.Routing.Endpoints.Groups;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Settings.Cores;
@@ -22,8 +21,6 @@ namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 			List<ISource> sources = core.GetRoutingGraph().Sources.Where(s => message.Sources.Contains(s.Id)).ToList();
 			List<IDestination> destinations =
 				core.GetRoutingGraph().Destinations.Where(d => message.Destinations.Contains(d.Id)).ToList();
-			List<IDestinationGroup> destinationGroups =
-				core.GetRoutingGraph().DestinationGroups.Where(d => message.DestinationGroups.Contains(d.Id)).ToList();
 
 			// TODO - Does this work properly for switchers or throughput devices?
 			Dictionary<int, IEnumerable<ConnectorInfo>> sourceConnections = new Dictionary<int, IEnumerable<ConnectorInfo>>();
@@ -55,8 +52,7 @@ namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 				Sources = sources,
 				Destinations = destinations,
 				SourceConnections = sourceConnections,
-				DestinationConnections = destinationConnections,
-				DestinationGroups = destinationGroups
+				DestinationConnections = destinationConnections
 			});
 
 			return null;

@@ -79,11 +79,13 @@ namespace ICD.Connect.Krang.Remote
 		public void Start()
 		{
 			BroadcastManager.Start();
+			DirectMessageManager.Start();
 		}
 
 		public void Stop()
 		{
 			BroadcastManager.Stop();
+			DirectMessageManager.Stop();
 		}
 
 		public void SetBroadcastAddresses(IEnumerable<string> addresses)

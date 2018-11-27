@@ -19,12 +19,37 @@ namespace ICD.Connect.Krang.Remote
 {
 	public sealed class RemoteSwitcherControl : AbstractRouteSwitcherControl<RemoteSwitcher>
 	{
+		/// <summary>
+		/// Raised when the device starts/stops actively transmitting on an output.
+		/// </summary>
 		public override event EventHandler<TransmissionStateEventArgs> OnActiveTransmissionStateChanged;
+
+		/// <summary>
+		/// Raised when an input source status changes.
+		/// </summary>
 		public override event EventHandler<SourceDetectionStateChangeEventArgs> OnSourceDetectionStateChange;
+
+		/// <summary>
+		/// Raised when the device starts/stops actively using an input, e.g. unroutes an input.
+		/// </summary>
 		public override event EventHandler<ActiveInputStateChangeEventArgs> OnActiveInputsChanged;
+
+		/// <summary>
+		/// Called when a route changes.
+		/// </summary>
 		public override event EventHandler<RouteChangeEventArgs> OnRouteChange;
 
 		private readonly KrangCore m_Krang;
+
+		private RoutingGraph m_CachedRoutingGraph;
+
+		/// <summary>
+		/// Gets the routing graph.
+		/// </summary>
+		public RoutingGraph RoutingGraph
+		{
+			get { return m_CachedRoutingGraph = m_CachedRoutingGraph ?? m_Krang.RoutingGraph; }
+		}
 
 		/// <summary>
 		/// Maps outputs to inputs.
@@ -62,41 +87,100 @@ namespace ICD.Connect.Krang.Remote
 
 		#region IRouteSourceDevice Methods
 
+		/// <summary>
+		/// Gets the output at the given address.
+		/// </summary>
+		/// <param name="address"></param>
+		/// <returns></returns>
+		public override ConnectorInfo GetOutput(int address)
+		{
+			Connection connection = RoutingGraph.Connections.GetOutputConnection(this, address);
+			if (connection == null)
+				throw new ArgumentOutOfRangeException("address");
+
+			return new ConnectorInfo(address, connection.ConnectionType);
+		}
+
+		/// <summary>
+		/// Returns true if the source contains an output at the given address.
+		/// </summary>
+		/// <param name="output"></param>
+		/// <returns></returns>
+		public override bool ContainsOutput(int output)
+		{
+			return RoutingGraph.Connections.GetOutputConnection(this, output) != null;
+		}
+
+		/// <summary>
+		/// Returns the outputs.
+		/// </summary>
+		/// <returns></returns>
 		public override IEnumerable<ConnectorInfo> GetOutputs()
 		{
-			IRoutingGraph graph = m_Krang.RoutingGraph;
-			if (graph == null)
-				return Enumerable.Empty<ConnectorInfo>();
-
-			return graph.Connections
-			            .Where(c => c.Source.Device == Parent.Id && c.Source.Control == Id)
-			            .Select(c => new ConnectorInfo(c.Source.Address, c.ConnectionType));
+			return RoutingGraph.Connections
+			                   .GetOutputConnections(Parent.Id, Id)
+			                   .Select(c => new ConnectorInfo(c.Source.Address, c.ConnectionType));
 		}
 
 		#endregion
 
 		#region IRouteDestinationDevice Methods
 
+		/// <summary>
+		/// Returns true if a signal is detected at the given input.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		public override bool GetSignalDetectedState(int input, eConnectionType type)
 		{
 			return m_Cache.GetSourceDetectedState(input, type);
 		}
 
+		/// <summary>
+		/// Gets the input at the given address.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public override ConnectorInfo GetInput(int input)
+		{
+			Connection connection = RoutingGraph.Connections.GetInputConnection(this, input);
+			if (connection == null)
+				throw new ArgumentOutOfRangeException("address");
+
+			return new ConnectorInfo(input, connection.ConnectionType);
+		}
+
+		/// <summary>
+		/// Returns true if the destination contains an input at the given address.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public override bool ContainsInput(int input)
+		{
+			return RoutingGraph.Connections.GetInputConnection(this, input) != null;
+		}
+
+		/// <summary>
+		/// Returns the inputs.
+		/// </summary>
+		/// <returns></returns>
 		public override IEnumerable<ConnectorInfo> GetInputs()
 		{
-			IRoutingGraph graph = m_Krang.RoutingGraph;
-			if (graph == null)
-				return Enumerable.Empty<ConnectorInfo>();
-
-			return graph.Connections
-			            .Where(c => c.Destination.Device == Parent.Id && c.Destination.Control == Id)
-			            .Select(c => new ConnectorInfo(c.Destination.Address, c.ConnectionType));
+			return RoutingGraph.Connections
+			                   .GetInputConnections(Parent.Id, Id)
+			                   .Select(c => new ConnectorInfo(c.Destination.Address, c.ConnectionType));
 		}
 
 		#endregion
 
 		#region IRouteSwitcherDevice Methods
 
+		/// <summary>
+		/// Performs the given route operation.
+		/// </summary>
+		/// <param name="info"></param>
+		/// <returns></returns>
 		public override bool Route(RouteOperation info)
 		{
 			if (Parent.HasHostInfo && info.RouteRequestFrom != Parent.HostInfo)
@@ -104,9 +188,7 @@ namespace ICD.Connect.Krang.Remote
 				DirectMessageManager dmManager = ServiceProvider.GetService<DirectMessageManager>();
 				info.RouteRequestFrom = dmManager.GetHostInfo();
 
-				RoutingGraph graph = m_Krang.RoutingGraph;
-				if (graph != null)
-					graph.PendingRouteStarted(info);
+				RoutingGraph.PendingRouteStarted(info);
 
 				dmManager.Send<RouteDevicesReply>(Parent.HostInfo, new RouteDevicesMessage(info), r => RouteFinished(info, r));
 			}
@@ -116,13 +198,18 @@ namespace ICD.Connect.Krang.Remote
 
 		private void RouteFinished(RouteOperation info, RouteDevicesReply response)
 		{
-			RoutingGraph graph = m_Krang.RoutingGraph;
-			if (graph != null)
-				graph.PendingRouteFinished(info, response.Result);
+			RoutingGraph.PendingRouteFinished(info, response.Result);
 		}
 
-		// change to clearroute
-		// possibly go up the chain until switcher with input going to more than 1 output is found
+		/// <summary>
+		/// Stops routing to the given output.
+		/// 
+		/// change to clearroute
+		/// possibly go up the chain until switcher with input going to more than 1 output is found
+		/// </summary>
+		/// <param name="output"></param>
+		/// <param name="type"></param>
+		/// <returns>True if successfully cleared.</returns>
 		public override bool ClearOutput(int output, eConnectionType type)
 		{
 			// todo - Send ClearOutput message

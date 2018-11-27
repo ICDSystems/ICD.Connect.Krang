@@ -1,6 +1,6 @@
 using System;
 using ICD.Common.Properties;
-using ICD.Connect.Panels;
+using ICD.Connect.Panels.Devices;
 using ICD.Connect.Panels.EventArguments;
 using ICD.Connect.Protocol.Sigs;
 ﻿using ICD.Connect.Settings.Originators;
@@ -13,13 +13,13 @@ namespace ICD.Connect.Krang.SPlusShims
 
 		public delegate void DelJoinXsig(ushort smartObject, string xsig);
 
-		[PublicAPI("SPlus")]
+		[PublicAPI("S+")]
 		public DelJoinXsig DigitalSigReceivedXsigCallback { get; set; }
 
-		[PublicAPI("SPlus")]
+		[PublicAPI("S+")]
 		public DelJoinXsig AnalogSigReceivedXsigCallback { get; set; }
 
-		[PublicAPI("SPlus")]
+		[PublicAPI("S+")]
 		public DelJoinXsig SerialSigReceivedXsigCallback { get; set; }
 
 		#endregion
@@ -27,7 +27,7 @@ namespace ICD.Connect.Krang.SPlusShims
 		/// <summary>
 		/// Raised when settings are applied to the panel.
 		/// </summary>
-		[PublicAPI("SPlus")]
+		[PublicAPI("S+")]
 		public event EventHandler OnSettingsApplied;
 
 		private ushort m_PanelId;
@@ -66,7 +66,7 @@ namespace ICD.Connect.Krang.SPlusShims
 		/// Sets the wrapped panel.
 		/// </summary>
 		/// <param name="id"></param>
-		[PublicAPI("SPlus")]
+		[PublicAPI("S+")]
 		public void SetPanel(ushort id)
 		{
 			m_PanelId = id;

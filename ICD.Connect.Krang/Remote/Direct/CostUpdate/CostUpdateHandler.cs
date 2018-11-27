@@ -46,7 +46,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		private readonly Dictionary<int, Row> m_SourceCosts;
 		private readonly Dictionary<int, Row> m_DestinationCosts;
-		private readonly Dictionary<int, Row> m_DestinationGroupCosts;
 		private readonly SafeCriticalSection m_CostsCriticalSection;
 
 		private readonly SafeTimer m_RegularUpdateTimer;
@@ -60,7 +59,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		{
 			m_SourceCosts = new Dictionary<int, Row>();
 			m_DestinationCosts = new Dictionary<int, Row>();
-			m_DestinationGroupCosts = new Dictionary<int, Row>();
 			m_CostsCriticalSection = new SafeCriticalSection();
 
 			m_Core = ServiceProvider.GetService<ICore>();
@@ -81,15 +79,11 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			List<int> missingSources;
 			List<int> missingDestinations;
-			List<int> missingDestinationGroups;
 
 			bool triggerUpdate = HandleCostUpdates(message.SourceCosts, message.MessageFrom, m_SourceCosts, out missingSources);
 			triggerUpdate =
 				HandleCostUpdates(message.DestinationCosts, message.MessageFrom, m_DestinationCosts, out missingDestinations) ||
 				triggerUpdate;
-			triggerUpdate =
-				HandleCostUpdates(message.DestinationGroupCosts, message.MessageFrom, m_DestinationGroupCosts,
-				                  out missingDestinationGroups) || triggerUpdate;
 
 			// loop through device ids in the costs and move devices to the remote switcher with the lowest cost
 			ReplaceSourceConnections(m_SourceCosts.Where(s => s.Value.RouteChanged));
@@ -98,13 +92,12 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			if (triggerUpdate)
 				QueueTriggeredUpdate();
 
-			if (missingSources.Any() || missingDestinations.Any() || missingDestinationGroups.Any())
+			if (missingSources.Any() || missingDestinations.Any())
 			{
 				ServiceProvider.GetService<DirectMessageManager>().Send(message.MessageFrom, new RequestDevicesMessage
 				{
 					Sources = missingSources,
-					Destinations = missingDestinations,
-					DestinationGroups = missingDestinationGroups
+					Destinations = missingDestinations
 				});
 			}
 
@@ -137,13 +130,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 					                                  .Destinations.Where(d => !d.Remote)
 					                                  .ToDictionary(d => d.Id, d => new Row {Cost = 0, RouteTo = hostInfo}));
 				}
-
-				if (m_DestinationGroupCosts.Count == 0)
-				{
-					m_DestinationGroupCosts.AddRange(m_Core.GetRoutingGraph()
-					                                       .DestinationGroups.Where(d => !d.Remote)
-					                                       .ToDictionary(d => d.Id, d => new Row {Cost = 0, RouteTo = hostInfo}));
-				}
 			}
 			finally
 			{
@@ -165,8 +151,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				{
 					// Make sure source/dest is valid
 					if (((table == m_SourceCosts && !m_Core.GetRoutingGraph().Sources.ContainsChild(entry.Key)) ||
-					     (table == m_DestinationCosts && !m_Core.GetRoutingGraph().Destinations.ContainsChild(entry.Key)) ||
-					     (table == m_DestinationGroupCosts && !m_Core.GetRoutingGraph().DestinationGroups.ContainsChild(entry.Key))) &&
+					     (table == m_DestinationCosts && !m_Core.GetRoutingGraph().Destinations.ContainsChild(entry.Key))) &&
 					    entry.Value < MAX_COST)
 					{
 						missing.Add(entry.Key);
@@ -252,7 +237,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 					       if (
 						       m_SourceCosts.Union(m_DestinationCosts)
-						                    .Union(m_DestinationGroupCosts)
 						                    .Where(r => r.Value.RouteTo == table[id].RouteTo)
 						                    .All(r => r.Value.Cost >= MAX_COST))
 					       {
@@ -291,8 +275,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 						       RemoveSource(id);
 					       else if (table == m_DestinationCosts)
 						       RemoveDestination(id);
-					       else if (table == m_DestinationGroupCosts)
-						       RemoveDestinationGroup(id);
 					       table.Remove(id);
 				       }
 				       finally
@@ -346,14 +328,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			m_Core.GetRoutingGraph().Connections.SetChildren(connectionsLeft);
 			m_Core.GetRoutingGraph().Destinations.RemoveChild(destination);
-		}
-
-		private void RemoveDestinationGroup(int id)
-		{
-			if (!m_Core.GetRoutingGraph().DestinationGroups.ContainsChild(id))
-				return;
-
-			m_Core.GetRoutingGraph().DestinationGroups.RemoveChild(m_Core.GetRoutingGraph().DestinationGroups.GetChild(id));
 		}
 
 		private double CalculateSourceCost(int s)
@@ -440,14 +414,12 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			return table.ToDictionary(s => s.Key, s => s.Value.RouteTo != host ? s.Value.Cost : MAX_COST);
 		}
 
-		private static CostUpdateMessage MakeCostUpdateMessage(Dictionary<int, Row> sources, Dictionary<int, Row> destinations,
-		                                                       Dictionary<int, Row> destinationGroups, HostInfo host)
+		private static CostUpdateMessage MakeCostUpdateMessage(Dictionary<int, Row> sources, Dictionary<int, Row> destinations, HostInfo host)
 		{
 			CostUpdateMessage message = new CostUpdateMessage
 			{
 				SourceCosts = TableToCostMessage(sources, host),
-				DestinationCosts = TableToCostMessage(destinations, host),
-				DestinationGroupCosts = TableToCostMessage(destinationGroups, host)
+				DestinationCosts = TableToCostMessage(destinations, host)
 			};
 			return message;
 		}
@@ -460,7 +432,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			foreach (HostInfo host in GetHosts())
 			{
-				CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts, m_DestinationCosts, m_DestinationGroupCosts, host);
+				CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts, m_DestinationCosts, host);
 				dmManager.Send(host, message);
 			}
 			m_RegularUpdateTimer.Reset(UPDATE_TIME + new Random().Next(-5, 5));
@@ -481,9 +453,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				{
 					CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts.Where(s => s.Value.RouteChanged).ToDictionary(),
 					                                                  m_DestinationCosts.Where(s => s.Value.RouteChanged)
-					                                                                    .ToDictionary(),
-					                                                  m_DestinationGroupCosts.Where(s => s.Value.RouteChanged)
-					                                                                         .ToDictionary(), host);
+					                                                                    .ToDictionary(), host);
 					dmManager.Send(host, message);
 				}
 

@@ -13,6 +13,7 @@ using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
+using ICD.Connect.Routing.PathFinding;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 
@@ -41,6 +42,13 @@ namespace ICD.Connect.Krang.Rooms
 		private ushort m_VolumeLevelFeedback;
 		private bool m_VolumeMuteFeedback;
 		private IRoutingGraph m_SubscribedRoutingGraph;
+
+		private IPathFinder m_PathFinder;
+
+		private IPathFinder PathFinder
+		{
+			get { return m_PathFinder = m_PathFinder ?? new DefaultPathFinder(m_SubscribedRoutingGraph, Id); }
+		}
 
 		#region Properties
 
@@ -179,23 +187,21 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="source"></param>
 		private void Route(ISource source)
 		{
-			Logger.AddEntry(eSeverity.Informational, "{0} routing {1}", this, source);
-
-			GetRoomDestinations().ForEach(d => Route(source, d));
-		}
-
-		/// <summary>
-		/// Routes the source to the destination.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="destination"></param>
-		private void Route(ISource source, IDestination destination)
-		{
 			if (m_SubscribedRoutingGraph == null)
 				return;
 
-			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
-			m_SubscribedRoutingGraph.Route(source, destination, connectionType, Id);
+			Log(eSeverity.Informational, "Routing {0}", source);
+
+			IEnumerable<IDestination> roomDestinations = GetRoomDestinations();
+
+			IEnumerable<ConnectionPath> paths =
+				PathBuilder.FindPaths()
+				           .From(source)
+				           .To(roomDestinations)
+				           .OfType(source.ConnectionType)
+				           .With(PathFinder);
+
+			m_SubscribedRoutingGraph.RoutePaths(paths, Id);
 		}
 
 		/// <summary>
@@ -203,7 +209,7 @@ namespace ICD.Connect.Krang.Rooms
 		/// </summary>
 		private void Unroute()
 		{
-			Logger.AddEntry(eSeverity.Informational, "{0} unrouting all", this);
+			Log(eSeverity.Informational, "Unrouting all");
 
 			GetRoomDestinations().ForEach(Unroute);
 		}
@@ -214,7 +220,7 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="destination"></param>
 		private void Unroute(IDestination destination)
 		{
-			Logger.AddEntry(eSeverity.Informational, "{0} unrouting {1}", this, destination);
+			Log(eSeverity.Informational, "Unrouting {0}", destination);
 
 			GetActiveSources(destination).ForEach(s => Unroute(s, destination));
 		}
@@ -226,10 +232,10 @@ namespace ICD.Connect.Krang.Rooms
 		/// <param name="destination"></param>
 		private void Unroute(ISource source, IDestination destination)
 		{
-			Logger.AddEntry(eSeverity.Informational, "{0} unrouting {1} from {2}", this, source, destination);
-
 			if (m_SubscribedRoutingGraph == null)
 				return;
+
+			Log(eSeverity.Informational, "Unrouting {0} from {1}", source, destination);
 
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
 			m_SubscribedRoutingGraph.Unroute(source, destination, connectionType, Id);

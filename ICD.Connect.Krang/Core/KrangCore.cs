@@ -11,7 +11,7 @@ using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote;
-using ICD.Connect.Panels;
+using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
@@ -112,19 +112,6 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
-		/// Disposes the existing originators and adds the given originators.
-		/// </summary>
-		/// <param name="originators"></param>
-		private void SetOriginators(IEnumerable<IOriginator> originators)
-		{
-			if (originators == null)
-				throw new ArgumentNullException("originators");
-
-			DisposeOriginators();
-			Originators.SetChildren(originators);
-		}
-
-		/// <summary>
 		/// Adds the given originator to the cor.
 		/// </summary>
 		/// <param name="originator"></param>
@@ -141,6 +128,11 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		private void DisposeOriginators()
 		{
+			Dictionary<int, IOriginator> originators = Originators.ToDictionary(o => o.Id);
+
+			// Clear first, then dispose, because clear relies on the id which is set to 0 when disposed
+			Originators.Clear();
+
 			IcdHashSet<IOriginator> disposed = new IcdHashSet<IOriginator>();
 
 			// First try to dispose in reverse of load order
@@ -149,7 +141,7 @@ namespace ICD.Connect.Krang.Core
 				int id = m_LoadedOriginators.Pop();
 
 				IOriginator originator;
-				if (!Originators.TryGetChild(id, out originator))
+				if (!originators.TryGetValue(id, out originator))
 					continue;
 
 				TryDisposeOriginator(originator);
@@ -157,10 +149,8 @@ namespace ICD.Connect.Krang.Core
 			}
 
 			// Now dispose the remainder
-			foreach (IOriginator originator in Originators.Where(o => !disposed.Contains(o)))
+			foreach (IOriginator originator in originators.Values.Where(o => !disposed.Contains(o)))
 				TryDisposeOriginator(originator);
-
-			Originators.Clear();
 		}
 
 		/// <summary>
@@ -179,7 +169,7 @@ namespace ICD.Connect.Krang.Core
 			}
 			catch (Exception e)
 			{
-				Logger.AddEntry(eSeverity.Error, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
+				Logger.AddEntry(eSeverity.Error, e, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
 			}
 		}
 
@@ -197,9 +187,10 @@ namespace ICD.Connect.Krang.Core
 
 			settings.BroadcastSettings.Update(m_BroadcastSettings);
 
+			// Clear the old originators
 			settings.OriginatorSettings.Clear();
-			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
-
+			
+			// Routing
 			RoutingGraph routingGraph = RoutingGraph;
 			RoutingGraphSettings routingSettings = routingGraph == null || !routingGraph.Serialize
 				                                       ? new RoutingGraphSettings
@@ -213,8 +204,8 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.AddRange(routingSettings.StaticRouteSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.SourceSettings);
 			settings.OriginatorSettings.AddRange(routingSettings.DestinationSettings);
-			settings.OriginatorSettings.AddRange(routingSettings.DestinationGroupSettings);
 
+			// Partitioning
 			PartitionManager partitionManager = PartitionManager;
 			PartitionManagerSettings partitionSettings = partitionManager == null || !partitionManager.Serialize
 				                                             ? new PartitionManagerSettings
@@ -225,6 +216,9 @@ namespace ICD.Connect.Krang.Core
 			settings.OriginatorSettings.Add(partitionSettings);
 
 			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
+
+			// Finally grab a copy of anything that may have been missed
+			settings.OriginatorSettings.AddRange(GetSerializableOriginators());
 		}
 
 		private IEnumerable<ISettings> GetSerializableOriginators()
@@ -241,7 +235,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.ClearSettingsFinal();
 
-			SetOriginators(Enumerable.Empty<IOriginator>());
+			DisposeOriginators();
 
 			m_InterCore.Stop();
 			m_InterCore.SetBroadcastAddresses(Enumerable.Empty<string>());
@@ -303,7 +297,7 @@ namespace ICD.Connect.Krang.Core
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, e, "{0} failed to instantiate {1} with id {2} - {3}", this,
+					Logger.AddEntry(eSeverity.Error, e, "{0} - Failed to instantiate {1} with id {2} - {3}", this,
 					                typeof(IOriginator).Name, id, e.Message);
 				}
 			}
