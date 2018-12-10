@@ -60,11 +60,16 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Devices\RoomInfoEventArgs.cs" />
+    <Compile Include="Devices\SourceInfoEventArgs.cs" />
+    <Compile Include="Devices\VolumeFeedbackEventArgs.cs" />
     <Compile Include="KrangPlugin.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rooms\IKrangAtHomeRoom.cs" />
     <Compile Include="Rooms\SimplRoom.cs" />
     <Compile Include="Rooms\SimplRoomSettings.cs" />
+    <Compile Include="Routing\Endpoints\Sources\ISimplSource.cs" />
     <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />
     <Compile Include="Routing\Endpoints\Sources\SimplSourceSettings.cs" />
     <Compile Include="SPlusKrangBootstrap.cs" />
@@ -72,7 +77,15 @@
     <Compile Include="SPlusShims\SPlusPanelShim.cs" />
     <Compile Include="SPlusShims\SPlusSimplRoomShim.cs" />
     <Compile Include="SPlusShims\SPlusSimplSourceShim.cs" />
-    <Compile Include="SPlusShims\SPlusUiShim.cs" />
+    <Compile Include="SPlusShims\SPlusTouchpanelShim.cs" />
+    <Compile Include="Themes\IKrangAtHomeUserInterface.cs" />
+    <Compile Include="Themes\UIs\KrangAtHomeTouchpanelUi.cs" />
+    <Compile Include="Themes\IKrangAtHomeUserInterfaceFactory.cs" />
+    <Compile Include="Themes\KrangAtHomeTheme.cs" />
+    <Compile Include="Themes\KrangAtHomeThemeSettings.cs" />
+    <Compile Include="Devices\KrangAtHomeSPlusTouchpanelDevice.cs" />
+    <Compile Include="Devices\KrangAtHomeSPlusTouchpanelDeviceSettings.cs" />
+    <Compile Include="Themes\UIs\KrangAtHomeTouchpanelUiFactory.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +96,10 @@
     <ProjectReference Include="..\..\ICD.Connect.API\ICD.Connect.API\ICD.Connect.API_SimplSharp.csproj">
       <Project>{727F5820-5A61-440D-8899-E454FE8238D7}</Project>
       <Name>ICD.Connect.API_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Audio\ICD.Connect.Audio\ICD.Connect.Audio_SimplSharp.csproj">
+      <Project>{8ED25D96-E9A5-4E9A-A890-B4EF3AB62041}</Project>
+      <Name>ICD.Connect.Audio_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Devices\ICD.Connect.Devices\ICD.Connect.Devices_SimplSharp.csproj">
       <Project>{FD46A717-5836-4B73-ADD0-2706639DA8ED}</Project>
@@ -107,6 +124,10 @@
     <ProjectReference Include="..\..\ICD.Connect.Settings\ICD.Connect.Settings\ICD.Connect.Settings_SimplSharp.csproj">
       <Project>{5B84EB3C-1C3A-4C4D-98C2-69F67CF51D5A}</Project>
       <Name>ICD.Connect.Settings_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_SimplSharp.csproj">
+      <Project>{7D599445-C1F9-4BBD-ACC4-DC80E3311376}</Project>
+      <Name>ICD.Connect.Themes_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_SimplSharp.csproj">
       <Project>{CC672DB0-ED3A-4579-809F-4261B345BA1D}</Project>

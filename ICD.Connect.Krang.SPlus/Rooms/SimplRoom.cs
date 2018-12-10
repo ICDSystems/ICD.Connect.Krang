@@ -4,10 +4,12 @@ using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
-using ICD.Connect.API.Nodes;
+using ICD.Connect.Audio.Controls;
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
@@ -20,64 +22,66 @@ using ICD.Connect.Settings.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.Rooms
 {
-	public sealed class SimplRoom : AbstractRoom<SimplRoomSettings>, ISimplOriginator
-	{
-		public enum eCrosspointType
-		{
-			None,
-			Lighting,
-			Hvac
-		}
 
-		public event EventHandler OnVolumeLevelSet;
-		public event EventHandler OnVolumeLevelRamp;
-		public event EventHandler OnVolumeLevelFeedbackChange;
-		public event EventHandler OnVolumeMuteFeedbackChange;
+	public enum eSourceTypeRouted
+	{
+		Video,
+		Audio
+	}
+
+	public enum eCrosspointType
+	{
+		None,
+		Lighting,
+		Hvac
+	}
+
+	public sealed class SimplRoom : AbstractRoom<SimplRoomSettings>, IKrangAtHomeRoom, ISimplOriginator
+	{
+		
+
+		#region Events
+
 		public event EventHandler OnActiveSourcesChange;
+
+		public event EventHandler<GenericEventArgs<IVolumeDeviceControl>> OnVolumeControlChanged; 
+
+		#endregion
+
+		#region Fields
 
 		private readonly Dictionary<ushort, eCrosspointType> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
 
 		private readonly IcdHashSet<ISource> m_CachedActiveSources;
 
-		private ushort m_VolumeLevelFeedback;
-		private bool m_VolumeMuteFeedback;
 		private IRoutingGraph m_SubscribedRoutingGraph;
 
 		private IPathFinder m_PathFinder;
+
+		private IVolumeDeviceControl m_VolumeControl;
+
+		#endregion
+
+		#region Properties
 
 		private IPathFinder PathFinder
 		{
 			get { return m_PathFinder = m_PathFinder ?? new DefaultPathFinder(m_SubscribedRoutingGraph, Id); }
 		}
 
-		#region Properties
-
-		public ushort VolumeLevelFeedback
+		public IVolumeDeviceControl VolumeControl
 		{
-			get { return m_VolumeLevelFeedback; }
+			get { return m_VolumeControl; }
 			private set
 			{
-				if (value == m_VolumeLevelFeedback)
+				if (value == m_VolumeControl)
 					return;
 
-				m_VolumeLevelFeedback = value;
+				m_VolumeControl = value;
 
-				OnVolumeLevelFeedbackChange.Raise(this);
-			}
-		}
+				OnVolumeControlChanged.Raise(this, new GenericEventArgs<IVolumeDeviceControl>(m_VolumeControl));
 
-		public bool VolumeMuteFeedback
-		{
-			get { return m_VolumeMuteFeedback; }
-			private set
-			{
-				if (value == m_VolumeMuteFeedback)
-					return;
-
-				m_VolumeMuteFeedback = value;
-
-				OnVolumeMuteFeedbackChange.Raise(this);
 			}
 		}
 
@@ -99,10 +103,6 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// </summary>
 		protected override void DisposeFinal(bool disposing)
 		{
-			OnVolumeLevelSet = null;
-			OnVolumeLevelRamp = null;
-			OnVolumeLevelFeedbackChange = null;
-			OnVolumeMuteFeedbackChange = null;
 			OnActiveSourcesChange = null;
 
 			m_CachedActiveSources.Clear();
@@ -111,21 +111,6 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		}
 
 		#region Methods
-
-		public void SetVolumeLevel(ushort volume)
-		{
-			OnVolumeLevelSet.Raise(this);
-		}
-
-		public void SetVolumeFeedback(ushort volume)
-		{
-			VolumeLevelFeedback = volume;
-		}
-
-		public void SetMuteFeedback(bool mute)
-		{
-			VolumeMuteFeedback = mute;
-		}
 
 		/// <summary>
 		/// Gets the crosspoints.
@@ -156,26 +141,29 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		}
 
 		/// <summary>
-		/// Routes the source with the given id to all destinations in the current room.
-		/// Unroutes if no source found with the given id.
-		/// </summary>
-		/// <param name="sourceId"></param>
-		public void SetSource(ushort sourceId)
-		{
-			ISource source = GetSource(sourceId);
-			if (source == null)
-				Unroute();
-			else
-				Route(source);
-		}
-
-		/// <summary>
 		/// Gets the current, actively routed source.
 		/// </summary>
 		[CanBeNull]
-		public ISource GetSource()
+		public ISimplSource GetSource()
 		{
-			return m_CachedActiveSources.OrderBy(s => s.Id).FirstOrDefault();
+			ISource source = m_CachedActiveSources.OrderBy(s => s.Id).FirstOrDefault();
+
+			ISimplSource simplSource = source as ISimplSource;
+
+			return simplSource;
+		}
+
+		public void SetSource(ISimplSource source, eSourceTypeRouted type)
+		{
+			Route(source, type);
+		}
+
+		public void SetSourceId(int sourceId, eSourceTypeRouted type)
+		{
+			ISimplSource source = GetSourceId(sourceId);
+
+			SetSource(source, type);
+
 		}
 
 		#endregion
@@ -186,8 +174,17 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// Routes the source to all destinations in the current room.
 		/// </summary>
 		/// <param name="source"></param>
-		private void Route(ISource source)
+		/// <param name="sourceType"></param>
+		private void Route(ISimplSource source, eSourceTypeRouted sourceType)
 		{
+			// todo: implement sourceType handling
+
+			if (source == null)
+			{
+				Unroute();
+				return;
+			}
+
 			if (m_SubscribedRoutingGraph == null)
 				return;
 
@@ -252,14 +249,14 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// <param name="id"></param>
 		/// <returns></returns>
 		[CanBeNull]
-		private ISource GetSource(ushort id)
+		public ISimplSource GetSourceId(int id)
 		{
 			if (m_SubscribedRoutingGraph == null)
 				return null;
 
 			ISource source;
 			m_SubscribedRoutingGraph.Sources.TryGetChild(id, out source);
-			return source;
+			return source as ISimplSource;
 		}
 
 		/// <summary>
@@ -317,7 +314,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// </summary>
 		private void UpdateCachedActiveSources()
 		{
-			Logger.AddEntry(eSeverity.Informational, "{0} updating active source cache", this);
+			Log(eSeverity.Informational, "{0} updating active source cache", this);
 
 			IcdHashSet<ISource> active = GetActiveRoomSources().ToIcdHashSet();
 
@@ -328,7 +325,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			m_CachedActiveSources.Clear();
 			m_CachedActiveSources.AddRange(active);
 
-			Logger.AddEntry(eSeverity.Informational, "{0} active sources changed", this);
+			Log(eSeverity.Informational, "{0} active sources changed", this);
 			OnActiveSourcesChange.Raise(this);
 		}
 
@@ -422,18 +419,6 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		#region Console
 
 		/// <summary>
-		/// Calls the delegate for each console status item.
-		/// </summary>
-		/// <param name="addRow"></param>
-		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
-		{
-			base.BuildConsoleStatus(addRow);
-
-			addRow("Volume Level", m_VolumeLevelFeedback);
-			addRow("Volume Mute", m_VolumeMuteFeedback);
-		}
-
-		/// <summary>
 		/// Gets the child console commands.
 		/// </summary>
 		/// <returns></returns>
@@ -443,8 +428,6 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 				yield return command;
 
 			yield return new ConsoleCommand("PrintCrosspoints", "Prints the crosspoints added to the room", () => PrintCrosspoints());
-			yield return new GenericConsoleCommand<ushort>("SetSource", "SetSource <Source Id>", i => SetSource(i));
-			yield return new GenericConsoleCommand<ushort>("SetVolumeLevel", "SetVolumeLevel <Level>", l => SetVolumeLevel(l));
 		}
 
 		/// <summary>

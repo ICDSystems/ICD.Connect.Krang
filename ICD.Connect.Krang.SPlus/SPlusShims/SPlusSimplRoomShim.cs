@@ -3,7 +3,6 @@ using ICD.Common.Properties;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Endpoints;
-using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.SPlusShims;
 #if SIMPLSHARP
 using ICDPlatformString = Crestron.SimplSharp.SimplSharpString;
@@ -38,6 +37,20 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 
 		#region Methods
 
+		[PublicAPI("S+")]
+		public void SetVideoSourceId(int sourceId)
+		{
+			if (Originator != null)
+				Originator.SetSourceId(sourceId, eSourceTypeRouted.Video);
+		}
+
+		[PublicAPI("S+")]
+		public void SetAudioSourceId(int sourceId)
+		{
+			if (Originator != null)
+				Originator.SetSourceId(sourceId, eSourceTypeRouted.Audio);
+		}
+
 		/// <summary>
 		/// Release resources.
 		/// </summary>
@@ -48,32 +61,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 			SourceChanged = null;
 		}
 
-		/// <summary>
-		/// Routes the source with the given id to all destinations in the current room.
-		/// Unroutes if no source found with the given id.
-		/// </summary>
-		/// <param name="sourceId"></param>
-		[PublicAPI("S+")]
-		public void SetSource(ushort sourceId)
-		{
-			if (Originator != null)
-				Originator.SetSource(sourceId);
-		}
-
 		#endregion
 
 		#region Private Methods
-
-		/// <summary>
-		/// Called when the originator is attached.
-		/// Do any actions needed to syncronize
-		/// </summary>
-		protected override void InitializeOriginator()
-		{
-			base.InitializeOriginator();
-			RaiseRoomInfo();
-			RaiseSourceInfo();
-		}
 
 		private void RaiseRoomInfo()
 		{
@@ -96,16 +86,27 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 			if (handler == null)
 				return;
 
-			ISource source = Originator == null ? null : Originator.GetSource();
+			ISimplSource source = Originator == null ? null : Originator.GetSource();
 
 			ushort id = source == null ? (ushort)0 : (ushort)source.Id;
 			string name = source == null
 							  ? string.Empty
 							  : source.GetNameOrDeviceName();
-			ushort crosspointId = source is SimplSource ? (source as SimplSource).CrosspointId : (ushort)0;
-			ushort crosspointType = source is SimplSource ? (source as SimplSource).CrosspointType : (ushort)0;
+			ushort crosspointId = source != null ? source.CrosspointId : (ushort)0;
+			ushort crosspointType = source != null ? source.CrosspointType : (ushort)0;
 
 			handler(id, name, crosspointId, crosspointType);
+		}
+
+		/// <summary>
+		/// Called when the originator is attached.
+		/// Do any actions needed to syncronize
+		/// </summary>
+		protected override void InitializeOriginator()
+		{
+			base.InitializeOriginator();
+			RaiseRoomInfo();
+			RaiseSourceInfo();
 		}
 
 		#endregion

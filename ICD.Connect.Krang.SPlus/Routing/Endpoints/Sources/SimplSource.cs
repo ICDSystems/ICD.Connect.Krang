@@ -2,11 +2,10 @@
 using ICD.Common.Properties;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Core;
-using ICD.Connect.Settings.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
-	public sealed class SimplSource : AbstractSource<SimplSourceSettings>, ISimplOriginator
+	public sealed class SimplSource : AbstractSource<SimplSourceSettings>, ISimplSource
 	{
 		[Flags]
 		public enum eSourceVisibility
@@ -18,13 +17,13 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 
 		#region Properties
 
-		[PublicAPI]
+		[PublicAPI("S+")]
 		public ushort CrosspointId { get; set; }
 
-		[PublicAPI]
+		[PublicAPI("S+")]
 		public ushort CrosspointType { get; set; }
 
-		[PublicAPI]
+		[PublicAPI("S+")]
 		public eSourceVisibility SourceVisibility { get; set; }
 
 		#endregion
