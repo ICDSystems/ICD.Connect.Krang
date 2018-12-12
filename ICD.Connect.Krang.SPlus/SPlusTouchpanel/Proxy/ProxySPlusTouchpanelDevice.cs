@@ -28,7 +28,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 			CallMethod(SPlusTouchpanelDeviceApi.METHOD_REQUEST_REFRESH);
 		}
 
-		public void SetRoomIndex(ushort index)
+		public void SetRoomIndex(int index)
 		{
 			CallMethod(SPlusTouchpanelDeviceApi.HELP_METHOD_SET_ROOM_INDEX, index);
 		}
@@ -38,7 +38,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 			CallMethod(SPlusTouchpanelDeviceApi.METHOD_SET_ROOM_ID, id );
 		}
 
-		public void SetAudioSourceIndex(ushort index)
+		public void SetAudioSourceIndex(int index)
 		{
 			CallMethod(SPlusTouchpanelDeviceApi.METHOD_SET_AUDIO_SOURCE_INDEX, index);
 		}
@@ -48,7 +48,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 			CallMethod(SPlusTouchpanelDeviceApi.METHOD_SET_AUDIO_SOURCE_ID, id);
 		}
 
-		public void SetVideoSourceIndex(ushort index)
+		public void SetVideoSourceIndex(int index)
 		{
 			CallMethod(SPlusTouchpanelDeviceApi.METHOD_SET_VIDEO_SOURCE_INDEX, index);
 		}
@@ -91,7 +91,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 
 		#region Private Methods
 
-		private void RaiseRoomListUpdate(IEnumerable<KeyValuePair<ushort, RoomInfo>> roomList)
+		private void RaiseRoomListUpdate(List<RoomInfo> roomList)
 		{
 			OnRoomListUpdate.Raise(this, new RoomListEventArgs(roomList));
 		}
@@ -101,12 +101,12 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 			OnRoomSelectedUpdate.Raise(this, new RoomSelectedEventArgs(roomSelected));
 		}
 
-		private void RaiseAudioSourceListUpdate(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
+		private void RaiseAudioSourceListUpdate(List<SourceInfo> sourceList)
 		{
 			OnAudioSourceListUpdate.Raise(this, new AudioSourceListEventArgs(sourceList));
 		}
 
-		private void RaiseVideoSourceListUpdate(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
+		private void RaiseVideoSourceListUpdate(List<SourceInfo> sourceList)
 		{
 			OnVideoSourceListUpdate.Raise(this, new VideoSourceListEventArgs(sourceList));
 		}
@@ -170,16 +170,16 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 			switch (name)
 			{
 				case SPlusTouchpanelDeviceApi.EVENT_ROOM_LIST:
-					RaiseRoomListUpdate(result.GetValue<IEnumerable<KeyValuePair<ushort, RoomInfo>>>());
+					RaiseRoomListUpdate(result.GetValue<List<RoomInfo>>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_ROOM_SELECTED:
 					RaiseRoomSelectedUpdate(result.GetValue<RoomSelected>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST:
-					RaiseAudioSourceListUpdate(result.GetValue<IEnumerable<KeyValuePair<ushort, SourceInfo>>>());
+					RaiseAudioSourceListUpdate(result.GetValue<List<SourceInfo>>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST:
-					RaiseVideoSourceListUpdate(result.GetValue<IEnumerable<KeyValuePair<ushort, SourceInfo>>>());
+					RaiseVideoSourceListUpdate(result.GetValue<List<SourceInfo>>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED:
 					RaiseSourceSelectedUpdate(result.GetValue<SourceSelected>());
@@ -200,7 +200,6 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 
 		/// <summary>
 		/// Gets/sets the device online status.
-		/// todo: does this have to be new?
 		/// </summary>
 		public new bool IsOnline { get; set; }
 	}

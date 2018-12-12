@@ -10,7 +10,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 	[Serializable]
 	public sealed class SourceSelected
 	{
-		public ushort Index { get; set; }
+		public int Index { get; set; }
 		public eSourceTypeRouted SourceTypeRouted { get; set; }
 		public SourceInfo SourceInfo { get; set; }
 	}
@@ -18,7 +18,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 	public sealed class SourceSelectedEventArgs : AbstractGenericApiEventArgs<SourceSelected>
 	{
 
-		public ushort Index { get { return Data.Index; } }
+		public int Index { get { return Data.Index; } }
 
 		public eSourceTypeRouted
 			SourceTypeRouted { get { return Data.SourceTypeRouted; } }
@@ -30,7 +30,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 			
 		}
 
-		public SourceSelectedEventArgs(ISimplSource source, ushort index, eSourceTypeRouted sourceTypeRouted)
+		public SourceSelectedEventArgs(ISimplSource source, int index, eSourceTypeRouted sourceTypeRouted)
 			: base(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, new SourceSelected
 			{
 				Index = index,
@@ -40,7 +40,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 		{
 		}
 
-		public SourceSelectedEventArgs(SourceInfo sourceInfo, ushort index, eSourceTypeRouted sourceTypeRouted)
+		public SourceSelectedEventArgs(SourceInfo sourceInfo, int index, eSourceTypeRouted sourceTypeRouted)
 			: base(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, new SourceSelected
 			{
 				Index = index,

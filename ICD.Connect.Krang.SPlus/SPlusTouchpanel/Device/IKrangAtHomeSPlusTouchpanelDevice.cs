@@ -38,19 +38,19 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		void RequestDeviceRefresh();
 
 		[ApiMethod(SPlusTouchpanelDeviceApi.METHOD_SET_ROOM_INDEX, SPlusTouchpanelDeviceApi.HELP_METHOD_SET_ROOM_INDEX)]
-		void SetRoomIndex(ushort index);
+		void SetRoomIndex(int index);
 
 		[ApiMethod(SPlusTouchpanelDeviceApi.METHOD_SET_ROOM_ID, SPlusTouchpanelDeviceApi.HELP_METHOD_SET_ROOM_ID)]
 		void SetRoomId(int id);
 
 		[ApiMethod(SPlusTouchpanelDeviceApi.METHOD_SET_AUDIO_SOURCE_INDEX, SPlusTouchpanelDeviceApi.HELP_METHOD_SET_AUDIO_SOURCE_INDEX)]
-		void SetAudioSourceIndex(ushort index);
+		void SetAudioSourceIndex(int index);
 
 		[ApiMethod(SPlusTouchpanelDeviceApi.METHOD_SET_AUDIO_SOURCE_ID, SPlusTouchpanelDeviceApi.HELP_METHOD_SET_AUDIO_SOURCE_ID)]
 		void SetAudioSourceId(int id);
 
 		[ApiMethod(SPlusTouchpanelDeviceApi.METHOD_SET_VIDEO_SOURCE_INDEX, SPlusTouchpanelDeviceApi.HELP_METHOD_SET_VIDEO_SOURCE_INDEX)]
-		void SetVideoSourceIndex(ushort index);
+		void SetVideoSourceIndex(int index);
 
 		[ApiMethod(SPlusTouchpanelDeviceApi.METHOD_SET_VIDEO_SOURCE_ID, SPlusTouchpanelDeviceApi.HELP_METHOD_SET_VIDEO_SOURCE_ID)]
 		void SetVideoSourcdId(int id);

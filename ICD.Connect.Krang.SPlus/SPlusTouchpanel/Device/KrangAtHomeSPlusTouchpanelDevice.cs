@@ -60,15 +60,15 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 
 		public event EventHandler OnRequestRefresh;
 
-		public event EventHandler<UShortEventArgs> OnSetRoomIndex;
+		public event EventHandler<IntEventArgs> OnSetRoomIndex;
 
 		public event EventHandler<IntEventArgs> OnSetRoomId;
 
-		public event EventHandler<UShortEventArgs> OnSetAudioSourceIndex;
+		public event EventHandler<IntEventArgs> OnSetAudioSourceIndex;
 
 		public event EventHandler<IntEventArgs> OnSetAudioSourceId;
 
-		public event EventHandler<UShortEventArgs> OnSetVideoSourceIndex;
+		public event EventHandler<IntEventArgs> OnSetVideoSourceIndex;
 
 		public event EventHandler<IntEventArgs> OnSetVideoSourceId;
 
@@ -93,9 +93,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 			OnRequestRefresh.Raise(this);
 		}
 
-		public void SetRoomIndex(ushort index)
+		public void SetRoomIndex(int index)
 		{
-			OnSetRoomIndex.Raise(this, new UShortEventArgs(index));
+			OnSetRoomIndex.Raise(this, new IntEventArgs(index));
 		}
 
 		public void SetRoomId(int id)
@@ -103,9 +103,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 			OnSetRoomId.Raise(this, new IntEventArgs(id));
 		}
 
-		public void SetAudioSourceIndex(ushort index)
+		public void SetAudioSourceIndex(int index)
 		{
-			OnSetAudioSourceIndex.Raise(this, new UShortEventArgs(index));
+			OnSetAudioSourceIndex.Raise(this, new IntEventArgs(index));
 		}
 
 		public void SetAudioSourceId(int id)
@@ -113,9 +113,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 			OnSetAudioSourceId.Raise(this, new IntEventArgs(id));
 		}
 
-		public void SetVideoSourceIndex(ushort index)
+		public void SetVideoSourceIndex(int index)
 		{
-			OnSetVideoSourceIndex.Raise(this, new UShortEventArgs(index));
+			OnSetVideoSourceIndex.Raise(this, new IntEventArgs(index));
 		}
 
 		public void SetVideoSourcdId(int id)
@@ -162,7 +162,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		/// </summary>
 		/// <param name="room"></param>
 		/// <param name="index"></param>
-		internal void SetRoomInfo(IKrangAtHomeRoom room, ushort index)
+		internal void SetRoomInfo(IKrangAtHomeRoom room, int index)
 		{
 			OnRoomSelectedUpdate.Raise(this, new RoomSelectedEventArgs(room, index));
 		}
@@ -171,7 +171,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		/// Updates the room list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="roomList"></param>
-		internal void SetRoomList(IEnumerable<KeyValuePair<ushort, RoomInfo>> roomList)
+		internal void SetRoomList(List<RoomInfo> roomList)
 		{
 			OnRoomListUpdate.Raise(this, new RoomListEventArgs(roomList));
 		}
@@ -191,7 +191,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		/// Updates the audio source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetAudioSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
+		internal void SetAudioSourceList(List<SourceInfo> sourceList)
 		{
 			OnAudioSourceListUpdate.Raise(this, new AudioSourceListEventArgs(sourceList));
 		}
@@ -200,7 +200,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		/// Updates the video source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetVideoSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
+		internal void SetVideoSourceList(List<SourceInfo> sourceList)
 		{
 			OnVideoSourceListUpdate.Raise(this, new VideoSourceListEventArgs(sourceList));
 		}

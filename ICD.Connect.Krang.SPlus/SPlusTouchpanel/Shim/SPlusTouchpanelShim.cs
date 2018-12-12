@@ -37,6 +37,8 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 	public sealed class SPlusTouchpanelShim : AbstractSPlusDeviceShim<IKrangAtHomeSPlusTouchpanelDevice>
 	{
 
+		private const int INDEX_OFFSET_SPLUS = 1;
+
 		#region S+ Properties
 
 		/// <summary>
@@ -90,7 +92,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		{
 			if (Originator == null)
 				return;
-			Originator.SetRoomIndex(index);
+			Originator.SetRoomIndex((ushort)(index - INDEX_OFFSET_SPLUS));
 		}
 
 		[PublicAPI("S+")]
@@ -106,7 +108,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		{
 			if (Originator == null)
 				return;
-			Originator.SetAudioSourceIndex(index);
+			Originator.SetAudioSourceIndex((ushort)(index - INDEX_OFFSET_SPLUS));
 		}
 
 		[PublicAPI("S+")]
@@ -122,7 +124,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		{
 			if (Originator == null)
 				return;
-			Originator.SetVideoSourceIndex(index);
+			Originator.SetVideoSourceIndex((ushort)(index - INDEX_OFFSET_SPLUS));
 		}
 
 		[PublicAPI("S+")]
@@ -206,31 +208,29 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		/// </summary>
 		/// <param name="roomInfo"></param>
 		/// <param name="index"></param>
-		private void SetSPlusRoomInfo(RoomInfo roomInfo, ushort index)
+		private void SetSPlusRoomInfo(RoomInfo roomInfo, int index)
 		{
 			var callback = UpdateRoomInfo;
 			if (callback != null)
-				callback(roomInfo.Id, roomInfo.Name, index);
+				callback(roomInfo.Id, roomInfo.Name, (ushort)(index + INDEX_OFFSET_SPLUS));
 		}
 
 		/// <summary>
 		/// Updates the room list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="roomList"></param>
-		private void SetSPlusRoomList(IEnumerable<KeyValuePair<ushort, RoomInfo>> roomList)
+		private void SetSPlusRoomList(IList<RoomInfo> roomList)
 		{
-			ushort count = 0;
 			RoomListCallback listCallback = UpdateRoomListItem;
 			if (listCallback != null)
-				foreach (var kvp in roomList)
+				for (int i = 0; i < roomList.Count; i++)
 				{
-					listCallback(kvp.Key, kvp.Value.Id, kvp.Value.Name);
-					count++;
+					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), roomList[i].Id, roomList[i].Name);
 				}
 
 			ListSizeCallback countCallback = UpdateRoomListCount;
 			if (countCallback != null)
-				countCallback(count);
+				countCallback((ushort)roomList.Count);
 		}
 
 		/// <summary>
@@ -239,53 +239,49 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		/// <param name="sourceInfo"></param>
 		/// <param name="sourceList"></param>
 		/// <param name="sourceIndex"></param>
-		private void SetSPlusSourceInfo(SourceInfo sourceInfo, ushort sourceList, ushort sourceIndex)
+		private void SetSPlusSourceInfo(SourceInfo sourceInfo, ushort sourceList, int sourceIndex)
 		{
 			SourceInfoCallback callback = UpdateSourceInfo;
 			if (callback != null)
-				callback(sourceInfo.Id, sourceInfo.Name, sourceInfo.CrosspointId, sourceInfo.CrosspointType, sourceList, sourceIndex);
+				callback(sourceInfo.Id, sourceInfo.Name, sourceInfo.CrosspointId, sourceInfo.CrosspointType, sourceList, (ushort)(sourceIndex + INDEX_OFFSET_SPLUS));
 		}
 
 		/// <summary>
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusAudioSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
+		private void SetSPlusAudioSourceList(IList<SourceInfo> sourceList)
 		{
-			ushort count = 0;
 			SourceListCallback listCallback = UpdateAudioSourceListItem;
 			if (listCallback != null)
-				foreach (var kvp in sourceList)
+				for(int i = 0; i < sourceList.Count; i++)
 				{
-					listCallback(kvp.Key, kvp.Value.Id, kvp.Value.Name, kvp.Value.CrosspointId,
-								 kvp.Value.CrosspointType);
-					count++;
+					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, sourceList[i].Name, sourceList[i].CrosspointId,
+								 sourceList[i].CrosspointType);
 				}
 
 			ListSizeCallback countCallback = UpdateAudioSourceListCount;
 			if (countCallback != null)
-				countCallback(count);
+				countCallback((ushort)sourceList.Count);
 		}
 
 		/// <summary>
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusVideoSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
+		private void SetSPlusVideoSourceList(IList<SourceInfo> sourceList)
 		{
-			ushort count = 0;
 			SourceListCallback listCallback = UpdateAudioSourceListItem;
 			if (listCallback != null)
-				foreach (var kvp in sourceList)
+				for(int i = 0; i < sourceList.Count; i++)
 				{
-					listCallback(kvp.Key, kvp.Value.Id, kvp.Value.Name, kvp.Value.CrosspointId,
-								 kvp.Value.CrosspointType);
-					count++;
+					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, sourceList[i].Name, sourceList[i].CrosspointId,
+								 sourceList[i].CrosspointType);
 				}
 
 			ListSizeCallback countCallback = UpdateAudioSourceListCount;
 			if (countCallback != null)
-				countCallback(count);
+				countCallback((ushort)sourceList.Count);
 		}
 
 		private void SetSPlusVolumeLevelFeedback(float volume)
@@ -370,7 +366,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 
 		private void OriginatorOnRoomSelectedUpdate(object sender, RoomSelectedEventArgs args)
 		{
-			SetSPlusRoomInfo(args.RoomInfo, args.Index);
+			SetSPlusRoomInfo(args.RoomInfo, (ushort)(args.Index + INDEX_OFFSET_SPLUS));
 		}
 
 		private void OriginatorOnVideoSourceListUpdate(object sender, VideoSourceListEventArgs args)
@@ -385,7 +381,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 
 		private void OriginatorOnSourceSelectedUpdate(object sender, SourceSelectedEventArgs args)
 		{
-			SetSPlusSourceInfo(args.SourceInfo, (ushort)args.SourceTypeRouted, args.Index);
+			SetSPlusSourceInfo(args.SourceInfo, (ushort)args.SourceTypeRouted, (ushort)(args.Index + INDEX_OFFSET_SPLUS));
 		}
 
 		private void OriginatorOnVolumeLevelFeedbackUpdate(object sender, VolumeLevelFeedbackEventArgs args)

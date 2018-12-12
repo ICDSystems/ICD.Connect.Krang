@@ -4,9 +4,9 @@ using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy;
 
 namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 {
-	public class VideoSourceListEventArgs : AbstractSourceListEventArgs
+	public sealed class VideoSourceListEventArgs : AbstractSourceListEventArgs
 	{
-		public VideoSourceListEventArgs(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
+		public VideoSourceListEventArgs(List<SourceInfo> sourceList)
 			: base(SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST, sourceList)
 		{
 		}

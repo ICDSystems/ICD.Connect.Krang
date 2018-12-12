@@ -12,7 +12,6 @@ using ICD.Connect.Audio.EventArguments;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
-using ICD.Connect.Krang.SPlus.SPlusTouchpanel;
 using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
 using ICD.Connect.Settings;
 
@@ -20,8 +19,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 {
 	public sealed class KrangAtHomeTouchpanelUi : IKrangAtHomeUserInterface
 	{
-		private const ushort INDEX_NOT_FOUND = 0;
-		private const ushort INDEX_START = 1;
+		private const int INDEX_NOT_FOUND = -1;
+		private const int INDEX_OFF = -1;
+		private const int INDEX_START = 0;
 
 		#region Fields
 
@@ -40,11 +40,11 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		/// <summary>
 		/// List of rooms and indexes
 		/// </summary>
-		private BiDictionary<ushort, IKrangAtHomeRoom> m_RoomListBiDictionary;
+		private BiDictionary<int, IKrangAtHomeRoom> m_RoomListBiDictionary;
 
-		private BiDictionary<ushort, ISimplSource> m_SourceListAudioBiDictionary;
+		private BiDictionary<int, ISimplSource> m_SourceListAudioBiDictionary;
 
-		private BiDictionary<ushort, ISimplSource> m_SourceListVideoBiDictionary;
+		private BiDictionary<int, ISimplSource> m_SourceListVideoBiDictionary;
 
 		#endregion
 
@@ -57,9 +57,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		/// </summary>
 		public KrangAtHomeTouchpanelUi(KrangAtHomeTheme theme,KrangAtHomeSPlusTouchpanelDevice panel)
 		{
-			m_RoomListBiDictionary = new BiDictionary<ushort, IKrangAtHomeRoom>();
-			m_SourceListAudioBiDictionary = new BiDictionary<ushort, ISimplSource>();
-			m_SourceListVideoBiDictionary = new BiDictionary<ushort, ISimplSource>();
+			m_RoomListBiDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
+			m_SourceListAudioBiDictionary = new BiDictionary<int, ISimplSource>();
+			m_SourceListVideoBiDictionary = new BiDictionary<int, ISimplSource>();
 
 			m_Panel = panel;
 			m_Theme = theme;
@@ -92,7 +92,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		/// Sets the current room for routing operations.
 		/// </summary>
 		/// <param name="roomId"></param>
-		public void SetRoomId(int roomId)
+		private void SetRoomId(int roomId)
 		{
 			//ServiceProvider.GetService<ILoggerService>()
 			//               .AddEntry(eSeverity.Informational, "{0} setting room to {1}", this, roomId);
@@ -105,7 +105,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		/// Sets the current room, based on the room list index
 		/// </summary>
 		/// <param name="roomIndex">index of the room to set</param>
-		public void SetRoomIndex(ushort roomIndex)
+		private void SetRoomIndex(int roomIndex)
 		{
 			ServiceProvider.GetService<ILoggerService>()
 			               .AddEntry(eSeverity.Informational, "{0} setting room index to {1}", this, roomIndex);
@@ -121,10 +121,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		#region Source Select
 
-		private void SetVideoSourceIndex(ushort sourceIndex)
+		private void SetVideoSourceIndex(int sourceIndex)
 		{
-			// sourceIndex of 0 is used for "Off" - pass it along w/o lookup
-			if (sourceIndex == 0)
+			// sourceIndex of -1 is used for "Off" - pass it along w/o lookup
+			if (sourceIndex == INDEX_OFF)
 			{
 				SetSource(null, eSourceTypeRouted.Video);
 				return;
@@ -138,10 +138,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			SetSource(source, eSourceTypeRouted.Video);
 		}
 
-		private void SetAudioSourceIndex(ushort sourceIndex)
+		private void SetAudioSourceIndex(int sourceIndex)
 		{
-			// sourceIndex of 0 is used for "Off" - pass it along w/o lookup
-			if (sourceIndex == 0)
+			// sourceIndex of -1 is used for "Off" - pass it along w/o lookup
+			if (sourceIndex == INDEX_OFF)
 			{
 				SetSource(null, eSourceTypeRouted.Audio);
 				return;
@@ -256,7 +256,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 				return;
 			}
 
-			ushort index;
+			int index;
 			if (!m_RoomListBiDictionary.TryGetKey(m_Room, out index))
 				index = INDEX_NOT_FOUND;
 
@@ -267,7 +267,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		private void RaiseRoomList()
 		{
-			BiDictionary<ushort, IKrangAtHomeRoom> roomListDictionary = new BiDictionary<ushort, IKrangAtHomeRoom>();
+			BiDictionary<int, IKrangAtHomeRoom> roomListDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
 
 			ushort counter = INDEX_START;
 			foreach (IKrangAtHomeRoom room in m_Theme.Core.Originators.GetChildren<IKrangAtHomeRoom>())
@@ -285,8 +285,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		private void RaiseSourceList()
 		{
-			BiDictionary<ushort, ISimplSource> sourceListAudioBiDictionary = new BiDictionary<ushort, ISimplSource>();
-			BiDictionary<ushort, ISimplSource> sourceListVideoBiDictionary = new BiDictionary<ushort, ISimplSource>();
+			BiDictionary<int, ISimplSource> sourceListAudioBiDictionary = new BiDictionary<int, ISimplSource>();
+			BiDictionary<int, ISimplSource> sourceListVideoBiDictionary = new BiDictionary<int, ISimplSource>();
 
 			//ushort[] indexArray = {INDEX_START, INDEX_START};
 			ushort audioListIndexCounter = INDEX_START;
@@ -549,7 +549,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			RaiseRoomInfo();
 		}
 
-		private void PanelOnSetRoomIndex(object sender, UShortEventArgs args)
+		private void PanelOnSetRoomIndex(object sender, IntEventArgs args)
 		{
 			SetRoomIndex(args.Data);
 		}
@@ -559,7 +559,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			SetRoomId(args.Data);
 		}
 
-		private void PanelOnSetAudioSourceIndex(object sender, UShortEventArgs args)
+		private void PanelOnSetAudioSourceIndex(object sender, IntEventArgs args)
 		{
 			SetAudioSourceIndex(args.Data);
 		}
@@ -569,7 +569,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			SetSourceId(args.Data, eSourceTypeRouted.Audio);
 		}
 
-		private void PanelOnSetVideoSourceIndex(object sender, UShortEventArgs args)
+		private void PanelOnSetVideoSourceIndex(object sender, IntEventArgs args)
 		{
 			SetVideoSourceIndex(args.Data);
 		}
@@ -629,16 +629,26 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		#endregion
 
-		private static IEnumerable<KeyValuePair<ushort, RoomInfo>> ConvertToRoomInfo(
-			IEnumerable<KeyValuePair<ushort, IKrangAtHomeRoom>> list)
+		private static List<RoomInfo> ConvertToRoomInfo(BiDictionary<int, IKrangAtHomeRoom> list)
 		{
-			return list.Select(kvp => new KeyValuePair<ushort, RoomInfo>(kvp.Key, new RoomInfo(kvp.Value)));
+			List<RoomInfo> returnList = new List<RoomInfo>(list.Count);
+			foreach (var kvp in list)
+			{
+				returnList[kvp.Key] = new RoomInfo(kvp.Value);
+			}
+
+			return returnList;
 		}
 
-		private static IEnumerable<KeyValuePair<ushort, SourceInfo>> ConvertToSourceInfo(
-			IEnumerable<KeyValuePair<ushort, ISimplSource>> list)
+		private static List<SourceInfo> ConvertToSourceInfo(BiDictionary<int, ISimplSource> list)
 		{
-			return list.Select(kvp => new KeyValuePair<ushort, SourceInfo>(kvp.Key, new SourceInfo(kvp.Value)));
+			List<SourceInfo> returnList = new List<SourceInfo>(list.Count);
+			foreach (var kvp in list)
+			{
+				returnList[kvp.Key] = new SourceInfo(kvp.Value);
+			}
+
+			return returnList;
 		}
 	}
 }

@@ -9,14 +9,14 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 	[Serializable]
 	public sealed class RoomSelected
 	{
-		public ushort Index { get; set; }
+		public int Index { get; set; }
 		public RoomInfo RoomInfo { get; set; }
 	}
 
 	public sealed class RoomSelectedEventArgs : AbstractGenericApiEventArgs<RoomSelected>
 	{
 
-		public ushort Index { get { return Data.Index; }}
+		public int Index { get { return Data.Index; }}
 
 		public RoomInfo RoomInfo {get { return Data.RoomInfo; }}
 
@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 			
 		}
 
-		public RoomSelectedEventArgs(RoomInfo roomInfo, ushort index)
+		public RoomSelectedEventArgs(RoomInfo roomInfo, int index)
 			: base(SPlusTouchpanelDeviceApi.EVENT_ROOM_SELECTED, new RoomSelected()
 			{
 				Index = index,
@@ -35,7 +35,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 		{
 		}
 
-		public RoomSelectedEventArgs(IKrangAtHomeRoom room, ushort index)
+		public RoomSelectedEventArgs(IKrangAtHomeRoom room, int index)
 			: base(SPlusTouchpanelDeviceApi.EVENT_ROOM_SELECTED, new RoomSelected()
 			{
 				Index = index,
