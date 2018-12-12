@@ -9,9 +9,11 @@ using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Audio.Controls;
 using ICD.Connect.Audio.EventArguments;
-using ICD.Connect.Krang.SPlus.Devices;
+using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.SPlusTouchpanel;
+using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
 using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs
@@ -274,7 +276,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 				counter++;
 			}
 
-			m_Panel.SetRoomList(roomListDictionary);
+			m_Panel.SetRoomList(ConvertToRoomInfo(roomListDictionary));
 
 			m_RoomListBiDictionary = roomListDictionary;
 
@@ -311,8 +313,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 				}
 
 			}
-			m_Panel.SetAudioSourceList(sourceListAudioBiDictionary);
-			m_Panel.SetVideoSourceList(sourceListVideoBiDictionary);
+			m_Panel.SetAudioSourceList(ConvertToSourceInfo(sourceListAudioBiDictionary));
+			m_Panel.SetVideoSourceList(ConvertToSourceInfo(sourceListVideoBiDictionary));
 
 			m_SourceListAudioBiDictionary = sourceListAudioBiDictionary;
 			m_SourceListVideoBiDictionary = sourceListVideoBiDictionary;
@@ -396,7 +398,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			// Test for VolumeControl being Null
 			if (volumeDevice == null)
 			{
-				m_Panel.SetVolumeAvaliableControls(eVolumeLevelControlsAvaliable.None, eVolumeMuteControlsAvaliable.None);
+				m_Panel.SetVolumeAvaliableControls(eVolumeLevelAvailableControl.None, eVolumeMuteAvailableControl.None);
 				m_Panel.SetVolumeLevelFeedback(0);
 				m_Panel.SetVolumeMuteFeedback(false);
 				return;
@@ -412,31 +414,31 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			IVolumeMuteFeedbackDeviceControl muteFeedbackDevice = volumeDevice as IVolumeMuteFeedbackDeviceControl;
 
 			//Figure out volume control and feedback
-			eVolumeLevelControlsAvaliable volumeControlsAvaliable = eVolumeLevelControlsAvaliable.None;
+			eVolumeLevelAvailableControl volumeAvailableControl = eVolumeLevelAvailableControl.None;
 			float volumeLevelFeedback = 0;
 			if (volumePositionDevice != null)
 			{
-				volumeControlsAvaliable = eVolumeLevelControlsAvaliable.Position;
+				volumeAvailableControl = eVolumeLevelAvailableControl.Position;
 				volumeLevelFeedback = volumePositionDevice.VolumePosition;
 			}
 			else if (volumeRampDevice != null)
-				volumeControlsAvaliable = eVolumeLevelControlsAvaliable.Ramp;
+				volumeAvailableControl = eVolumeLevelAvailableControl.Ramp;
 
 			//Figure out mute control and feedback
-			eVolumeMuteControlsAvaliable muteControlsAvaliable = eVolumeMuteControlsAvaliable.None;
+			eVolumeMuteAvailableControl muteAvailableControl = eVolumeMuteAvailableControl.None;
 			bool muteStateFeedback = false;
 			if (muteFeedbackDevice != null)
 			{
-				muteControlsAvaliable = eVolumeMuteControlsAvaliable.Feedback;
+				muteAvailableControl = eVolumeMuteAvailableControl.Feedback;
 				muteStateFeedback = muteFeedbackDevice.VolumeIsMuted;
 			}
 			else if (muteDiscreteDevice != null)
-				muteControlsAvaliable = eVolumeMuteControlsAvaliable.Discrete;
+				muteAvailableControl = eVolumeMuteAvailableControl.Discrete;
 			else if (muteBasicDevice != null)
-				muteControlsAvaliable = eVolumeMuteControlsAvaliable.Toggle;
+				muteAvailableControl = eVolumeMuteAvailableControl.Toggle;
 
 			// Send Feedback to Panel
-			m_Panel.SetVolumeAvaliableControls(volumeControlsAvaliable, muteControlsAvaliable);
+			m_Panel.SetVolumeAvaliableControls(volumeAvailableControl, muteAvailableControl);
 			m_Panel.SetVolumeLevelFeedback(volumeLevelFeedback);
 			m_Panel.SetVolumeMuteFeedback(muteStateFeedback);
 		}
@@ -626,5 +628,17 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		}
 
 		#endregion
+
+		private static IEnumerable<KeyValuePair<ushort, RoomInfo>> ConvertToRoomInfo(
+			IEnumerable<KeyValuePair<ushort, IKrangAtHomeRoom>> list)
+		{
+			return list.Select(kvp => new KeyValuePair<ushort, RoomInfo>(kvp.Key, new RoomInfo(kvp.Value)));
+		}
+
+		private static IEnumerable<KeyValuePair<ushort, SourceInfo>> ConvertToSourceInfo(
+			IEnumerable<KeyValuePair<ushort, ISimplSource>> list)
+		{
+			return list.Select(kvp => new KeyValuePair<ushort, SourceInfo>(kvp.Key, new SourceInfo(kvp.Value)));
+		}
 	}
 }

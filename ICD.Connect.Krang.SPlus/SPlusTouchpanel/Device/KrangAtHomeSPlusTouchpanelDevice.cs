@@ -3,45 +3,56 @@ using System.Collections.Generic;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Devices.Simpl;
+using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs;
 
-namespace ICD.Connect.Krang.SPlus.Devices
+namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 {
-
-	public enum eVolumeLevelControlsAvaliable
+	/// <summary>
+	/// What volume level controls are avaliable
+	/// Backing values used by S+
+	/// </summary>
+	public enum eVolumeLevelAvailableControl
 	{
-		None,
-		Ramp,
-		Position
+		None = 0,
+		Ramp = 1,
+		Position = 2
 	}
 
-	public enum eVolumeMuteControlsAvaliable
+	/// <summary>
+	/// What volume mute controls are avalialbe
+	/// Backing values used by S+
+	/// </summary>
+	public enum eVolumeMuteAvailableControl
 	{
-		None,
-		Toggle,
-		Discrete,
-		Feedback
+		None = 0,
+		Toggle = 1,
+		Discrete = 2,
+		Feedback = 3
 	}
 
-	public sealed class KrangAtHomeSPlusTouchpanelDevice: AbstractSimplDevice<KrangAtHomeSPlusTouchpanelDeviceSettings>
+	public sealed class KrangAtHomeSPlusTouchpanelDevice: AbstractSimplDevice<KrangAtHomeSPlusTouchpanelDeviceSettings>, IKrangAtHomeSPlusTouchpanelDevice
 	{
 
 		#region Events to Shim
 
-		public event EventHandler<GenericEventArgs<IEnumerable<KeyValuePair<ushort, IKrangAtHomeRoom>>>> OnRoomListUpdate;
+		public event EventHandler<RoomListEventArgs> OnRoomListUpdate;
 
-		public event EventHandler<RoomInfoEventArgs> OnRoomInfoUpdate;
+		public event EventHandler<RoomSelectedEventArgs> OnRoomSelectedUpdate;
 
-		public event EventHandler<GenericEventArgs<IEnumerable<KeyValuePair<ushort, ISimplSource>>>> OnAudioSourceListUpdate;
+		public event EventHandler<AudioSourceListEventArgs> OnAudioSourceListUpdate;
 
-		public event EventHandler<GenericEventArgs<IEnumerable<KeyValuePair<ushort, ISimplSource>>>> OnVideoSourceListUpdate;
+		public event EventHandler<VideoSourceListEventArgs> OnVideoSourceListUpdate;
 
-		public event EventHandler<SourceInfoEventArgs> OnSourceInfoUpdate;
+		public event EventHandler<SourceSelectedEventArgs> OnSourceSelectedUpdate;
 
-		public event EventHandler<FloatEventArgs> OnVolumeLevelFeedbackUpdate;
+		public event EventHandler<VolumeLevelFeedbackEventArgs> OnVolumeLevelFeedbackUpdate;
 
-		public event EventHandler<BoolEventArgs> OnVolumeMuteFeedbackUpdate;
+		public event EventHandler<VolumeMuteFeedbackEventArgs> OnVolumeMuteFeedbackUpdate;
+
+		public event EventHandler<VolumeAvailableControlEventArgs> OnVolumeAvailableControlUpdate; 
 
 		#endregion
 
@@ -97,7 +108,7 @@ namespace ICD.Connect.Krang.SPlus.Devices
 			OnSetAudioSourceIndex.Raise(this, new UShortEventArgs(index));
 		}
 
-		public void SetAudioSourcdId(int id)
+		public void SetAudioSourceId(int id)
 		{
 			OnSetAudioSourceId.Raise(this, new IntEventArgs(id));
 		}
@@ -153,16 +164,16 @@ namespace ICD.Connect.Krang.SPlus.Devices
 		/// <param name="index"></param>
 		internal void SetRoomInfo(IKrangAtHomeRoom room, ushort index)
 		{
-			OnRoomInfoUpdate.Raise(this, new RoomInfoEventArgs(room, index));
+			OnRoomSelectedUpdate.Raise(this, new RoomSelectedEventArgs(room, index));
 		}
 
 		/// <summary>
 		/// Updates the room list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="roomList"></param>
-		internal void SetRoomList(IEnumerable<KeyValuePair<ushort, IKrangAtHomeRoom>> roomList)
+		internal void SetRoomList(IEnumerable<KeyValuePair<ushort, RoomInfo>> roomList)
 		{
-			OnRoomListUpdate.Raise(this, new GenericEventArgs<IEnumerable<KeyValuePair<ushort, IKrangAtHomeRoom>>>(roomList));
+			OnRoomListUpdate.Raise(this, new RoomListEventArgs(roomList));
 		}
 
 		/// <summary>
@@ -173,41 +184,41 @@ namespace ICD.Connect.Krang.SPlus.Devices
 		/// <param name="sourceTypeRouted"></param>
 		internal void SetSourceInfo(ISimplSource source, ushort sourceIndex, eSourceTypeRouted sourceTypeRouted)
 		{
-			OnSourceInfoUpdate.Raise(this, new SourceInfoEventArgs(source, sourceIndex, sourceTypeRouted));
+			OnSourceSelectedUpdate.Raise(this, new SourceSelectedEventArgs(source, sourceIndex, sourceTypeRouted));
 		}
 
 		/// <summary>
 		/// Updates the audio source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetAudioSourceList(IEnumerable<KeyValuePair<ushort, ISimplSource>> sourceList)
+		internal void SetAudioSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
 		{
-			OnAudioSourceListUpdate.Raise(this, new GenericEventArgs<IEnumerable<KeyValuePair<ushort, ISimplSource>>>(sourceList));
+			OnAudioSourceListUpdate.Raise(this, new AudioSourceListEventArgs(sourceList));
 		}
 
 		/// <summary>
 		/// Updates the video source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetVideoSourceList(IEnumerable<KeyValuePair<ushort, ISimplSource>> sourceList)
+		internal void SetVideoSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
 		{
-			OnVideoSourceListUpdate.Raise(this, new GenericEventArgs<IEnumerable<KeyValuePair<ushort, ISimplSource>>>(sourceList));
+			OnVideoSourceListUpdate.Raise(this, new VideoSourceListEventArgs(sourceList));
 		}
 
 		internal void SetVolumeLevelFeedback(float volume)
 		{
-			OnVolumeLevelFeedbackUpdate.Raise(this, new FloatEventArgs(volume));
+			OnVolumeLevelFeedbackUpdate.Raise(this, new VolumeLevelFeedbackEventArgs(volume));
 		}
 
 		internal void SetVolumeMuteFeedback(bool mute)
 		{
-			OnVolumeMuteFeedbackUpdate.Raise(this, new BoolEventArgs(mute));
+			OnVolumeMuteFeedbackUpdate.Raise(this, new VolumeMuteFeedbackEventArgs(mute));
 		}
 
-		internal void SetVolumeAvaliableControls(eVolumeLevelControlsAvaliable levelControls,
-		                                         eVolumeMuteControlsAvaliable muteControls)
+		internal void SetVolumeAvaliableControls(eVolumeLevelAvailableControl levelControl,
+		                                         eVolumeMuteAvailableControl muteControl)
 		{
-			throw new NotImplementedException();
+			OnVolumeAvailableControlUpdate.Raise(this, new VolumeAvailableControlEventArgs(levelControl, muteControl));
 		}
 
 		#endregion

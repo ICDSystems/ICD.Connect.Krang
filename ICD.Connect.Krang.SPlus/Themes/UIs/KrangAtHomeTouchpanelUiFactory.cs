@@ -4,7 +4,7 @@ using ICD.Connect.Krang.SPlus.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs
 {
-	public class KrangAtHomeTouchpanelUiFactory : IKrangAtHomeUserInterfaceFactory
+	public sealed class KrangAtHomeTouchpanelUiFactory : IKrangAtHomeUserInterfaceFactory
 	{
 
 		public KrangAtHomeTouchpanelUiFactory(KrangAtHomeTheme theme)

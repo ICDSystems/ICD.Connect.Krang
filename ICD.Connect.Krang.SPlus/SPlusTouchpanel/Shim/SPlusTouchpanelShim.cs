@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
-using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Devices.SPlusShims;
-using ICD.Connect.Krang.SPlus.Devices;
-using ICD.Connect.Krang.SPlus.Rooms;
-using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
+using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
+using ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs;
 #if SIMPLSHARP
 using ICDPlatformString = Crestron.SimplSharp.SimplSharpString;
 #else
 using ICDPlatformString = System.String;
 #endif
 
-namespace ICD.Connect.Krang.SPlus.SPlusShims
+namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 {
 
 	public delegate void ListSizeCallback(ushort size);
@@ -32,8 +31,10 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 
 	public delegate void VolumeFeedbackCallback(ushort data);
 
+	public delegate void VolumeAvailableControlCallback(ushort levelControl, ushort muteControl);
+
 	[PublicAPI("S+")]
-	public sealed class SPlusTouchpanelShim : AbstractSPlusDeviceShim<KrangAtHomeSPlusTouchpanelDevice>
+	public sealed class SPlusTouchpanelShim : AbstractSPlusDeviceShim<IKrangAtHomeSPlusTouchpanelDevice>
 	{
 
 		#region S+ Properties
@@ -77,6 +78,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 		[PublicAPI("S+")]
 		public VolumeFeedbackCallback UpdateVolumeMuteFeedback { get; set; }
 
+		[PublicAPI("S+")]
+		public VolumeAvailableControlCallback UpdateVolumeAvailableControl { get; set; }
+
 		#endregion
 
 		#region SPlus 
@@ -110,7 +114,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 		{
 			if (Originator == null)
 				return;
-			Originator.SetAudioSourcdId(id);
+			Originator.SetAudioSourceId(id);
 		}
 
 		[PublicAPI("S+")]
@@ -200,20 +204,20 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 		/// <summary>
 		/// Sets the room info via the delegate
 		/// </summary>
-		/// <param name="room"></param>
+		/// <param name="roomInfo"></param>
 		/// <param name="index"></param>
-		private void SetSPlusRoomInfo(IKrangAtHomeRoom room, ushort index)
+		private void SetSPlusRoomInfo(RoomInfo roomInfo, ushort index)
 		{
 			var callback = UpdateRoomInfo;
 			if (callback != null)
-				callback(room.Id, room.Name, index);
+				callback(roomInfo.Id, roomInfo.Name, index);
 		}
 
 		/// <summary>
 		/// Updates the room list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="roomList"></param>
-		private void SetSPlusRoomList(IEnumerable<KeyValuePair<ushort, IKrangAtHomeRoom>> roomList)
+		private void SetSPlusRoomList(IEnumerable<KeyValuePair<ushort, RoomInfo>> roomList)
 		{
 			ushort count = 0;
 			RoomListCallback listCallback = UpdateRoomListItem;
@@ -232,21 +236,21 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 		/// <summary>
 		/// Sets the source info via the delegate
 		/// </summary>
-		/// <param name="source"></param>
+		/// <param name="sourceInfo"></param>
 		/// <param name="sourceList"></param>
 		/// <param name="sourceIndex"></param>
-		private void SetSPlusSourceInfo(ISimplSource source, ushort sourceList, ushort sourceIndex)
+		private void SetSPlusSourceInfo(SourceInfo sourceInfo, ushort sourceList, ushort sourceIndex)
 		{
 			SourceInfoCallback callback = UpdateSourceInfo;
 			if (callback != null)
-				callback(source.Id, source.Name, source.CrosspointId, source.CrosspointType, sourceList, sourceIndex);
+				callback(sourceInfo.Id, sourceInfo.Name, sourceInfo.CrosspointId, sourceInfo.CrosspointType, sourceList, sourceIndex);
 		}
 
 		/// <summary>
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusAudioSourceList(IEnumerable<KeyValuePair<ushort, ISimplSource>> sourceList)
+		private void SetSPlusAudioSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
 		{
 			ushort count = 0;
 			SourceListCallback listCallback = UpdateAudioSourceListItem;
@@ -267,7 +271,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusVideoSourceList(IEnumerable<KeyValuePair<ushort, ISimplSource>> sourceList)
+		private void SetSPlusVideoSourceList(IEnumerable<KeyValuePair<ushort, SourceInfo>> sourceList)
 		{
 			ushort count = 0;
 			SourceListCallback listCallback = UpdateAudioSourceListItem;
@@ -286,7 +290,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 
 		private void SetSPlusVolumeLevelFeedback(float volume)
 		{
-			var callback = UpdateVolumeLevelFeedback;
+			VolumeFeedbackCallback callback = UpdateVolumeLevelFeedback;
 			if (callback == null)
 				return;
 
@@ -297,13 +301,21 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 
 		private void SetSPlusVolumeMuteFeedback(bool mute)
 		{
-			var callback = UpdateVolumeMuteFeedback;
+			VolumeFeedbackCallback callback = UpdateVolumeMuteFeedback;
 			if (callback == null)
 				return;
 
 			callback(mute.ToUShort());
 		}
 
+		private void SetSPlusVolumeAvailableControl(eVolumeLevelAvailableControl levelAvailableControl, eVolumeMuteAvailableControl muteAvailableControl)
+		{
+			VolumeAvailableControlCallback callback = UpdateVolumeAvailableControl;
+			if (callback == null)
+				return;
+
+			callback((ushort)levelAvailableControl, (ushort)muteAvailableControl);
+		}
 
 		#endregion
 
@@ -313,74 +325,82 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 		/// Subscribes to the originator events.
 		/// </summary>
 		/// <param name="originator"></param>
-		protected override void Subscribe(KrangAtHomeSPlusTouchpanelDevice originator)
+		protected override void Subscribe(IKrangAtHomeSPlusTouchpanelDevice originator)
 		{
 			base.Subscribe(originator);
 
 			if (originator == null)
 				return;
 
-			Originator.OnRoomInfoUpdate += OriginatorOnRoomInfoUpdate;
+			Originator.OnRoomSelectedUpdate += OriginatorOnRoomSelectedUpdate;
 			Originator.OnRoomListUpdate += OriginatorOnRoomListUpdate;
 			Originator.OnAudioSourceListUpdate += OriginatorOnAudioSourceListUpdate;
 			Originator.OnVideoSourceListUpdate += OriginatorOnVideoSourceListUpdate;
-			Originator.OnSourceInfoUpdate += OriginatorOnSourceInfoUpdate;
+			Originator.OnSourceSelectedUpdate += OriginatorOnSourceSelectedUpdate;
 			Originator.OnVolumeLevelFeedbackUpdate += OriginatorOnVolumeLevelFeedbackUpdate;
 			Originator.OnVolumeMuteFeedbackUpdate += OriginatorOnVolumeMuteFeedbackUpdate;
+			Originator.OnVolumeAvailableControlUpdate += OriginatorOnVolumeAvailableControlUpdate;
 		}
 
 		/// <summary>
 		/// Unsubscribes from the originator events.
 		/// </summary>
 		/// <param name="originator"></param>
-		protected override void Unsubscribe(KrangAtHomeSPlusTouchpanelDevice originator)
+		protected override void Unsubscribe(IKrangAtHomeSPlusTouchpanelDevice originator)
 		{
 			base.Unsubscribe(originator);
 
 			if (originator == null)
 				return;
 
-			Originator.OnRoomInfoUpdate -= OriginatorOnRoomInfoUpdate;
+			Originator.OnRoomSelectedUpdate -= OriginatorOnRoomSelectedUpdate;
 			Originator.OnRoomListUpdate -= OriginatorOnRoomListUpdate;
 			Originator.OnAudioSourceListUpdate -= OriginatorOnAudioSourceListUpdate;
 			Originator.OnVideoSourceListUpdate -= OriginatorOnVideoSourceListUpdate;
-			Originator.OnSourceInfoUpdate -= OriginatorOnSourceInfoUpdate;
+			Originator.OnSourceSelectedUpdate -= OriginatorOnSourceSelectedUpdate;
 			Originator.OnVolumeLevelFeedbackUpdate -= OriginatorOnVolumeLevelFeedbackUpdate;
+			Originator.OnVolumeMuteFeedbackUpdate -= OriginatorOnVolumeMuteFeedbackUpdate;
+			Originator.OnVolumeAvailableControlUpdate -= OriginatorOnVolumeAvailableControlUpdate;
 		}
 
-		private void OriginatorOnRoomListUpdate(object sender, GenericEventArgs<IEnumerable<KeyValuePair<ushort, IKrangAtHomeRoom>>> args)
+		private void OriginatorOnRoomListUpdate(object sender, RoomListEventArgs args)
 		{
 			SetSPlusRoomList(args.Data);
 		}
 
-		private void OriginatorOnRoomInfoUpdate(object sender, RoomInfoEventArgs args)
+		private void OriginatorOnRoomSelectedUpdate(object sender, RoomSelectedEventArgs args)
 		{
-			SetSPlusRoomInfo(args.Data, args.Index);
+			SetSPlusRoomInfo(args.RoomInfo, args.Index);
 		}
 
-		private void OriginatorOnVideoSourceListUpdate(object sender, GenericEventArgs<IEnumerable<KeyValuePair<ushort, ISimplSource>>> args)
+		private void OriginatorOnVideoSourceListUpdate(object sender, VideoSourceListEventArgs args)
 		{
 			SetSPlusVideoSourceList(args.Data);
 		}
 
-		private void OriginatorOnAudioSourceListUpdate(object sender, GenericEventArgs<IEnumerable<KeyValuePair<ushort, ISimplSource>>> args)
+		private void OriginatorOnAudioSourceListUpdate(object sender, AudioSourceListEventArgs args)
 		{
 			SetSPlusAudioSourceList(args.Data);
 		}
 
-		private void OriginatorOnSourceInfoUpdate(object sender, SourceInfoEventArgs args)
+		private void OriginatorOnSourceSelectedUpdate(object sender, SourceSelectedEventArgs args)
 		{
-			SetSPlusSourceInfo(args.Data, (ushort)args.SourceTypeRouted, args.Index);
+			SetSPlusSourceInfo(args.SourceInfo, (ushort)args.SourceTypeRouted, args.Index);
 		}
 
-		private void OriginatorOnVolumeLevelFeedbackUpdate(object sender, FloatEventArgs args)
+		private void OriginatorOnVolumeLevelFeedbackUpdate(object sender, VolumeLevelFeedbackEventArgs args)
 		{
 			SetSPlusVolumeLevelFeedback(args.Data);
 		}
 
-		private void OriginatorOnVolumeMuteFeedbackUpdate(object sender, BoolEventArgs args)
+		private void OriginatorOnVolumeMuteFeedbackUpdate(object sender, VolumeMuteFeedbackEventArgs args)
 		{
 			SetSPlusVolumeMuteFeedback(args.Data);
+		}
+
+		private void OriginatorOnVolumeAvailableControlUpdate(object sender, VolumeAvailableControlEventArgs args)
+		{
+			SetSPlusVolumeAvailableControl(args.LevelAvailableControl, args.MuteAvailableControl);
 		}
 
 		#endregion
