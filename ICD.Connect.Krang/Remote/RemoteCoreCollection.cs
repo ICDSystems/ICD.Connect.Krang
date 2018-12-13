@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.Protocol.Ports;
 
 namespace ICD.Connect.Krang.Remote
 {
 	public sealed class RemoteCoreCollection : IEnumerable<RemoteCore>
 	{
-		private readonly Dictionary<int, RemoteCore> m_Proxies;
+		private readonly Dictionary<HostInfo, RemoteCore> m_Proxies;
 		private readonly SafeCriticalSection m_ProxySection;
 
 		/// <summary>
@@ -15,26 +16,27 @@ namespace ICD.Connect.Krang.Remote
 		/// </summary>
 		public RemoteCoreCollection()
 		{
-			m_Proxies = new Dictionary<int, RemoteCore>();
+			m_Proxies = new Dictionary<HostInfo, RemoteCore>();
 			m_ProxySection = new SafeCriticalSection();
 		}
 
 		/// <summary>
-		/// Removes the proxy with the given id from the collection.
+		/// Removes the proxy with the given host info from the collection.
 		/// </summary>
-		/// <param name="id"></param>
-		public void Remove(int id)
+		/// <param name="source"></param>
+		public void Remove(HostInfo source)
 		{
-			m_ProxySection.Execute(() => m_Proxies.Remove(id));
+			m_ProxySection.Execute(() => m_Proxies.Remove(source));
 		}
 
 		/// <summary>
 		/// Adds the proxy to the collection.
 		/// </summary>
+		/// <param name="source"></param>
 		/// <param name="proxy"></param>
-		public void Add(RemoteCore proxy)
+		public void Add(HostInfo source, RemoteCore proxy)
 		{
-			m_ProxySection.Execute(() => m_Proxies.Add(proxy.Id, proxy));
+			m_ProxySection.Execute(() => m_Proxies.Add(source, proxy));
 		}
 
 		public IEnumerator<RemoteCore> GetEnumerator()
@@ -47,13 +49,13 @@ namespace ICD.Connect.Krang.Remote
 			return GetEnumerator();
 		}
 
-		public bool TryGetProxy(int id, out RemoteCore proxy)
+		public bool TryGetRemoteCore(HostInfo source, out RemoteCore proxy)
 		{
 			m_ProxySection.Enter();
 
 			try
 			{
-				return m_Proxies.TryGetValue(id, out proxy);
+				return m_Proxies.TryGetValue(source, out proxy);
 			}
 			finally
 			{
