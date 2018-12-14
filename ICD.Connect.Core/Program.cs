@@ -17,16 +17,7 @@ namespace ICD.Connect.Core
 
 	internal static class Program
 	{
-		private static readonly KrangBootstrap s_Bootstrap;
-
-		/// <summary>
-		/// Constructor.
-		/// </summary>
-		static Program()
-		{
-			s_Bootstrap = new KrangBootstrap();
-			Console.CancelKeyPress += (a, b) => s_Bootstrap.Stop();
-		}
+		private static KrangBootstrap s_Bootstrap;
 
 		/// <summary>
 		/// Program entry point.
@@ -42,6 +33,10 @@ namespace ICD.Connect.Core
 		private static void Main(Options options)
 		{
 			ProgramUtils.ProgramNumber = options.Program;
+
+			// Instantiate the bootstrap after the program options have been assigned
+			s_Bootstrap = new KrangBootstrap();
+			Console.CancelKeyPress += (a, b) => s_Bootstrap.Stop();
 
 			s_Bootstrap.Start();
 
