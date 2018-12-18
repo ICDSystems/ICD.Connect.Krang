@@ -144,7 +144,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.WriteElements(writer);
 
-			new ConfigurationHeader(true).ToXml(writer);
+			new ConfigurationHeader(true).ToXml(writer, HEADER_ELEMENT);
 
 			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
 
