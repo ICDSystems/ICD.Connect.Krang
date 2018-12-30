@@ -10,7 +10,7 @@ namespace ICD.Connect.Krang.SPlus.OriginatorInfo.Devices
 
 		public ushort CrosspointType { get; set; }
 
-		public SourceInfo(ISimplSource source) : base(source)
+		public SourceInfo(IKrangAtHomeSource source) : base(source)
 		{
 			if (source == null)
 				return;

@@ -30,7 +30,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 			
 		}
 
-		public SourceSelectedEventArgs(ISimplSource source, int index, eSourceTypeRouted sourceTypeRouted)
+		public SourceSelectedEventArgs(IKrangAtHomeSource source, int index, eSourceTypeRouted sourceTypeRouted)
 			: base(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, new SourceSelected
 			{
 				Index = index,

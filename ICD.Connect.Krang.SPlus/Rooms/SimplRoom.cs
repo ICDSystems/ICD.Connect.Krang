@@ -9,7 +9,12 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
 using ICD.Connect.Audio.Controls;
+using ICD.Connect.Audio.VolumePoints;
+using ICD.Connect.Devices.Extensions;
+using ICD.Connect.Displays.Devices;
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Destinations;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.VolumePoints;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints;
@@ -22,11 +27,12 @@ using ICD.Connect.Settings.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.Rooms
 {
-
+	[Flags]
 	public enum eSourceTypeRouted
 	{
 		Video,
-		Audio
+		Audio,
+		AudioVideo = Audio | Video
 	}
 
 	public enum eCrosspointType
@@ -38,13 +44,11 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 	public sealed class SimplRoom : AbstractRoom<SimplRoomSettings>, IKrangAtHomeRoom, ISimplOriginator
 	{
-		
-
 		#region Events
 
 		public event EventHandler OnActiveSourcesChange;
 
-		public event EventHandler<GenericEventArgs<IVolumeDeviceControl>> OnVolumeControlChanged; 
+		public event EventHandler<GenericEventArgs<IVolumeDeviceControl>> OnActiveVolumeControlChanged; 
 
 		#endregion
 
@@ -59,7 +63,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 		private IPathFinder m_PathFinder;
 
-		private IVolumeDeviceControl m_VolumeControl;
+		private IVolumeDeviceControl m_ActiveVolumeControl;
 
 		#endregion
 
@@ -70,17 +74,19 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			get { return m_PathFinder = m_PathFinder ?? new DefaultPathFinder(m_SubscribedRoutingGraph, Id); }
 		}
 
-		public IVolumeDeviceControl VolumeControl
+		public eSourceTypeRouted SourceType { get; private set; }
+
+		public IVolumeDeviceControl ActiveVolumeControl
 		{
-			get { return m_VolumeControl; }
+			get { return m_ActiveVolumeControl; }
 			private set
 			{
-				if (value == m_VolumeControl)
+				if (value == m_ActiveVolumeControl)
 					return;
 
-				m_VolumeControl = value;
+				m_ActiveVolumeControl = value;
 
-				OnVolumeControlChanged.Raise(this, new GenericEventArgs<IVolumeDeviceControl>(m_VolumeControl));
+				OnActiveVolumeControlChanged.Raise(this, new GenericEventArgs<IVolumeDeviceControl>(m_ActiveVolumeControl));
 
 			}
 		}
@@ -144,23 +150,23 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// Gets the current, actively routed source.
 		/// </summary>
 		[CanBeNull]
-		public ISimplSource GetSource()
+		public IKrangAtHomeSource GetSource()
 		{
 			ISource source = m_CachedActiveSources.OrderBy(s => s.Id).FirstOrDefault();
 
-			ISimplSource simplSource = source as ISimplSource;
+			IKrangAtHomeSource krangAtHomeSource = source as IKrangAtHomeSource;
 
-			return simplSource;
+			return krangAtHomeSource;
 		}
 
-		public void SetSource(ISimplSource source, eSourceTypeRouted type)
+		public void SetSource(IKrangAtHomeSource source, eSourceTypeRouted type)
 		{
 			Route(source, type);
 		}
 
 		public void SetSourceId(int sourceId, eSourceTypeRouted type)
 		{
-			ISimplSource source = GetSourceId(sourceId);
+			IKrangAtHomeSource source = GetSourceId(sourceId);
 
 			SetSource(source, type);
 
@@ -175,10 +181,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="sourceType"></param>
-		private void Route(ISimplSource source, eSourceTypeRouted sourceType)
+		private void Route(IKrangAtHomeSource source, eSourceTypeRouted sourceType)
 		{
-			// todo: implement sourceType handling
-
 			if (source == null)
 			{
 				Unroute();
@@ -188,18 +192,107 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			if (m_SubscribedRoutingGraph == null)
 				return;
 
+			IKrangAtHomeDestination[] videoDestinations = GetRoomDestinations(eConnectionType.Video).ToArray();
+			IKrangAtHomeDestination[] audioDestinations = GetRoomDestinations(eConnectionType.Audio).ToArray();
+
+			IcdHashSet<ConnectionPath> paths = new IcdHashSet<ConnectionPath>();
+
+			// Route Video
+			// If the source is a video source, and it's routed as a video source, make the route
+			if (source.ConnectionType.HasFlag(eConnectionType.Video) && sourceType.HasFlag(eSourceTypeRouted.Video))
+			{
+				paths.AddRange(
+				               PathBuilder.FindPaths()
+				                          .From(source)
+				                          .To(videoDestinations)
+				                          .OfType(eConnectionType.Video)
+				                          .With(PathFinder));
+			}
+			else
+			{
+				// Unroute all video destinations if we aren't routing anything there
+				videoDestinations.ForEach(destination => Unroute(destination, eConnectionType.Video));
+			}
+
+			// Route Audio
+			// If the source is an audio sourc, and it's routed as an audio source, make the route
+			if (source.ConnectionType.HasFlag(eConnectionType.Audio) && sourceType.HasFlag(eSourceTypeRouted.Audio))
+			{
+				// Figure out what audio options are needed
+				eAudioOption audioOption = sourceType == eSourceTypeRouted.AudioVideo
+					                           ? eAudioOption.AudioVideoOnly
+					                           : eAudioOption.AudioOnly;
+
+				// Get Used vs Unused audio destinations
+				var audioDestinationsUsed = audioDestinations.Where(d => d.AudioOption.HasFlag(audioOption)).ToArray();
+				var audioDestinationsUnused = audioDestinations.Where(d => !d.AudioOption.HasFlag(audioOption)).ToArray();
+
+				// Route to used destinations
+				paths.AddRange(
+				               PathBuilder.FindPaths()
+				                          .From(source)
+				                          .To(audioDestinationsUsed)
+				                          .OfType(eConnectionType.Audio)
+				                          .With(PathFinder));
+
+				// Unroute to unused destinations
+				audioDestinationsUnused.ForEach(destination => Unroute(destination,eConnectionType.Audio));
+
+				// Set Volume Control
+				try
+				{
+					KrangAtHomeVolumePoint volumePoint =
+						Originators.GetInstanceRecursive<KrangAtHomeVolumePoint>(p => p.AudioOption.HasFlag(audioOption));
+					if (volumePoint != null)
+					{
+						IVolumeDeviceControl volumeControl = Core.GetControl<IVolumeDeviceControl>(volumePoint.DeviceId,
+						                                                                           volumePoint.ControlId);
+						ActiveVolumeControl = volumeControl;
+					}
+					else
+					{
+						Log(eSeverity.Alert, "No volume point found that matches state");
+						ActiveVolumeControl = null;
+					}
+					
+				}
+				catch (InvalidCastException ex)
+				{
+					Log(eSeverity.Error, "Unable to get volume control:{0}", ex.Message);
+					ActiveVolumeControl = null;
+				}
+				catch (InvalidOperationException ex)
+				{
+					Log(eSeverity.Error, "Unable to get volume control:{0}", ex.Message);
+					ActiveVolumeControl = null;
+				}
+				catch (ArgumentException ex)
+				{
+					Log(eSeverity.Error, "Unable to get volume control:{0}", ex.Message);
+					ActiveVolumeControl = null;
+				}
+			}
+			else
+			{
+				// Unroute all audio destinations if we aren't routing anything there
+				audioDestinations.ForEach(destination => Unroute(destination, eConnectionType.Audio));
+
+				// Set null volume control
+				ActiveVolumeControl = null;
+			}
+
+			//Todo: handle lack of path approprately
+
+			// Power On + Input Switch Displays
+			foreach (ConnectionPath path in paths)
+			{
+				PowerOnDestinationDevice(path.DestinationEndpoint);
+			}
+
 			Log(eSeverity.Informational, "Routing {0}", source);
 
-			IEnumerable<IDestination> roomDestinations = GetRoomDestinations();
-
-			IEnumerable<ConnectionPath> paths =
-				PathBuilder.FindPaths()
-				           .From(source)
-				           .To(roomDestinations)
-				           .OfType(source.ConnectionType)
-				           .With(PathFinder);
-
 			m_SubscribedRoutingGraph.RoutePaths(paths, Id);
+			SourceType = sourceType;
 		}
 
 		/// <summary>
@@ -223,6 +316,13 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			GetActiveSources(destination).ForEach(s => Unroute(s, destination));
 		}
 
+		private void Unroute(IDestination destination, eConnectionType connections)
+		{
+			Log(eSeverity.Informational, "Unrouting {0}", destination);
+
+			GetActiveSources(destination).ForEach(s => Unroute(s, destination, connections));
+		}
+
 		/// <summary>
 		/// Unroutes the source from the destination.
 		/// </summary>
@@ -233,10 +333,35 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			if (m_SubscribedRoutingGraph == null)
 				return;
 
-			Log(eSeverity.Informational, "Unrouting {0} from {1}", source, destination);
+			Log(eSeverity.Debug, "Unrouting {0} from {1}", source, destination);
 
 			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType);
 			m_SubscribedRoutingGraph.Unroute(source, destination, connectionType, Id);
+		}
+
+		private void Unroute(ISource source, IDestination destination, eConnectionType connections)
+		{
+			if (m_SubscribedRoutingGraph == null)
+				return;
+
+			Log(eSeverity.Debug, "Unrouting {0} from {1} for connections {2}", source, destination, connections);
+
+			eConnectionType connectionType = EnumUtils.GetFlagsIntersection(source.ConnectionType, destination.ConnectionType, connections);
+			m_SubscribedRoutingGraph.Unroute(source, destination, connectionType, Id);
+		}
+
+		#endregion
+
+		#region Destinations
+
+		private void PowerOnDestinationDevice(EndpointInfo destination)
+		{
+			IDisplay display = Core.Originators.GetChild(destination.Device) as IDisplay;
+			if (display == null)
+				return;
+
+			display.PowerOn();
+			display.SetActiveInput(destination.Address);
 		}
 
 		#endregion
@@ -249,14 +374,14 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// <param name="id"></param>
 		/// <returns></returns>
 		[CanBeNull]
-		public ISimplSource GetSourceId(int id)
+		public IKrangAtHomeSource GetSourceId(int id)
 		{
 			if (m_SubscribedRoutingGraph == null)
 				return null;
 
 			ISource source;
 			m_SubscribedRoutingGraph.Sources.TryGetChild(id, out source);
-			return source as ISimplSource;
+			return source as IKrangAtHomeSource;
 		}
 
 		/// <summary>
@@ -304,9 +429,15 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// Gets the destinations for the current room.
 		/// </summary>
 		/// <returns></returns>
-		private IEnumerable<IDestination> GetRoomDestinations()
+		private IEnumerable<IKrangAtHomeDestination> GetRoomDestinations()
 		{
-			return Originators.GetInstancesRecursive<IDestination>();
+			return Originators.GetInstancesRecursive<IKrangAtHomeDestination>();
+		}
+
+		private IEnumerable<IKrangAtHomeDestination> GetRoomDestinations(eConnectionType connectionType)
+		{
+			return
+				Originators.GetInstancesRecursive<IKrangAtHomeDestination>().Where(d => d.ConnectionType.HasFlags(connectionType));
 		}
 
 		/// <summary>

@@ -10,7 +10,7 @@ using ICDPlatformString = System.String;
 namespace ICD.Connect.Krang.SPlus.SPlusShims
 {
 	[PublicAPI("S+")]
-	public sealed class SPlusSimplSourceShim : AbstractSPlusOriginatorShim<ISimplSource>
+	public sealed class SPlusSimplSourceShim : AbstractSPlusOriginatorShim<IKrangAtHomeSource>
 	{
 
 		public delegate void SPlusSourceInfoCallback(

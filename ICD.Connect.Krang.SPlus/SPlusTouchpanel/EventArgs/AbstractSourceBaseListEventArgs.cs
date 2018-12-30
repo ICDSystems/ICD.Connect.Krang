@@ -4,9 +4,9 @@ using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 
 namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 {
-	public abstract class AbstractSourceListEventArgs : AbstractGenericApiEventArgs<List<SourceInfo>>
+	public abstract class AbstractSourceBaseListEventArgs : AbstractGenericApiEventArgs<List<SourceBaseInfo>>
 	{
-		protected AbstractSourceListEventArgs(string eventName, List<SourceInfo> sourceList)
+		protected AbstractSourceBaseListEventArgs(string eventName, List<SourceBaseInfo> sourceList)
 			: base(eventName, sourceList)
 		{
 		}

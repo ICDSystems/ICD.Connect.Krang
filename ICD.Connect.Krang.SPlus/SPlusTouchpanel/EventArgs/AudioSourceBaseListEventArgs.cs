@@ -4,9 +4,9 @@ using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy;
 
 namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs
 {
-	public sealed class AudioSourceListEventArgs : AbstractSourceListEventArgs
+	public sealed class AudioSourceBaseListEventArgs : AbstractSourceBaseListEventArgs
 	{
-		public AudioSourceListEventArgs(List<SourceInfo> sourceList)
+		public AudioSourceBaseListEventArgs(List<SourceBaseInfo> sourceList)
 			: base(SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST, sourceList)
 		{
 		}

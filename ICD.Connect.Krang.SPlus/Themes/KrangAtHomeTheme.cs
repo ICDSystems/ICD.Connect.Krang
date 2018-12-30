@@ -4,7 +4,7 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Krang.SPlus.Rooms;
-using ICD.Connect.Krang.SPlus.Themes.UIs;
+using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel;
 using ICD.Connect.Settings.Core;
 using ICD.Connect.Themes;
 

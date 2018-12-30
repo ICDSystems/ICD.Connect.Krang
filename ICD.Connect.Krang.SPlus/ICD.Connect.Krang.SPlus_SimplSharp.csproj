@@ -64,14 +64,19 @@
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="OriginatorInfo\Devices\AbstractOriginatorInfo.cs" />
     <Compile Include="OriginatorInfo\Devices\RoomInfo.cs" />
+    <Compile Include="OriginatorInfo\Devices\SourceBaseInfo.cs" />
     <Compile Include="OriginatorInfo\Devices\SourceInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rooms\IKrangAtHomeRoom.cs" />
     <Compile Include="Rooms\SimplRoom.cs" />
     <Compile Include="Rooms\SimplRoomSettings.cs" />
-    <Compile Include="Routing\Endpoints\Sources\ISimplSource.cs" />
-    <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />
-    <Compile Include="Routing\Endpoints\Sources\SimplSourceSettings.cs" />
+    <Compile Include="Routing\Endpoints\Destinations\IKrangAtHomeDestination.cs" />
+    <Compile Include="Routing\Endpoints\Destinations\KrangAtHomeDestination.cs" />
+    <Compile Include="Routing\Endpoints\Destinations\KrangAtHomeDestinationSettings.cs" />
+    <Compile Include="Routing\Endpoints\Sources\IKrangAtHomeSource.cs" />
+    <Compile Include="Routing\Endpoints\Sources\IKrangAtHomeSourceBase.cs" />
+    <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSource.cs" />
+    <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSourceSettings.cs" />
     <Compile Include="SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusKrangEventRelay.cs" />
     <Compile Include="SPlusShims\SPlusPanelShim.cs" />
@@ -80,12 +85,12 @@
     <Compile Include="SPlusTouchpanel\Device\IKrangAtHomeSPlusTouchpanelDevice.cs" />
     <Compile Include="SPlusTouchpanel\Device\KrangAtHomeSPlusTouchpanelDevice.cs" />
     <Compile Include="SPlusTouchpanel\Device\KrangAtHomeSPlusTouchpanelDeviceSettings.cs" />
-    <Compile Include="SPlusTouchpanel\EventArgs\AbstractSourceListEventArgs.cs" />
-    <Compile Include="SPlusTouchpanel\EventArgs\AudioSourceListEventArgs.cs" />
+    <Compile Include="SPlusTouchpanel\EventArgs\AbstractSourceBaseListEventArgs.cs" />
+    <Compile Include="SPlusTouchpanel\EventArgs\AudioSourceBaseListEventArgs.cs" />
     <Compile Include="SPlusTouchpanel\EventArgs\RoomListEventArgs.cs" />
     <Compile Include="SPlusTouchpanel\EventArgs\RoomSelectedEventArgs.cs" />
     <Compile Include="SPlusTouchpanel\EventArgs\SourceSelectedEventArgs.cs" />
-    <Compile Include="SPlusTouchpanel\EventArgs\VideoSourceListEventArgs.cs" />
+    <Compile Include="SPlusTouchpanel\EventArgs\VideoSourceBaseListEventArgs.cs" />
     <Compile Include="SPlusTouchpanel\EventArgs\VolumeAvailableControlEventArgs.cs" />
     <Compile Include="SPlusTouchpanel\EventArgs\VolumeLevelFeedbackEventArgs.cs" />
     <Compile Include="SPlusTouchpanel\EventArgs\VolumeMuteFeedbackEventArgs.cs" />
@@ -94,11 +99,14 @@
     <Compile Include="SPlusTouchpanel\Proxy\SPlusTouchpanelDeviceApi.cs" />
     <Compile Include="SPlusTouchpanel\Shim\SPlusTouchpanelShim.cs" />
     <Compile Include="Themes\IKrangAtHomeUserInterface.cs" />
-    <Compile Include="Themes\UIs\KrangAtHomeTouchpanelUi.cs" />
+    <Compile Include="Themes\AbstractKrangAtHomeUserInterfaceFactory.cs" />
+    <Compile Include="Themes\UIs\SPlusTouchpanel\KrangAtHomeTouchpanelUi.cs" />
     <Compile Include="Themes\IKrangAtHomeUserInterfaceFactory.cs" />
     <Compile Include="Themes\KrangAtHomeTheme.cs" />
     <Compile Include="Themes\KrangAtHomeThemeSettings.cs" />
-    <Compile Include="Themes\UIs\KrangAtHomeTouchpanelUiFactory.cs" />
+    <Compile Include="Themes\UIs\SPlusTouchpanel\KrangAtHomeTouchpanelUiFactory.cs" />
+    <Compile Include="VolumePoints\KrangAtHomeVolumePoint.cs" />
+    <Compile Include="VolumePoints\KrangAtHomeVolumePointSettings.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +125,10 @@
     <ProjectReference Include="..\..\ICD.Connect.Devices\ICD.Connect.Devices\ICD.Connect.Devices_SimplSharp.csproj">
       <Project>{FD46A717-5836-4B73-ADD0-2706639DA8ED}</Project>
       <Name>ICD.Connect.Devices_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Displays\ICD.Connect.Displays\ICD.Connect.Displays_SimplSharp.csproj">
+      <Project>{FCC7D685-B801-43A5-AEB3-774442027A0D}</Project>
+      <Name>ICD.Connect.Displays_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Panels\ICD.Connect.Panels\ICD.Connect.Panels_SimplSharp.csproj">
       <Project>{A441FE98-6A8E-4EF3-98F0-D17041D2E118}</Project>

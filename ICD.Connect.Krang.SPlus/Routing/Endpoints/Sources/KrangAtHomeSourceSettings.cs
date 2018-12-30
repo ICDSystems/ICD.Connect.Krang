@@ -6,8 +6,8 @@ using ICD.Connect.Settings.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
-	[KrangSettings("SimplSource", typeof(SimplSource))]
-	public sealed class SimplSourceSettings : AbstractSourceSettings, ISimplOriginatorSettings
+	[KrangSettings("KrangAtHomeSource", typeof(KrangAtHomeSource))]
+	public sealed class KrangAtHomeSourceSettings : AbstractSourceSettings, ISimplOriginatorSettings
 	{
 		private const string CROSSPOINT_ID_ELEMENT = "CrosspointId";
 		private const string CROSSPOINT_TYPE_ELEMENT = "CrosspointType";
@@ -21,7 +21,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 		public ushort CrosspointType { get; set; }
 
 		[PublicAPI]
-		public SimplSource.eSourceVisibility SourceVisibility { get; set; }
+		public KrangAtHomeSource.eSourceVisibility SourceVisibility { get; set; }
 
 		#endregion
 
@@ -49,8 +49,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			CrosspointId = XmlUtils.TryReadChildElementContentAsUShort(xml, CROSSPOINT_ID_ELEMENT) ?? 0;
 			CrosspointType = XmlUtils.TryReadChildElementContentAsUShort(xml, CROSSPOINT_TYPE_ELEMENT) ?? 0;
 			SourceVisibility =
-				XmlUtils.TryReadChildElementContentAsEnum<SimplSource.eSourceVisibility>(xml, SOURCE_VISIBILITY_ELEMENT, true) ??
-				SimplSource.eSourceVisibility.None;
+				XmlUtils.TryReadChildElementContentAsEnum<KrangAtHomeSource.eSourceVisibility>(xml, SOURCE_VISIBILITY_ELEMENT, true) ??
+				KrangAtHomeSource.eSourceVisibility.None;
 		}
 	}
 }

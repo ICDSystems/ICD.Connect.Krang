@@ -15,7 +15,7 @@ using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.SPlus.Themes.UIs
+namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 {
 	public sealed class KrangAtHomeTouchpanelUi : IKrangAtHomeUserInterface
 	{
@@ -42,13 +42,15 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		/// </summary>
 		private BiDictionary<int, IKrangAtHomeRoom> m_RoomListBiDictionary;
 
-		private BiDictionary<int, ISimplSource> m_SourceListAudioBiDictionary;
+		private BiDictionary<int, IKrangAtHomeSourceBase> m_SourceListAudioBiDictionary;
 
-		private BiDictionary<int, ISimplSource> m_SourceListVideoBiDictionary;
+		private BiDictionary<int, IKrangAtHomeSourceBase> m_SourceListVideoBiDictionary;
 
 		#endregion
 
 		#region Properties
+
+		public KrangAtHomeSPlusTouchpanelDevice Panel {get { return m_Panel; }}
 
 		#endregion
 
@@ -58,8 +60,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		public KrangAtHomeTouchpanelUi(KrangAtHomeTheme theme,KrangAtHomeSPlusTouchpanelDevice panel)
 		{
 			m_RoomListBiDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
-			m_SourceListAudioBiDictionary = new BiDictionary<int, ISimplSource>();
-			m_SourceListVideoBiDictionary = new BiDictionary<int, ISimplSource>();
+			m_SourceListAudioBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
+			m_SourceListVideoBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
 
 			m_Panel = panel;
 			m_Theme = theme;
@@ -126,16 +128,16 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			// sourceIndex of -1 is used for "Off" - pass it along w/o lookup
 			if (sourceIndex == INDEX_OFF)
 			{
-				SetSource(null, eSourceTypeRouted.Video);
+				SetSource(null, eSourceTypeRouted.AudioVideo);
 				return;
 			}
 
-			ISimplSource source;
+			IKrangAtHomeSourceBase source;
 
 			if (!m_SourceListVideoBiDictionary.TryGetValue(sourceIndex, out source))
 				return;
 
-			SetSource(source, eSourceTypeRouted.Video);
+			SetSource(source, eSourceTypeRouted.AudioVideo);
 		}
 
 		private void SetAudioSourceIndex(int sourceIndex)
@@ -147,7 +149,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 				return;
 			}
 
-			ISimplSource source;
+			IKrangAtHomeSourceBase source;
 
 			if (!m_SourceListAudioBiDictionary.TryGetValue(sourceIndex, out source))
 				return;
@@ -163,7 +165,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 				return;
 			}
 
-			ISimplSource source = GetSourceId(sourceId);
+			IKrangAtHomeSource source = GetSourceId(sourceId);
 
 			if (source == null)
 				return;
@@ -176,15 +178,21 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="type"></param>
-		private void SetSource(ISimplSource source, eSourceTypeRouted type)
+		private void SetSource(IKrangAtHomeSourceBase source, eSourceTypeRouted type)
 		{
 			if (m_Room == null)
 				return;
 
-			m_Room.SetSource(source, type);
+			if (source == null)
+			{
+				m_Room.SetSource(null, type);
+				return;
+			}
+
+			m_Room.SetSource(source.GetSource(), type);
 		}
 
-		private ISimplSource GetSourceId(int id)
+		private IKrangAtHomeSource GetSourceId(int id)
 		{
 			if (m_Room == null)
 				return null;
@@ -215,7 +223,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 			// Update Volume Control
 			if (m_Room != null)
 			{
-				SetVolumeControl(m_Room.VolumeControl);
+				SetVolumeControl(m_Room.ActiveVolumeControl);
 			}
 
 			RaiseRoomInfo();
@@ -285,28 +293,28 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		private void RaiseSourceList()
 		{
-			BiDictionary<int, ISimplSource> sourceListAudioBiDictionary = new BiDictionary<int, ISimplSource>();
-			BiDictionary<int, ISimplSource> sourceListVideoBiDictionary = new BiDictionary<int, ISimplSource>();
+			BiDictionary<int, IKrangAtHomeSourceBase> sourceListAudioBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
+			BiDictionary<int, IKrangAtHomeSourceBase> sourceListVideoBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
 
 			//ushort[] indexArray = {INDEX_START, INDEX_START};
 			ushort audioListIndexCounter = INDEX_START;
 			ushort videoListIndexCounter = INDEX_START;
 
-			IEnumerable<ISimplSource> sources =
+			IEnumerable<IKrangAtHomeSourceBase> sources =
 				m_Room == null
-					? Enumerable.Empty<ISimplSource>()
-					: m_Room.Originators.GetInstancesRecursive<ISimplSource>();
+					? Enumerable.Empty<IKrangAtHomeSourceBase>()
+					: m_Room.Originators.GetInstancesRecursive<IKrangAtHomeSourceBase>();
 
-			foreach (ISimplSource source in sources)
+			foreach (IKrangAtHomeSourceBase source in sources)
 			{
 
-				if (source.SourceVisibility.HasFlag(SimplSource.eSourceVisibility.Audio))
+				if (source.SourceVisibility.HasFlag(KrangAtHomeSource.eSourceVisibility.Audio))
 				{
 					sourceListAudioBiDictionary.Add(audioListIndexCounter, source);
 					audioListIndexCounter++;
 				}
 
-				if (source.SourceVisibility.HasFlag(SimplSource.eSourceVisibility.Video))
+				if (source.SourceVisibility.HasFlag(KrangAtHomeSource.eSourceVisibility.Video))
 				{
 					sourceListVideoBiDictionary.Add(videoListIndexCounter, source);
 					videoListIndexCounter++;
@@ -334,7 +342,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 				return;
 
 			room.OnActiveSourcesChange += RoomOnActiveSourcesChange;
-			room.OnVolumeControlChanged += RoomOnVolumeControlChanged;
+			room.OnActiveVolumeControlChanged += RoomOnActiveVolumeControlChanged;
 		}
 
 		/// <summary>
@@ -347,7 +355,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 				return;
 
 			room.OnActiveSourcesChange -= RoomOnActiveSourcesChange;
-			room.OnVolumeControlChanged -= RoomOnVolumeControlChanged;
+			room.OnActiveVolumeControlChanged -= RoomOnActiveVolumeControlChanged;
 		}
 
 		/// <summary>
@@ -357,12 +365,12 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 		/// <param name="eventArgs"></param>
 		private void RoomOnActiveSourcesChange(object sender, EventArgs eventArgs)
 		{
-			ISimplSource source = m_Room == null ? null : m_Room.GetSource();
+			IKrangAtHomeSource source = m_Room == null ? null : m_Room.GetSource();
 
 			m_Panel.SetSourceInfo(source, 0, eSourceTypeRouted.Video);
 		}
 
-		private void RoomOnVolumeControlChanged(object sender, GenericEventArgs<IVolumeDeviceControl> args)
+		private void RoomOnActiveVolumeControlChanged(object sender, GenericEventArgs<IVolumeDeviceControl> args)
 		{
 			SetVolumeControl(args.Data);
 		}
@@ -395,7 +403,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		private void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
 		{
-			// Test for VolumeControl being Null
+			// Test for ActiveVolumeControl being Null
 			if (volumeDevice == null)
 			{
 				m_Panel.SetVolumeAvaliableControls(eVolumeLevelAvailableControl.None, eVolumeMuteAvailableControl.None);
@@ -576,7 +584,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		private void PanelOnSetVideoSourceId(object sender, IntEventArgs args)
 		{
-			SetSourceId(args.Data, eSourceTypeRouted.Video);
+			SetSourceId(args.Data, eSourceTypeRouted.AudioVideo);
 		}
 
 		private void PanelOnSetVolumeLevel(object sender, FloatEventArgs args)
@@ -631,21 +639,21 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs
 
 		private static List<RoomInfo> ConvertToRoomInfo(BiDictionary<int, IKrangAtHomeRoom> list)
 		{
-			List<RoomInfo> returnList = new List<RoomInfo>(list.Count);
+			List<RoomInfo> returnList = new List<RoomInfo>();
 			foreach (var kvp in list)
 			{
-				returnList[kvp.Key] = new RoomInfo(kvp.Value);
+				returnList.Insert(kvp.Key,new RoomInfo(kvp.Value));
 			}
 
 			return returnList;
 		}
 
-		private static List<SourceInfo> ConvertToSourceInfo(BiDictionary<int, ISimplSource> list)
+		private static List<SourceBaseInfo> ConvertToSourceInfo(BiDictionary<int, IKrangAtHomeSourceBase> list)
 		{
-			List<SourceInfo> returnList = new List<SourceInfo>(list.Count);
+			List<SourceBaseInfo> returnList = new List<SourceBaseInfo>();
 			foreach (var kvp in list)
 			{
-				returnList[kvp.Key] = new SourceInfo(kvp.Value);
+				returnList.Insert(kvp.Key, new SourceBaseInfo(kvp.Value));
 			}
 
 			return returnList;

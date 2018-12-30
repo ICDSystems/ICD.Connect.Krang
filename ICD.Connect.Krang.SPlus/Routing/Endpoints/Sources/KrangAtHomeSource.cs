@@ -5,7 +5,7 @@ using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
-	public sealed class SimplSource : AbstractSource<SimplSourceSettings>, ISimplSource
+	public sealed class KrangAtHomeSource : AbstractSource<KrangAtHomeSourceSettings>, IKrangAtHomeSource
 	{
 		[Flags]
 		public enum eSourceVisibility
@@ -28,6 +28,15 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 
 		#endregion
 
+		#region Methods
+
+		public IKrangAtHomeSource GetSource()
+		{
+			return this;
+		}
+
+		#endregion
+
 		#region Settings
 
 		/// <summary>
@@ -46,7 +55,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 		/// Override to apply properties to the settings instance.
 		/// </summary>
 		/// <param name="settings"></param>
-		protected override void CopySettingsFinal(SimplSourceSettings settings)
+		protected override void CopySettingsFinal(KrangAtHomeSourceSettings settings)
 		{
 			base.CopySettingsFinal(settings);
 
@@ -60,7 +69,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <param name="factory"></param>
-		protected override void ApplySettingsFinal(SimplSourceSettings settings, IDeviceFactory factory)
+		protected override void ApplySettingsFinal(KrangAtHomeSourceSettings settings, IDeviceFactory factory)
 		{
 			base.ApplySettingsFinal(settings, factory);
 

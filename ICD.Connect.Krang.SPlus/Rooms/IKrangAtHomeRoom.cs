@@ -12,14 +12,14 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 		event EventHandler OnActiveSourcesChange;
 
-		event EventHandler<GenericEventArgs<IVolumeDeviceControl>> OnVolumeControlChanged;
+		event EventHandler<GenericEventArgs<IVolumeDeviceControl>> OnActiveVolumeControlChanged;
 
-		ISimplSource GetSource();
+		IKrangAtHomeSource GetSource();
 
-		void SetSource(ISimplSource source, eSourceTypeRouted routed);
+		void SetSource(IKrangAtHomeSource source, eSourceTypeRouted routed);
 
-		ISimplSource GetSourceId(int id);
+		IKrangAtHomeSource GetSourceId(int id);
 
-		IVolumeDeviceControl VolumeControl { get; }
+		IVolumeDeviceControl ActiveVolumeControl { get; }
 	}
 }

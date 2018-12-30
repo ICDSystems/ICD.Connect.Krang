@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
@@ -26,8 +27,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 	public delegate void RoomListCallback(ushort index, int roomId, ICDPlatformString roomName);
 
 	public delegate void SourceListCallback(
-		ushort index, int sourceId, ICDPlatformString sourceName, ushort crosspointId,
-		ushort crosspointType);
+		ushort index, int sourceId, ICDPlatformString sourceName);
 
 	public delegate void VolumeFeedbackCallback(ushort data);
 
@@ -211,8 +211,8 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		private void SetSPlusRoomInfo(RoomInfo roomInfo, int index)
 		{
 			var callback = UpdateRoomInfo;
-			if (callback != null)
-				callback(roomInfo.Id, roomInfo.Name, (ushort)(index + INDEX_OFFSET_SPLUS));
+			if (callback != null && roomInfo != null)
+				callback(roomInfo.Id, SPlusSafeString(roomInfo.Name), (ushort)(index + INDEX_OFFSET_SPLUS));
 		}
 
 		/// <summary>
@@ -225,7 +225,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 			if (listCallback != null)
 				for (int i = 0; i < roomList.Count; i++)
 				{
-					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), roomList[i].Id, roomList[i].Name);
+					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), roomList[i].Id, SPlusSafeString(roomList[i].Name));
 				}
 
 			ListSizeCallback countCallback = UpdateRoomListCount;
@@ -243,21 +243,20 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		{
 			SourceInfoCallback callback = UpdateSourceInfo;
 			if (callback != null)
-				callback(sourceInfo.Id, sourceInfo.Name, sourceInfo.CrosspointId, sourceInfo.CrosspointType, sourceList, (ushort)(sourceIndex + INDEX_OFFSET_SPLUS));
+				callback(sourceInfo.Id, SPlusSafeString(sourceInfo.Name), sourceInfo.CrosspointId, sourceInfo.CrosspointType, sourceList, (ushort)(sourceIndex + INDEX_OFFSET_SPLUS));
 		}
 
 		/// <summary>
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusAudioSourceList(IList<SourceInfo> sourceList)
+		private void SetSPlusAudioSourceList(IList<SourceBaseInfo> sourceList)
 		{
 			SourceListCallback listCallback = UpdateAudioSourceListItem;
 			if (listCallback != null)
 				for(int i = 0; i < sourceList.Count; i++)
 				{
-					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, sourceList[i].Name, sourceList[i].CrosspointId,
-								 sourceList[i].CrosspointType);
+					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, SPlusSafeString(sourceList[i].Name));
 				}
 
 			ListSizeCallback countCallback = UpdateAudioSourceListCount;
@@ -269,14 +268,13 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusVideoSourceList(IList<SourceInfo> sourceList)
+		private void SetSPlusVideoSourceList(IList<SourceBaseInfo> sourceList)
 		{
 			SourceListCallback listCallback = UpdateAudioSourceListItem;
 			if (listCallback != null)
 				for(int i = 0; i < sourceList.Count; i++)
 				{
-					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, sourceList[i].Name, sourceList[i].CrosspointId,
-								 sourceList[i].CrosspointType);
+					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, SPlusSafeString(sourceList[i].Name));
 				}
 
 			ListSizeCallback countCallback = UpdateAudioSourceListCount;
@@ -366,22 +364,22 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 
 		private void OriginatorOnRoomSelectedUpdate(object sender, RoomSelectedEventArgs args)
 		{
-			SetSPlusRoomInfo(args.RoomInfo, (ushort)(args.Index + INDEX_OFFSET_SPLUS));
+			SetSPlusRoomInfo(args.RoomInfo, (ushort)args.Index);
 		}
 
-		private void OriginatorOnVideoSourceListUpdate(object sender, VideoSourceListEventArgs args)
+		private void OriginatorOnVideoSourceListUpdate(object sender, VideoSourceBaseListEventArgs args)
 		{
 			SetSPlusVideoSourceList(args.Data);
 		}
 
-		private void OriginatorOnAudioSourceListUpdate(object sender, AudioSourceListEventArgs args)
+		private void OriginatorOnAudioSourceListUpdate(object sender, AudioSourceBaseListEventArgs args)
 		{
 			SetSPlusAudioSourceList(args.Data);
 		}
 
 		private void OriginatorOnSourceSelectedUpdate(object sender, SourceSelectedEventArgs args)
 		{
-			SetSPlusSourceInfo(args.SourceInfo, (ushort)args.SourceTypeRouted, (ushort)(args.Index + INDEX_OFFSET_SPLUS));
+			SetSPlusSourceInfo(args.SourceInfo, (ushort)args.SourceTypeRouted, (ushort)args.Index);
 		}
 
 		private void OriginatorOnVolumeLevelFeedbackUpdate(object sender, VolumeLevelFeedbackEventArgs args)

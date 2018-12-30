@@ -42,9 +42,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 
 		public event EventHandler<RoomSelectedEventArgs> OnRoomSelectedUpdate;
 
-		public event EventHandler<AudioSourceListEventArgs> OnAudioSourceListUpdate;
+		public event EventHandler<AudioSourceBaseListEventArgs> OnAudioSourceListUpdate;
 
-		public event EventHandler<VideoSourceListEventArgs> OnVideoSourceListUpdate;
+		public event EventHandler<VideoSourceBaseListEventArgs> OnVideoSourceListUpdate;
 
 		public event EventHandler<SourceSelectedEventArgs> OnSourceSelectedUpdate;
 
@@ -182,7 +182,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		/// <param name="source"></param>
 		/// <param name="sourceIndex"></param>
 		/// <param name="sourceTypeRouted"></param>
-		internal void SetSourceInfo(ISimplSource source, ushort sourceIndex, eSourceTypeRouted sourceTypeRouted)
+		internal void SetSourceInfo(IKrangAtHomeSource source, ushort sourceIndex, eSourceTypeRouted sourceTypeRouted)
 		{
 			OnSourceSelectedUpdate.Raise(this, new SourceSelectedEventArgs(source, sourceIndex, sourceTypeRouted));
 		}
@@ -191,18 +191,18 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		/// Updates the audio source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetAudioSourceList(List<SourceInfo> sourceList)
+		internal void SetAudioSourceList(List<SourceBaseInfo> sourceList)
 		{
-			OnAudioSourceListUpdate.Raise(this, new AudioSourceListEventArgs(sourceList));
+			OnAudioSourceListUpdate.Raise(this, new AudioSourceBaseListEventArgs(sourceList));
 		}
 
 		/// <summary>
 		/// Updates the video source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetVideoSourceList(List<SourceInfo> sourceList)
+		internal void SetVideoSourceList(List<SourceBaseInfo> sourceList)
 		{
-			OnVideoSourceListUpdate.Raise(this, new VideoSourceListEventArgs(sourceList));
+			OnVideoSourceListUpdate.Raise(this, new VideoSourceBaseListEventArgs(sourceList));
 		}
 
 		internal void SetVolumeLevelFeedback(float volume)

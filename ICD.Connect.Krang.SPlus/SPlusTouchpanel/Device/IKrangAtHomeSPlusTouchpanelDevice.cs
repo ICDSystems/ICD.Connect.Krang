@@ -17,10 +17,10 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		event EventHandler<RoomSelectedEventArgs> OnRoomSelectedUpdate;
 
 		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST, SPlusTouchpanelDeviceApi.HELP_AUDIO_SOURCE_LIST_EVENT)]
-		event EventHandler<AudioSourceListEventArgs> OnAudioSourceListUpdate;
+		event EventHandler<AudioSourceBaseListEventArgs> OnAudioSourceListUpdate;
 
 		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST, SPlusTouchpanelDeviceApi.HELP_VIDEO_SOURCE_LIST_EVENT)]
-		event EventHandler<VideoSourceListEventArgs> OnVideoSourceListUpdate;
+		event EventHandler<VideoSourceBaseListEventArgs> OnVideoSourceListUpdate;
 
 		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, SPlusTouchpanelDeviceApi.HELP_SOURCE_INFO_EVENT)]
 		event EventHandler<SourceSelectedEventArgs> OnSourceSelectedUpdate;

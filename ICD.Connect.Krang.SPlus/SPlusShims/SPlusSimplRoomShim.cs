@@ -15,9 +15,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 	[PublicAPI("S+")]
 	public sealed class SPlusSimplRoomShim : AbstractSPlusOriginatorShim<SimplRoom>
 	{
-		public delegate void RoomInfoCallback(ushort id, ICDPlatformString name);
+		public delegate void RoomInfoCallback(int id, ICDPlatformString name);
 
-		public delegate void SourceInfoCallback(ushort id, ICDPlatformString name, ushort crosspointId, ushort crosspointType);
+		public delegate void SourceInfoCallback(int id, ICDPlatformString name, ushort sourceType, ushort crosspointId, ushort crosspointType);
 
 		#region Properties
 
@@ -41,7 +41,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 		public void SetVideoSourceId(int sourceId)
 		{
 			if (Originator != null)
-				Originator.SetSourceId(sourceId, eSourceTypeRouted.Video);
+				Originator.SetSourceId(sourceId, eSourceTypeRouted.AudioVideo);
 		}
 
 		[PublicAPI("S+")]
@@ -86,16 +86,17 @@ namespace ICD.Connect.Krang.SPlus.SPlusShims
 			if (handler == null)
 				return;
 
-			ISimplSource source = Originator == null ? null : Originator.GetSource();
+			IKrangAtHomeSource source = Originator == null ? null : Originator.GetSource();
 
-			ushort id = source == null ? (ushort)0 : (ushort)source.Id;
+			int id = source == null ? 0 : source.Id;
 			string name = source == null
 							  ? string.Empty
 							  : source.GetNameOrDeviceName();
+			ushort sourceType = (ushort)(source != null ? Originator.SourceType : 0);
 			ushort crosspointId = source != null ? source.CrosspointId : (ushort)0;
 			ushort crosspointType = source != null ? source.CrosspointType : (ushort)0;
 
-			handler(id, name, crosspointId, crosspointType);
+			handler(id, name, sourceType,crosspointId, crosspointType);
 		}
 
 		/// <summary>

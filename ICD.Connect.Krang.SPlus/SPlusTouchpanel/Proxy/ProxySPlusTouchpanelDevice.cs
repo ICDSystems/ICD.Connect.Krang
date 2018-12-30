@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
-using ICD.Connect.Devices.Proxies.Devices;
+using ICD.Connect.Devices.Simpl;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs;
 
 namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 {
-	public sealed class ProxySPlusTouchpanelDevice : AbstractProxyDevice, IProxySPlusTouchpanelDevice
+	public sealed class ProxySPlusTouchpanelDevice : AbstractSimplProxyDevice, IProxySPlusTouchpanelDevice
 	{
 		#region Events
 		public event EventHandler<RoomListEventArgs> OnRoomListUpdate;
 		public event EventHandler<RoomSelectedEventArgs> OnRoomSelectedUpdate;
-		public event EventHandler<AudioSourceListEventArgs> OnAudioSourceListUpdate;
-		public event EventHandler<VideoSourceListEventArgs> OnVideoSourceListUpdate;
+		public event EventHandler<AudioSourceBaseListEventArgs> OnAudioSourceListUpdate;
+		public event EventHandler<VideoSourceBaseListEventArgs> OnVideoSourceListUpdate;
 		public event EventHandler<SourceSelectedEventArgs> OnSourceSelectedUpdate;
 		public event EventHandler<VolumeLevelFeedbackEventArgs> OnVolumeLevelFeedbackUpdate;
 		public event EventHandler<VolumeMuteFeedbackEventArgs> OnVolumeMuteFeedbackUpdate;
@@ -101,14 +101,14 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 			OnRoomSelectedUpdate.Raise(this, new RoomSelectedEventArgs(roomSelected));
 		}
 
-		private void RaiseAudioSourceListUpdate(List<SourceInfo> sourceList)
+		private void RaiseAudioSourceListUpdate(List<SourceBaseInfo> sourceList)
 		{
-			OnAudioSourceListUpdate.Raise(this, new AudioSourceListEventArgs(sourceList));
+			OnAudioSourceListUpdate.Raise(this, new AudioSourceBaseListEventArgs(sourceList));
 		}
 
-		private void RaiseVideoSourceListUpdate(List<SourceInfo> sourceList)
+		private void RaiseVideoSourceListUpdate(List<SourceBaseInfo> sourceList)
 		{
-			OnVideoSourceListUpdate.Raise(this, new VideoSourceListEventArgs(sourceList));
+			OnVideoSourceListUpdate.Raise(this, new VideoSourceBaseListEventArgs(sourceList));
 		}
 
 		private void RaiseSourceSelectedUpdate(SourceSelected sourceSelected)
@@ -176,10 +176,10 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 					RaiseRoomSelectedUpdate(result.GetValue<RoomSelected>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST:
-					RaiseAudioSourceListUpdate(result.GetValue<List<SourceInfo>>());
+					RaiseAudioSourceListUpdate(result.GetValue<List<SourceBaseInfo>>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST:
-					RaiseVideoSourceListUpdate(result.GetValue<List<SourceInfo>>());
+					RaiseVideoSourceListUpdate(result.GetValue<List<SourceBaseInfo>>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED:
 					RaiseSourceSelectedUpdate(result.GetValue<SourceSelected>());
@@ -197,10 +197,5 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 		}
 
 		#endregion
-
-		/// <summary>
-		/// Gets/sets the device online status.
-		/// </summary>
-		public new bool IsOnline { get; set; }
 	}
 }
