@@ -144,7 +144,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.WriteElements(writer);
 
-			new ConfigurationHeader(true).ToXml(writer);
+			new ConfigurationHeader(true).ToXml(writer, HEADER_ELEMENT);
 
 			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
 
@@ -172,7 +172,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			base.ParseXml(xml);
 
-			UpdateHeaderFromXml(xml);
+			UpdateHeaderFromXml(m_Header, xml);
 			UpdateBroadcastSettingsFromXml(xml);
 
 			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
@@ -198,6 +198,18 @@ namespace ICD.Connect.Krang.Core
 
 			XmlUtils.TryGetChildElementAsString(xml, PARTITIONING_ELEMENT, out child);
 			UpdatePartitioningFromXml(child);
+		}
+
+		/// <summary>
+		/// Parses and returns only the header portion from the full XML config.
+		/// </summary>
+		/// <param name="configXml"></param>
+		/// <returns></returns>
+		public override ConfigurationHeader GetHeader(string configXml)
+		{
+			ConfigurationHeader header = new ConfigurationHeader(false);
+			UpdateHeaderFromXml(header, configXml);
+			return header;
 		}
 
 		#region Protected Methods
@@ -248,13 +260,13 @@ namespace ICD.Connect.Krang.Core
 			}
 		}
 
-		private void UpdateHeaderFromXml(string xml)
+		private void UpdateHeaderFromXml(ConfigurationHeader header, string xml)
 		{
-			m_Header.Clear();
+			header.Clear();
 
 			string child;
 			if (XmlUtils.TryGetChildElementAsString(xml, HEADER_ELEMENT, out child))
-				m_Header.ParseXml(child);
+				header.ParseXml(child);
 		}
 
 		private void UpdateBroadcastSettingsFromXml(string xml)

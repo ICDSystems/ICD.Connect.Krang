@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [11.1.0] - 2019-01-02
+### Added
+ - Added command line argument for setting program number on Net Standard
+ - Added features for getting the header from a core configuration
+
 ## [11.0.1] - 2018-11-20
 ### Changed
  - Fixed bug where USER migration would create redundant CommonConfig directory
