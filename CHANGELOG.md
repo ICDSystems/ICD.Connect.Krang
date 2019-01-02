@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Added
  - Added command line argument for setting program number on Net Standard
+ - Added features for getting the header from a core configuration
 
 ## [11.0.1] - 2018-11-20
 ### Changed
