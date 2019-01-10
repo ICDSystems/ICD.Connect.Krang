@@ -1,6 +1,6 @@
 ﻿using System;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Header;
 
 namespace ICD.Connect.Krang.Remote

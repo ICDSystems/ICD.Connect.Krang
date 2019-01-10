@@ -14,7 +14,7 @@ using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Themes;
 

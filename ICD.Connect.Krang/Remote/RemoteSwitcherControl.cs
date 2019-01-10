@@ -13,7 +13,7 @@ using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Routing.Utils;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote
 {
