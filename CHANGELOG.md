@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [12.0.0] - 2019-01-10
+### Changed
+ - Core namespace renamed
+
 ## [11.1.0] - 2019-01-02
 ### Added
  - Added command line argument for setting program number on Net Standard
