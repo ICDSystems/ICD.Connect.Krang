@@ -10,7 +10,7 @@ using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.PathFinding;
 using ICD.Connect.Routing.RoutingGraphs;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 {

@@ -12,8 +12,7 @@ using ICD.Connect.API.Proxies;
 using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Settings;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Proxies;
 
 namespace ICD.Connect.Krang.Remote

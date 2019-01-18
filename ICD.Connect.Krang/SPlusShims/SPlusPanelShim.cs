@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using ICD.Common.Properties;
 using ICD.Connect.Panels.Devices;
 using ICD.Connect.Panels.EventArguments;
 using ICD.Connect.Protocol.Sigs;
-using ICD.Connect.Settings;
+﻿using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlusShims
 {
