@@ -12,9 +12,10 @@ using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Audio.EventArguments;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
+using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
-using ICD.Connect.Settings;
+using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 {

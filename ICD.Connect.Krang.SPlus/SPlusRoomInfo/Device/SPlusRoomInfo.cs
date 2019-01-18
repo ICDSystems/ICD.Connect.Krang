@@ -3,8 +3,8 @@ using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
-using ICD.Connect.Settings.Core;
-using ICD.Connect.Settings.Simpl;
+using ICD.Connect.Settings;
+using ICD.Connect.Settings.Originators.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.SPlusRoomInfo.Device
 {

@@ -5,8 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [12.0.0] - 2019-01-10
+### Changed
+ - Core namespace renamed
+
+## [11.1.0] - 2019-01-02
 ### Added
  - Added command line argument for setting program number on Net Standard
+ - Added features for getting the header from a core configuration
 
 ### Changed
  - Proxies are no longer instantiated on discovery and must be pre-configured

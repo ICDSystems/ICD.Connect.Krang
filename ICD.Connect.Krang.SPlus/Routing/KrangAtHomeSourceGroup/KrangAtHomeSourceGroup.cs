@@ -1,9 +1,9 @@
 ﻿using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
-using ICD.Connect.Settings;
+using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 {
-	public class KrangAtHomeSourceGroup : AbstractOriginator<KrangAtHomeSourceGroupSettings>, IKrangAtHomeSourceBase
+	public sealed class KrangAtHomeSourceGroup : AbstractOriginator<KrangAtHomeSourceGroupSettings>, IKrangAtHomeSourceBase
 	{
 		public IKrangAtHomeSource GetSource()
 		{

@@ -1,4 +1,4 @@
-﻿using ICD.Connect.Settings.Simpl;
+﻿using ICD.Connect.Settings.Originators.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.SPlusRoomInfo.Device
 {

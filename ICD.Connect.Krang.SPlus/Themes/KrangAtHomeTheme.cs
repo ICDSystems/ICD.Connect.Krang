@@ -5,7 +5,8 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings;
+using ICD.Connect.Settings.Cores;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.SPlus.Themes

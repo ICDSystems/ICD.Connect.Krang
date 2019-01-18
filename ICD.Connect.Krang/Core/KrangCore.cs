@@ -17,7 +17,8 @@ using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
+using ICD.Connect.Settings.Originators;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core

@@ -16,7 +16,6 @@ using ICD.Connect.Krang.SPlus.Routing.Endpoints.Destinations;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.VolumePoints;
 using ICD.Connect.Partitioning.Rooms;
-using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.Endpoints;
@@ -24,8 +23,8 @@ using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.PathFinding;
 using ICD.Connect.Routing.RoutingGraphs;
-using ICD.Connect.Settings.Core;
-using ICD.Connect.Settings.Simpl;
+using ICD.Connect.Settings.Originators.Simpl;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.SPlus.Rooms
 {

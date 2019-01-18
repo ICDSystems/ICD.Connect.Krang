@@ -84,27 +84,18 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		public void Start()
 		{
-#if SIMPLSHARP
-			// Check for cpz files that are unextracted, indicating a problem
-			if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
-			{
-				m_Logger.AddEntry(eSeverity.Warning,
-				                  "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY." +
-								  " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
-			}
-#endif
+			ValidateProgram();
 
 			MigrateNvram();
 
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
+			if (!ValidateLicense())
+				return;
+
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
 			try
 			{
-#if LICENSING
-				m_LicenseManager.LoadLicense(FileOperations.LicensePath);
-				if (m_LicenseManager.IsValid())
-#endif
 				m_Core.LoadSettings();
 			}
 			catch (Exception e)
@@ -184,6 +175,36 @@ namespace ICD.Connect.Krang.Core
 
 			m_ActionSchedulerService = new ActionSchedulerService();
 			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
+		}
+
+		/// <summary>
+		/// Simple check and log that determines if there is a CPZ in the program directory.
+		/// </summary>
+		private void ValidateProgram()
+		{
+#if SIMPLSHARP
+			// Check for cpz files that are unextracted, indicating a problem
+			if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
+			{
+				m_Logger.AddEntry(eSeverity.Warning,
+				                  "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY." +
+				                  " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
+			}
+#endif
+		}
+
+		/// <summary>
+		/// Returns true if we loaded a valid license file.
+		/// </summary>
+		/// <returns></returns>
+		private bool ValidateLicense()
+		{
+#if LICENSING
+			m_LicenseManager.LoadLicense(FileOperations.LicensePath);
+			return m_LicenseManager.IsValid();
+#else
+			return true;
+#endif
 		}
 
 		#endregion

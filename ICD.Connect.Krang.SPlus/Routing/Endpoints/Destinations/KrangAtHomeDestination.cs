@@ -1,5 +1,5 @@
 ﻿using ICD.Connect.Routing.Endpoints.Destinations;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Destinations
 {

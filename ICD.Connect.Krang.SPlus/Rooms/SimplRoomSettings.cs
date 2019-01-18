@@ -6,7 +6,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Attributes;
-using ICD.Connect.Settings.Simpl;
+using ICD.Connect.Settings.Originators.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.Rooms
 {

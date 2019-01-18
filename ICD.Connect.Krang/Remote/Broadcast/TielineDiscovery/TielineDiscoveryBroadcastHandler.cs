@@ -13,7 +13,7 @@ using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
 using ICD.Connect.Routing.Mock.Source;
 using ICD.Connect.Routing.RoutingGraphs;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 {

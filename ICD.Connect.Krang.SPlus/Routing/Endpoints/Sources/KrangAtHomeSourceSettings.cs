@@ -2,7 +2,7 @@
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Attributes;
-using ICD.Connect.Settings.Simpl;
+using ICD.Connect.Settings.Originators.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {

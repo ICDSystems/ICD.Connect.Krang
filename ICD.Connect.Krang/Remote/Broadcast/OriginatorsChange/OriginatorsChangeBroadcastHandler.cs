@@ -4,7 +4,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Protocol.Ports;
-using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 {

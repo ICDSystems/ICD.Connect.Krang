@@ -1,8 +1,8 @@
 ﻿using System;
 using ICD.Common.Properties;
 using ICD.Connect.Routing.Endpoints.Sources;
-using ICD.Connect.Settings.Core;
-using ICD.Connect.Settings.Simpl;
+using ICD.Connect.Settings.Originators.Simpl;
+using ICD.Connect.Settings;
 
 namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
