@@ -8,15 +8,17 @@ using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
-using ICD.Connect.Audio.Controls;
-using ICD.Connect.Audio.VolumePoints;
+using ICD.Connect.Audio.Controls.Volume;
+using ICD.Connect.Devices;
+using ICD.Connect.Devices.Controls;
 using ICD.Connect.Devices.Extensions;
-using ICD.Connect.Displays.Devices;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Destinations;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.VolumePoints;
 using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
+using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
@@ -30,8 +32,9 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 	[Flags]
 	public enum eSourceTypeRouted
 	{
-		Video,
-		Audio,
+		None = 0,
+		Video = 1,
+		Audio = 2,
 		AudioVideo = Audio | Video
 	}
 
@@ -45,6 +48,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 	public sealed class SimplRoom : AbstractRoom<SimplRoomSettings>, IKrangAtHomeRoom, ISimplOriginator
 	{
 		#region Events
+
+		public event EventHandler<RequestShimResyncEventArgs> OnRequestShimResync; 
 
 		public event EventHandler OnActiveSourcesChange;
 
@@ -283,10 +288,11 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			//Todo: handle lack of path approprately
 
-			// Power On + Input Switch Displays
+			// Power On + Input Switch Destinations
 			foreach (ConnectionPath path in paths)
 			{
 				PowerOnDestinationDevice(path.DestinationEndpoint);
+				SetActiveInputDestinationDevice(path.DestinationEndpoint, eConnectionType.Audio | eConnectionType.Video);
 			}
 
 			Log(eSeverity.Informational, "Routing {0}", source);
@@ -314,6 +320,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			Log(eSeverity.Informational, "Unrouting {0}", destination);
 
 			GetActiveSources(destination).ForEach(s => Unroute(s, destination));
+
+			PowerOffDestinationDevice(destination.Device);
 		}
 
 		private void Unroute(IDestination destination, eConnectionType connections)
@@ -356,12 +364,43 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 		private void PowerOnDestinationDevice(EndpointInfo destination)
 		{
-			IDisplay display = Core.Originators.GetChild(destination.Device) as IDisplay;
-			if (display == null)
+			IDeviceBase originator = Core.Originators.GetChild(destination.Device) as IDeviceBase;
+			if (originator == null)
 				return;
 
-			display.PowerOn();
-			display.SetActiveInput(destination.Address);
+			IPowerDeviceControl powerControl = originator.Controls.GetControl<IPowerDeviceControl>();
+
+			if (powerControl != null)
+				powerControl.PowerOn();
+		}
+
+		private void PowerOffDestinationDevice(int destinationId)
+		{
+			IDeviceBase originator = Core.Originators.GetChild(destinationId) as IDeviceBase;
+			if (originator == null)
+				return;
+
+			PowerOffDestinationDevice(originator);
+		}
+
+		private void PowerOffDestinationDevice(IDeviceBase destinationDevice)
+		{
+			IPowerDeviceControl powerControl = destinationDevice.Controls.GetControl<IPowerDeviceControl>();
+
+			if (powerControl != null)
+				powerControl.PowerOff();
+		}
+
+		private void SetActiveInputDestinationDevice(EndpointInfo destination, eConnectionType connectionType)
+		{
+			IDeviceBase originator = Core.Originators.GetChild(destination.Device) as IDeviceBase;
+			if (originator == null)
+				return;
+
+			IRouteInputSelectControl routeControl = originator.Controls.GetControl<IRouteInputSelectControl>();
+
+			if (routeControl != null)
+				routeControl.SetActiveInput(destination.Address, connectionType);
 		}
 
 		#endregion

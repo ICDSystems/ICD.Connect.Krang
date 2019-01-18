@@ -1,7 +1,6 @@
 ﻿using System;
 using ICD.Common.Utils.EventArguments;
-using ICD.Connect.Audio.Controls;
-using ICD.Connect.Audio.VolumePoints;
+using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Partitioning.Rooms;
 

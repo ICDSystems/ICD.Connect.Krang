@@ -2,6 +2,7 @@
 using ICD.Common.Properties;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Core;
+using ICD.Connect.Settings.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
@@ -14,6 +15,12 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			Audio = 1,
 			Video = 2,
 		}
+
+		#region Events
+
+		public event EventHandler<RequestShimResyncEventArgs> OnRequestShimResync;
+
+		#endregion
 
 		#region Properties
 

@@ -11,5 +11,9 @@ namespace ICD.Connect.Krang.SPlus.OriginatorInfo.Devices
 			: base(source)
 		{
 		}
+
+		public SourceBaseInfo()
+		{
+		}
 	}
 }

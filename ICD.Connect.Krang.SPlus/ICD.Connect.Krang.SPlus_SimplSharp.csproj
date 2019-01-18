@@ -74,12 +74,24 @@
     <Compile Include="Routing\Endpoints\Destinations\KrangAtHomeDestination.cs" />
     <Compile Include="Routing\Endpoints\Destinations\KrangAtHomeDestinationSettings.cs" />
     <Compile Include="Routing\Endpoints\Sources\IKrangAtHomeSource.cs" />
-    <Compile Include="Routing\Endpoints\Sources\IKrangAtHomeSourceBase.cs" />
+    <Compile Include="Routing\IKrangAtHomeSourceBase.cs" />
     <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSource.cs" />
+    <Compile Include="Routing\KrangAtHomeSourceGroup\IKrangAtHomeSourceGroup.cs" />
+    <Compile Include="Routing\KrangAtHomeRouting.cs" />
+    <Compile Include="Routing\KrangAtHomeRoutingCache.cs" />
+    <Compile Include="Routing\KrangAtHomeSourceGroup\KrangAtHomeSourceGroupManager.cs" />
+    <Compile Include="Routing\KrangAtHomeSourceGroup\KrangAtHomeSourceGroup.cs" />
     <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSourceSettings.cs" />
+    <Compile Include="Routing\KrangAtHomeSourceGroup\KrangAtHomeSourceGroupSettings.cs" />
+    <Compile Include="Routing\KrangAtHomeSourceGroup\SourceInUseUpdatedEventArgs.cs" />
+    <Compile Include="Routing\KrangAtHomeSourceGroup\SourceRoomsUsedUpdatedEventArgs.cs" />
+    <Compile Include="Routing\SourceInUseUpdatedEventArgs.cs" />
+    <Compile Include="Routing\SourceRoomsUsedUpdatedEventArgs.cs" />
     <Compile Include="SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusKrangEventRelay.cs" />
-    <Compile Include="SPlusShims\SPlusPanelShim.cs" />
+    <Compile Include="SPlusRoomInfo\Device\ISPlusRoomInfo.cs" />
+    <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfo.cs" />
+    <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfoSettings.cs" />
     <Compile Include="SPlusShims\SPlusSimplRoomShim.cs" />
     <Compile Include="SPlusShims\SPlusSimplSourceShim.cs" />
     <Compile Include="SPlusTouchpanel\Device\IKrangAtHomeSPlusTouchpanelDevice.cs" />
@@ -96,10 +108,12 @@
     <Compile Include="SPlusTouchpanel\EventArgs\VolumeMuteFeedbackEventArgs.cs" />
     <Compile Include="SPlusTouchpanel\Proxy\IProxySPlusTouchpanelDevice.cs" />
     <Compile Include="SPlusTouchpanel\Proxy\ProxySPlusTouchpanelDevice.cs" />
+    <Compile Include="SPlusTouchpanel\Proxy\ProxySPlusTouchpanelDeviceSettings.cs" />
     <Compile Include="SPlusTouchpanel\Proxy\SPlusTouchpanelDeviceApi.cs" />
     <Compile Include="SPlusTouchpanel\Shim\SPlusTouchpanelShim.cs" />
     <Compile Include="Themes\IKrangAtHomeUserInterface.cs" />
     <Compile Include="Themes\AbstractKrangAtHomeUserInterfaceFactory.cs" />
+    <Compile Include="Themes\KrangAtHomeRouting.cs" />
     <Compile Include="Themes\UIs\SPlusTouchpanel\KrangAtHomeTouchpanelUi.cs" />
     <Compile Include="Themes\IKrangAtHomeUserInterfaceFactory.cs" />
     <Compile Include="Themes\KrangAtHomeTheme.cs" />
@@ -158,6 +172,11 @@
       <Project>{CC672DB0-ED3A-4579-809F-4261B345BA1D}</Project>
       <Name>ICD.Connect.Krang_SimplSharp</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SPlusRoomInfo\EventArgs\" />
+    <Folder Include="SPlusRoomInfo\Proxy\" />
+    <Folder Include="SPlusRoomInfo\Shim\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <PropertyGroup>

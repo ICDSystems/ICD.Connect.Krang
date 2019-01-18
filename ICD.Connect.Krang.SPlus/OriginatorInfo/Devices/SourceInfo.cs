@@ -18,5 +18,9 @@ namespace ICD.Connect.Krang.SPlus.OriginatorInfo.Devices
 			CrosspointId = source.CrosspointId;
 			CrosspointType = source.CrosspointType;
 		}
+
+		public SourceInfo()
+		{
+		}
 	}
 }

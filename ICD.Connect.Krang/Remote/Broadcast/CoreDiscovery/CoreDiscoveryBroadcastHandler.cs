@@ -9,6 +9,7 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Timers;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
+using ICD.Connect.Protocol.Network.Utils;
 using ICD.Connect.Settings.Core;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
@@ -163,7 +164,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			base.BroadcasterOnBroadcastReceived(sender, e);
 
 			// Ignore local broadcasts
-			if (e.Data.Source.IsLocalHost)
+			if (e.Data.Source.IsLocalHost  && e.Data.Source.Port == NetworkUtils.GetBroadcastPortForSystem(BroadcastManager.SystemId))
 				return;
 
 			CoreDiscoveryInfo info = new CoreDiscoveryInfo(e.Data);

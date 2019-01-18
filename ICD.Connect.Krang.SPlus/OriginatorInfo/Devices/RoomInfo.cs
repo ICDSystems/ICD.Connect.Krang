@@ -16,5 +16,10 @@ namespace ICD.Connect.Krang.SPlus.OriginatorInfo.Devices
 		{
 			
 		}
+
+		public RoomInfo()
+		{
+			
+		}
 	}
 }

@@ -9,7 +9,7 @@ using ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs;
 
 namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 {
-	public sealed class ProxySPlusTouchpanelDevice : AbstractSimplProxyDevice, IProxySPlusTouchpanelDevice
+	public sealed class ProxySPlusTouchpanelDevice : AbstractSimplProxyDevice<ProxySPlusTouchpanelDeviceSettings>, IProxySPlusTouchpanelDevice
 	{
 		#region Events
 		public event EventHandler<RoomListEventArgs> OnRoomListUpdate;
@@ -30,7 +30,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 
 		public void SetRoomIndex(int index)
 		{
-			CallMethod(SPlusTouchpanelDeviceApi.HELP_METHOD_SET_ROOM_INDEX, index);
+			CallMethod(SPlusTouchpanelDeviceApi.METHOD_SET_ROOM_INDEX, index);
 		}
 
 		public void SetRoomId(int id)
@@ -152,10 +152,10 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Proxy
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_LEVEL_FEEDBACK)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_MUTE_FEEDBACK)
-							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_MUTE_FEEDBACK)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_AVAILABLE_CONTROL)
 							 .CallMethod(SPlusTouchpanelDeviceApi.METHOD_REQUEST_REFRESH)
 							 .Complete();
+			RaiseOnRequestShimResync(this);
 		}
 
 		/// <summary>

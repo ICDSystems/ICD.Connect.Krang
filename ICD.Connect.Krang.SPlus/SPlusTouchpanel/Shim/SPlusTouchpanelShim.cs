@@ -108,7 +108,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		{
 			if (Originator == null)
 				return;
-			Originator.SetAudioSourceIndex((ushort)(index - INDEX_OFFSET_SPLUS));
+			Originator.SetAudioSourceIndex(index - INDEX_OFFSET_SPLUS);
 		}
 
 		[PublicAPI("S+")]
@@ -124,7 +124,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		{
 			if (Originator == null)
 				return;
-			Originator.SetVideoSourceIndex((ushort)(index - INDEX_OFFSET_SPLUS));
+			Originator.SetVideoSourceIndex(index - INDEX_OFFSET_SPLUS);
 		}
 
 		[PublicAPI("S+")]
@@ -270,14 +270,14 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		/// <param name="sourceList"></param>
 		private void SetSPlusVideoSourceList(IList<SourceBaseInfo> sourceList)
 		{
-			SourceListCallback listCallback = UpdateAudioSourceListItem;
+			SourceListCallback listCallback = UpdateVideoSourceListItem;
 			if (listCallback != null)
 				for(int i = 0; i < sourceList.Count; i++)
 				{
 					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, SPlusSafeString(sourceList[i].Name));
 				}
 
-			ListSizeCallback countCallback = UpdateAudioSourceListCount;
+			ListSizeCallback countCallback = UpdateVideoSourceListCount;
 			if (countCallback != null)
 				countCallback((ushort)sourceList.Count);
 		}
