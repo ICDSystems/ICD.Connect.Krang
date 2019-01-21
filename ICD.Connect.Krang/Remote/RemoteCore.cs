@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Json;
+using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
@@ -13,92 +13,76 @@ using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Cores;
+using ICD.Connect.Settings.Originators;
 using ICD.Connect.Settings.Proxies;
-using Newtonsoft.Json;
 
 namespace ICD.Connect.Krang.Remote
 {
 	/// <summary>
 	/// RemoteCore simply represents a core instance that lives remotely.
 	/// </summary>
-	public sealed class RemoteCore : AbstractCore<RemoteCoreSettings>
+	public sealed class RemoteCore : IDisposable
 	{
-		private readonly Dictionary<int, IProxyOriginator> m_Proxies;
+		private readonly IcdHashSet<IProxy> m_SubscribedProxies;
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
+		private readonly SafeCriticalSection m_CriticalSection;
 
-		private HostInfo m_Source;
-
-		private DirectMessageManager DirectMessageManager { get { return ServiceProvider.GetService<DirectMessageManager>(); } }
-
-		private RemoteApiResultHandler ApiResultHandler
-		{
-			get { return DirectMessageManager.GetMessageHandler<RemoteApiReply>() as RemoteApiResultHandler; }
-		}
-
-		private ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
+		private readonly DirectMessageManager m_DirectMessageManager;
+		private readonly RemoteApiResultHandler m_ApiResultHandler;
+		private readonly ICore m_LocalCore;
+		private readonly HostInfo m_Source;
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public RemoteCore()
+		/// <param name="localCore"></param>
+		/// <param name="source"></param>
+		public RemoteCore(ICore localCore, HostInfo source)
 		{
-			m_Proxies = new Dictionary<int, IProxyOriginator>();
+			m_SubscribedProxies = new IcdHashSet<IProxy>();
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
+			m_CriticalSection = new SafeCriticalSection();
 
-			Subscribe(ApiResultHandler);
+			m_LocalCore = localCore;
+			m_Source = source;
+
+			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
+			m_ApiResultHandler = m_DirectMessageManager.GetMessageHandler<RemoteApiReply>() as RemoteApiResultHandler;
+		
+			Subscribe(m_ApiResultHandler);
 		}
 
 		/// <summary>
 		/// Release resources.
 		/// </summary>
-		/// <param name="disposing"></param>
-		protected override void DisposeFinal(bool disposing)
+		public void Dispose()
 		{
-			Unsubscribe(ApiResultHandler);
+			Unsubscribe(m_ApiResultHandler);
 
-			base.DisposeFinal(disposing);
+			m_CriticalSection.Enter();
 
-			DisposeProxies();
+			try
+			{
+				foreach (IProxy proxy in m_SubscribedProxies)
+					Unsubscribe(proxy);
+				m_SubscribedProxies.Clear();
+			}
+			finally
+			{
+				m_CriticalSection.Leave();
+			}
 		}
 
-		#region Methods
-
 		/// <summary>
-		/// Sets the host info for the remote API.
+		/// Queries the remote core for known originators.
 		/// </summary>
-		/// <param name="source"></param>
-		public void SetHostInfo(HostInfo source)
+		public void Initialize()
 		{
-			if (source == m_Source)
-				return;
-
-			DisposeProxies();
-
-			m_Source = source;
-
-			// Query the available devices
+			// TODO - Query all originators, not just devices
 			QueryDevices();
 		}
 
-		#endregion
-
 		#region Private Methods
-
-		/// <summary>
-		/// Sends the given command to the remote API.
-		/// </summary>
-		/// <param name="command"></param>
-		private void SendCommand(ApiClassInfo command)
-		{
-			if (command == null)
-				throw new ArgumentNullException("command");
-
-			IcdConsole.PrintLine("Sending command:");
-			JsonUtils.Print(JsonConvert.SerializeObject(command));
-
-			RemoteApiMessage message = new RemoteApiMessage { Command = command };
-			DirectMessageManager.Send(m_Source, message);
-		}
 
 		/// <summary>
 		/// Queries the remote API for the available devices.
@@ -116,96 +100,96 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
-		/// Creates a proxy originator for the given class info if an originator with the given id does not exist.
+		/// Sends the given command to the remote API.
+		/// </summary>
+		/// <param name="command"></param>
+		private void SendCommand(ApiClassInfo command)
+		{
+			if (command == null)
+				throw new ArgumentNullException("command");
+
+			RemoteApiMessage message = new RemoteApiMessage { Command = command };
+			m_DirectMessageManager.Send(m_Source, message);
+		}
+
+		/// <summary>
+		/// Gets the proxy originator with the given id.
+		/// Subscribes and initializes if this is the first time accessing the originator.
 		/// </summary>
 		/// <param name="group"></param>
 		/// <param name="id"></param>
-		/// <param name="classInfo"></param>
 		[CanBeNull]
-		private IProxyOriginator LazyLoadProxyOriginator(string group, int id, ApiClassInfo classInfo)
+		private IProxyOriginator InitializeProxyOriginator(string group, int id)
 		{
-			if (m_Proxies.ContainsKey(id))
-				return m_Proxies[id];
-
-			if (Core.Originators.ContainsChild(id))
+			IOriginator originator;
+			if (!m_LocalCore.Originators.TryGetChild(id, out originator))
 				return null;
 
-			Type proxyType = classInfo.GetProxyTypes().FirstOrDefault();
-			if (proxyType == null)
+			IProxyOriginator proxyOriginator = originator as IProxyOriginator;
+			if (proxyOriginator == null)
 				return null;
 
-			// Build the originator
-			IProxyOriginator originator = ReflectionUtils.CreateInstance<IProxyOriginator>(proxyType);
-			originator.Id = id;
-			originator.Name = classInfo.Name;
+			m_CriticalSection.Enter();
 
-			// Build the root command
-			Func<ApiClassInfo, ApiClassInfo> buildCommand = local =>
-				ApiCommandBuilder.NewCommand()
-				                 .AtNode("ControlSystem")
-				                 .AtNode("Core")
-				                 .AtNodeGroup(group)
-								 .AddKey((uint)id, local)
-				                 .Complete();
+			try
+			{
+				if (m_SubscribedProxies.Contains(proxyOriginator))
+					return proxyOriginator;
 
-			m_ProxyBuildCommand.Add(originator, buildCommand);
-			m_Proxies.Add(id, originator);
+				// Build the root command
+				Func<ApiClassInfo, ApiClassInfo> buildCommand = local =>
+					ApiCommandBuilder.NewCommand()
+									 .AtNode("ControlSystem")
+									 .AtNode("Core")
+									 .AtNodeGroup(group)
+									 .AddKey((uint)id, local)
+									 .Complete();
 
-			// Start handling the proxy callbacks
-			Subscribe(originator);
+				m_ProxyBuildCommand.Add(proxyOriginator, buildCommand);
 
-			// Add to the core originator collection
-			Core.Originators.AddChild(originator);
+				// Start handling the proxy callbacks
+				m_SubscribedProxies.Add(proxyOriginator);
+				Subscribe(proxyOriginator);
 
-			// Initialize the proxy
-			originator.Initialize();
+				// Initialize the proxy
+				proxyOriginator.Initialize();
 
-			return originator;
-		}
-
-		/// <summary>
-		/// Dispose all of the generated proxies.
-		/// </summary>
-		private void DisposeProxies()
-		{
-			foreach (IProxyOriginator proxy in m_Proxies.Values)
-				DisposeProxy(proxy);
-
-			m_Proxies.Clear();
-		}
-
-		/// <summary>
-		/// Disposes the given proxy.
-		/// </summary>
-		/// <param name="proxy"></param>
-		private void DisposeProxy(IProxy proxy)
-		{
-			if (proxy == null)
-				return;
-
-			Unsubscribe(proxy);
-
-			m_ProxyBuildCommand.Remove(proxy);
-
-			if (proxy is IDisposable)
-				(proxy as IDisposable).Dispose();
+				return proxyOriginator;
+			}
+			finally
+			{
+				m_CriticalSection.Leave();
+			}
 		}
 
 		#endregion
 
 		#region Parse Response
 
-		private void Subscribe(RemoteApiResultHandler results)
+		/// <summary>
+		/// Subscribe to the result handler events.
+		/// </summary>
+		/// <param name="apiResultHandler"></param>
+		private void Subscribe(RemoteApiResultHandler apiResultHandler)
 		{
-			results.OnApiResult += ResultsOnOnApiResult;
+			apiResultHandler.OnApiResult += ApiResultHandlerOnApiResult;
 		}
 
-		private void Unsubscribe(RemoteApiResultHandler results)
+		/// <summary>
+		/// Unsubscribe from the result handler.
+		/// </summary>
+		/// <param name="apiResultHandler"></param>
+		private void Unsubscribe(RemoteApiResultHandler apiResultHandler)
 		{
-			results.OnApiResult -= ResultsOnOnApiResult;
+			apiResultHandler.OnApiResult -= ApiResultHandlerOnApiResult;
 		}
 
-		private void ResultsOnOnApiResult(RemoteApiResultHandler sender, RemoteApiReply reply)
+		/// <summary>
+		/// Called when we receive a result from the API handler.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="reply"></param>
+		private void ApiResultHandlerOnApiResult(RemoteApiResultHandler sender, RemoteApiReply reply)
 		{
 			ParseResponse(reply);
 		}
@@ -218,9 +202,6 @@ namespace ICD.Connect.Krang.Remote
 		{
 			if (response == null)
 				throw new ArgumentNullException("response");
-
-			IcdConsole.PrintLine("Received response:");
-			JsonUtils.Print(JsonConvert.SerializeObject(response.Command));
 
 			// A copy of the original command populated with results
 			ApiClassInfo command = response.Command;
@@ -236,7 +217,7 @@ namespace ICD.Connect.Krang.Remote
 			}
 			catch (Exception e)
 			{
-				Logger.AddEntry(eSeverity.Error, e, "{0} failed to parse response - {1}", this, e.Message);
+				m_LocalCore.Logger.AddEntry(eSeverity.Error, e, "{0} failed to parse response - {1}", this, e.Message);
 				throw;
 			}
 		}
@@ -307,7 +288,7 @@ namespace ICD.Connect.Krang.Remote
 			if (deviceInfo.IsProxy)
 				return;
 
-			IProxyOriginator proxy = LazyLoadProxyOriginator("Devices", (int)index, deviceInfo);
+			IProxyOriginator proxy = InitializeProxyOriginator("Devices", (int)index);
 			if (proxy != null)
 				proxy.ParseInfo(deviceInfo);
 		}
@@ -335,7 +316,7 @@ namespace ICD.Connect.Krang.Remote
 				if (node.Node.IsProxy)
 					return;
 
-				LazyLoadProxyOriginator("Devices", (int)node.Key, node.Node);
+				InitializeProxyOriginator("Devices", (int)node.Key);
 			}
 		}
 
@@ -372,7 +353,7 @@ namespace ICD.Connect.Krang.Remote
 
 			string pathText = string.Join("/", path.Reverse().Select(i => i.Name).Where(n => n != null).ToArray());
 
-			Logger.AddEntry(severity, "{0} - {1} - {2}", this, message, pathText);
+			m_LocalCore.Logger.AddEntry(severity, "{0} - {1} - {2}", this, message, pathText);
 		}
 
 		#endregion

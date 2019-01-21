@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
@@ -80,30 +81,31 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			}
 		}
 
-		private void AddCore(CoreDiscoveryInfo info)
+		[NotNull]
+		private RemoteCore LazyLoadRemoteCore(CoreDiscoveryInfo info)
 		{
 			m_DiscoveredSection.Enter();
 
 			try
 			{
-				CoreDiscoveryInfo existing = m_Discovered.GetDefault(info.Id, null);
+				CoreDiscoveryInfo existing;
+				if (!m_Discovered.TryGetValue(info.Id, out existing))
+					Logger.AddEntry(eSeverity.Informational, "Core {0} discovered {1} {2}", info.Id, info.Source, info.DiscoveryTime);
 
 				// Update discovery time even if we already know about the core.
 				m_Discovered[info.Id] = info;
 
-				if (existing != null)
-					return;
-
-				Logger.AddEntry(eSeverity.Informational, "Core {0} discovered {1} {2}", info.Id, info.Source, info.DiscoveryTime);
-
-				RemoteCore proxy = new RemoteCore
+				RemoteCore remoteCore;
+				if (!m_RemoteCoreCollection.TryGetRemoteCore(info.Source, out remoteCore))
 				{
-					Id = info.Id,
-					Name = info.Name
-				};
+					remoteCore = new RemoteCore(m_Core, info.Source);
+					m_RemoteCoreCollection.Add(info.Source, remoteCore);
 
-				m_RemoteCoreCollection.Add(proxy);
-				proxy.SetHostInfo(info.Source);
+					// Query known originators
+					remoteCore.Initialize();
+				}
+
+				return remoteCore;
 			}
 			finally
 			{
@@ -124,12 +126,12 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 
 				Logger.AddEntry(eSeverity.Warning, "Core {0} lost {1} {2}", item.Id, item.Source, item.DiscoveryTime);
 
-				RemoteCore proxy;
-				if (!m_RemoteCoreCollection.TryGetProxy(item.Id, out proxy))
+				RemoteCore remoteCore;
+				if (!m_RemoteCoreCollection.TryGetRemoteCore(item.Source, out remoteCore))
 					return;
 
-				m_RemoteCoreCollection.Remove(item.Id);
-				proxy.Dispose();
+				m_RemoteCoreCollection.Remove(item.Source);
+				remoteCore.Dispose();
 			}
 			finally
 			{
@@ -180,7 +182,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 					return;
 				}
 
-				AddCore(info);
+				LazyLoadRemoteCore(info);
 			}
 			finally
 			{
