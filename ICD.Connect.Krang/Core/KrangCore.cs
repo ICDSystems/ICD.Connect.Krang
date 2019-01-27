@@ -306,11 +306,14 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Called each time an originator is loaded while applying settings.
 		/// </summary>
+		/// <param name="factory"></param>
 		/// <param name="originator"></param>
-		private void FactoryOnOriginatorLoaded(IOriginator originator)
+		private void FactoryOnOriginatorLoaded(IDeviceFactory factory, IOriginator originator)
 		{
 			m_LoadedOriginators.Push(originator.Id);
 			AddOriginator(originator);
+
+			Log(eSeverity.Debug, "{0:0.00}% - Finished loading {1}", factory.PercentComplete * 100, originator);
 		}
 
 		private void ResetDefaultPermissions()
