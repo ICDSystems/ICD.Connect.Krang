@@ -112,7 +112,7 @@ namespace ICD.Connect.Krang.Core
 		}
 
 		/// <summary>
-		/// Adds the given originator to the cor.
+		/// Adds the given originator to the core.
 		/// </summary>
 		/// <param name="originator"></param>
 		private void AddOriginator(IOriginator originator)
