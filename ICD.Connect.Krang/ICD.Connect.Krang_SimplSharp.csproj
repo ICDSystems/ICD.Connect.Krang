@@ -106,9 +106,9 @@
     <Compile Include="Remote\Direct\RouteDevices\RouteDevicesReply.cs" />
     <Compile Include="Remote\Direct\ShareDevices\ShareDevicesHandler.cs" />
     <Compile Include="Remote\Direct\ShareDevices\ShareDevicesMessage.cs" />
-    <Compile Include="Remote\RemoteSwitcher.cs" />
-    <Compile Include="Remote\RemoteSwitcherControl.cs" />
-    <Compile Include="Remote\RemoteSwitcherSettings.cs" />
+    <Compile Include="Devices\RemoteSwitcher.cs" />
+    <Compile Include="Devices\RemoteSwitcherControl.cs" />
+    <Compile Include="Devices\RemoteSwitcherSettings.cs" />
     <Compile Include="Rooms\SimplRoom.cs" />
     <Compile Include="Rooms\SimplRoomSettings.cs" />
     <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />

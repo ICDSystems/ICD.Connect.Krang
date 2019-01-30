@@ -5,7 +5,7 @@ using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.Remote
+namespace ICD.Connect.Krang.Devices
 {
 	public sealed class RemoteSwitcher : AbstractDevice<RemoteSwitcherSettings>
 	{
