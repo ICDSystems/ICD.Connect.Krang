@@ -10,6 +10,7 @@ using ICD.Common.Utils.Timers;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Protocol.Network.Utils;
+using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
@@ -91,7 +92,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			{
 				CoreDiscoveryInfo existing;
 				if (!m_Discovered.TryGetValue(info.Id, out existing))
-					Logger.AddEntry(eSeverity.Informational, "Core {0} discovered {1} {2}", info.Id, info.Source, info.DiscoveryTime);
+					Logger.AddEntry(eSeverity.Informational, "Core {0} discovered {1} {2} {3}", info.Id, info.Source, info.Session, info.DiscoveryTime);
 
 				// Update discovery time even if we already know about the core.
 				m_Discovered[info.Id] = info;
@@ -125,7 +126,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			{
 				m_Discovered.Remove(item.Id);
 
-				Logger.AddEntry(eSeverity.Warning, "Core {0} lost {1} {2}", item.Id, item.Source, item.DiscoveryTime);
+				Logger.AddEntry(eSeverity.Warning, "Core {0} lost {1} {2} {3}", item.Id, item.Source, item.Session, item.DiscoveryTime);
 
 				RemoteCore remoteCore;
 				if (!m_RemoteCores.TryGetValue(item.Source, out remoteCore))
@@ -178,9 +179,17 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				// Check for conflicts
 				if (existing != null && existing.Conflicts(info))
 				{
-					Logger.AddEntry(eSeverity.Warning, "{0} - Conflict between Core Id={1} at {2} and {3}",
-					                GetType().Name, info.Id, info.Source, existing.Source);
-					return;
+					// If the remote core has restarted it will appear here with a new session id
+					if (existing.Session != info.Session)
+					{
+						RemoveCore(existing);
+					}
+					else
+					{
+						Logger.AddEntry(eSeverity.Warning, "{0} - Conflict between Core Id={1} at {2} and {3}",
+						                GetType().Name, info.Id, info.Source, existing.Source);
+						return;
+					}
 				}
 
 				LazyLoadRemoteCore(info);
