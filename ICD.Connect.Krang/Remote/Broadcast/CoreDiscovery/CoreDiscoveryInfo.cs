@@ -10,6 +10,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		public int Id { get; set; }
 		public string Name { get; set; }
 		public HostInfo Source { get; set; }
+		public Guid Session { get; set; }
 		public DateTime DiscoveryTime { get; set; }
 
 		/// <summary>
@@ -20,12 +21,13 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			CoreDiscoveryData discovery = data.Data as CoreDiscoveryData;
 			if (discovery == null)
-				throw new InvalidOperationException();
+				throw new ArgumentException("Expected " + typeof(CoreDiscoveryData).Name, "data");
 
 			Id = discovery.Id;
 			Name = discovery.Name;
 			Source = data.Source;
 			DiscoveryTime = IcdEnvironment.GetLocalTime();
+			Session = data.Session;
 		}
 
 		/// <summary>
@@ -35,7 +37,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		/// <returns></returns>
 		public bool Conflicts(CoreDiscoveryInfo other)
 		{
-			return Id == other.Id && Source != other.Source;
+			if (other == null)
+				throw new ArgumentNullException("other");
+
+			if (Id != other.Id)
+				return false;
+
+			return Source != other.Source ||
+			       Session != other.Session;
 		}
 	}
 }
