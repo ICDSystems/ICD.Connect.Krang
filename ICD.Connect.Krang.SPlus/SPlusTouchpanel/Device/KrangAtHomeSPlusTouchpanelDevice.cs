@@ -182,7 +182,7 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		/// <param name="source"></param>
 		/// <param name="sourceIndex"></param>
 		/// <param name="sourceTypeRouted"></param>
-		internal void SetSourceInfo(IKrangAtHomeSource source, ushort sourceIndex, eSourceTypeRouted sourceTypeRouted)
+		internal void SetSourceInfo(IKrangAtHomeSource source, int sourceIndex, eSourceTypeRouted sourceTypeRouted)
 		{
 			OnSourceSelectedUpdate.Raise(this, new SourceSelectedEventArgs(source, sourceIndex, sourceTypeRouted));
 		}

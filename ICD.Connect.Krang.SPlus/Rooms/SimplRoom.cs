@@ -8,6 +8,7 @@ using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Devices;
 using ICD.Connect.Devices.Controls;
@@ -187,6 +188,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// <param name="sourceType"></param>
 		private void Route(IKrangAtHomeSource source, eSourceTypeRouted sourceType)
 		{
+			Log(eSeverity.Debug, "Routing Source:{0} Type:{1}", source, sourceType);
+
 			if (source == null)
 			{
 				Unroute();
@@ -588,6 +591,16 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		#region Console
 
 		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			base.BuildConsoleStatus(addRow);
+			addRow("Source", GetSource());
+		}
+
+		/// <summary>
 		/// Gets the child console commands.
 		/// </summary>
 		/// <returns></returns>
@@ -596,6 +609,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			foreach (IConsoleCommand command in GetBaseConsoleCommands())
 				yield return command;
 
+			yield return new GenericConsoleCommand<int, eSourceTypeRouted>("Route", "Route (sourceid) (Audio|Video|AudioVideo)", (source, type) => SetSourceId(source, type));
+			yield return new ConsoleCommand("Unroute", "Unroutes all the destinations in the room", () => Unroute());
 			yield return new ConsoleCommand("PrintCrosspoints", "Prints the crosspoints added to the room", () => PrintCrosspoints());
 		}
 

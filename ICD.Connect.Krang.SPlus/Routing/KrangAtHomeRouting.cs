@@ -14,7 +14,7 @@ using ICD.Connect.Routing.RoutingCaches;
 
 namespace ICD.Connect.Krang.SPlus.Routing
 {
-	public class KrangAtHomeRouting: IDisposable, IConsoleNode
+	public class KrangAtHomeRouting : IDisposable, IConsoleNode
 	{
 		private readonly KrangAtHomeRoutingCache m_KrangAtHomeCache;
 		private RoutingCache m_RoutingCache;

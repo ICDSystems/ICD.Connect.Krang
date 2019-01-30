@@ -36,6 +36,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		private readonly Dictionary<IKrangAtHomeSource, Dictionary<IKrangAtHomeRoom, eSourceRoomStatus>> m_SourcesRoomStatus;
 		private readonly Dictionary<IKrangAtHomeRoom, Dictionary<IKrangAtHomeSourceGroup, IKrangAtHomeSource>> m_RoomActiveSourceGroup;
 		private readonly SafeCriticalSection m_SourcesRoomSection;
+		private KrangAtHomeRouting m_Routing
+			;
 
 		#endregion
 
@@ -49,7 +51,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 
 		#region Constructor
 
-		public KrangAtHomeSourceGroupManager()
+		public KrangAtHomeSourceGroupManager(KrangAtHomeRouting routing)
 		{
 			m_SourceGroups = new IcdHashSet<IKrangAtHomeSourceGroup>();
 			m_SourceGroupsSection = new SafeCriticalSection();
@@ -58,6 +60,15 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			m_SourcesRoomStatus = new Dictionary<IKrangAtHomeSource, Dictionary<IKrangAtHomeRoom, eSourceRoomStatus>>();
 			m_RoomActiveSourceGroup = new Dictionary<IKrangAtHomeRoom, Dictionary<IKrangAtHomeSourceGroup, IKrangAtHomeSource>>();
 			m_SourcesRoomSection = new SafeCriticalSection();
+
+			m_Routing = routing;
+
+			m_Routing.OnSourceRoomsUsedUpdated += RoutingOnSourceRoomsUsedUpdated;
+		}
+
+		private void RoutingOnSourceRoomsUsedUpdated(object sender, Routing.SourceRoomsUsedUpdatedEventArgs args)
+		{
+			throw new NotImplementedException();
 		}
 
 		#endregion
@@ -475,7 +486,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			if (source == null)
 				throw new ArgumentNullException("source");
 			if (status == eSourceRoomStatus.Unused)
-				throw new ArgumentException("Status cannot be usused for this method", "status");
+				throw new ArgumentException("Unused status cannot be usused for this method", "status");
 
 			sourceInUseChanged = false;
 			sourceRoomsUsedChanged = false;

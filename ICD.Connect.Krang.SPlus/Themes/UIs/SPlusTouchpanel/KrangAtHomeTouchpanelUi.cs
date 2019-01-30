@@ -369,7 +369,13 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		{
 			IKrangAtHomeSource source = m_Room == null ? null : m_Room.GetSource();
 
-			m_Panel.SetSourceInfo(source, 0, eSourceTypeRouted.Video);
+			int index;
+			if (source == null)
+				index = -1;
+			else if (!m_SourceListVideoBiDictionary.TryGetKey(source, out index))
+				index = -1;
+
+			m_Panel.SetSourceInfo(source, index, eSourceTypeRouted.Video);
 		}
 
 		private void RoomOnActiveVolumeControlChanged(object sender, GenericEventArgs<IVolumeDeviceControl> args)

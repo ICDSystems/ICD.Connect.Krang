@@ -11,7 +11,7 @@ using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.SPlus.Themes
 {
-	public class KrangAtHomeTheme : AbstractTheme<KrangAtHomeThemeSettings>
+	public sealed class KrangAtHomeTheme : AbstractTheme<KrangAtHomeThemeSettings>
 	{
 
 		private readonly IcdHashSet<IKrangAtHomeUserInterfaceFactory> m_UiFactories;
