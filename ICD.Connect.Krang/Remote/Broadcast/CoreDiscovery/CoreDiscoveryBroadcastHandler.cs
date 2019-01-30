@@ -24,7 +24,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private const long TIMEOUT_DURATION = DEFAULT_INTERVAL * 5;
 
 		private readonly Dictionary<int, CoreDiscoveryInfo> m_Discovered;
-		private readonly RemoteCoreCollection m_RemoteCoreCollection;
+		private readonly Dictionary<HostInfo, RemoteCore> m_RemoteCores;
 		private readonly SafeCriticalSection m_DiscoveredSection;
 		private readonly SafeTimer m_TimeoutTimer;
 		private readonly ICore m_Core;
@@ -38,7 +38,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			m_Core = core;
 			m_Discovered = new Dictionary<int, CoreDiscoveryInfo>();
-			m_RemoteCoreCollection = new RemoteCoreCollection();
+			m_RemoteCores = new Dictionary<HostInfo, RemoteCore>();
 			m_DiscoveredSection = new SafeCriticalSection();
 			m_TimeoutTimer = SafeTimer.Stopped(TimeoutCallback);
 
@@ -97,10 +97,10 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				m_Discovered[info.Id] = info;
 
 				RemoteCore remoteCore;
-				if (!m_RemoteCoreCollection.TryGetRemoteCore(info.Source, out remoteCore))
+				if (!m_RemoteCores.TryGetValue(info.Source, out remoteCore))
 				{
 					remoteCore = new RemoteCore(m_Core, info.Source);
-					m_RemoteCoreCollection.Add(info.Source, remoteCore);
+					m_RemoteCores.Add(info.Source, remoteCore);
 
 					// Query known originators
 					remoteCore.Initialize();
@@ -128,10 +128,10 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				Logger.AddEntry(eSeverity.Warning, "Core {0} lost {1} {2}", item.Id, item.Source, item.DiscoveryTime);
 
 				RemoteCore remoteCore;
-				if (!m_RemoteCoreCollection.TryGetRemoteCore(item.Source, out remoteCore))
+				if (!m_RemoteCores.TryGetValue(item.Source, out remoteCore))
 					return;
 
-				m_RemoteCoreCollection.Remove(item.Source);
+				m_RemoteCores.Remove(item.Source);
 				remoteCore.Dispose();
 			}
 			finally
@@ -164,7 +164,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			base.BroadcasterOnBroadcastReceived(sender, e);
 
 			// Ignore local broadcasts
-			if (e.Data.Source.IsLocalHost  && e.Data.Source.Port == NetworkUtils.GetBroadcastPortForSystem(BroadcastManager.SystemId))
+			if (e.Data.Source.IsLocalHost && e.Data.Source.Port == NetworkUtils.GetBroadcastPortForSystem(BroadcastManager.SystemId))
 				return;
 
 			CoreDiscoveryInfo info = new CoreDiscoveryInfo(e.Data);
