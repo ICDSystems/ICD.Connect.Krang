@@ -336,8 +336,10 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="deviceInfo"></param>
 		private void ParseDeviceResponse(uint index, ApiClassInfo deviceInfo)
 		{
+			// TODO - We shouldn't be getting here
 			if (deviceInfo == null)
-				throw new ArgumentNullException("deviceInfo");
+				return;
+				//throw new ArgumentNullException("deviceInfo");
 
 			// Don't create proxy around existing proxies
 			if (deviceInfo.IsProxy)
