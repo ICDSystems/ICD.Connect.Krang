@@ -15,7 +15,7 @@ using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Routing.Utils;
 using ICD.Connect.Settings.Cores;
 
-namespace ICD.Connect.Krang.Remote
+namespace ICD.Connect.Krang.Devices
 {
 	public sealed class RemoteSwitcherControl : AbstractRouteSwitcherControl<RemoteSwitcher>
 	{

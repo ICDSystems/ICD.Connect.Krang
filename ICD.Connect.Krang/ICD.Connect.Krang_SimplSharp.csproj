@@ -78,7 +78,6 @@
     <Compile Include="Remote\InterCoreCommunication.cs" />
     <Compile Include="Remote\RemoteCore.cs" />
     <Compile Include="Remote\RemoteCoreCollection.cs" />
-    <Compile Include="Remote\RemoteCoreSettings.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
     <Compile Include="Remote\Broadcast\AbstractBroadcastHandler.cs" />
@@ -107,15 +106,25 @@
     <Compile Include="Remote\Direct\RouteDevices\RouteDevicesReply.cs" />
     <Compile Include="Remote\Direct\ShareDevices\ShareDevicesHandler.cs" />
     <Compile Include="Remote\Direct\ShareDevices\ShareDevicesMessage.cs" />
-    <Compile Include="Remote\RemoteSwitcher.cs" />
-    <Compile Include="Remote\RemoteSwitcherControl.cs" />
-    <Compile Include="Remote\RemoteSwitcherSettings.cs" />
+    <Compile Include="Devices\RemoteSwitcher.cs" />
+    <Compile Include="Devices\RemoteSwitcherControl.cs" />
+    <Compile Include="Devices\RemoteSwitcherSettings.cs" />
+    <Compile Include="Rooms\SimplRoom.cs" />
+    <Compile Include="Rooms\SimplRoomSettings.cs" />
+    <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />
+    <Compile Include="Routing\Endpoints\Sources\SimplSourceSettings.cs" />
     <Compile Include="Core\KrangCore.cs" />
     <Compile Include="Core\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LicenseManager.cs" />
     <Compile Include="KrangLicenseAttributes.cs" />
+    <Compile Include="SPlusShims\SPlusKrangBootstrap.cs" />
+    <Compile Include="SPlusShims\SPlusKrangEventRelay.cs" />
+    <Compile Include="SPlusShims\SPlusPanelShim.cs" />
+    <Compile Include="SPlusShims\SPlusSimplRoom.cs" />
+    <Compile Include="SPlusShims\SPlusSimplSource.cs" />
+    <Compile Include="SPlusShims\SPlusUiShim.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
