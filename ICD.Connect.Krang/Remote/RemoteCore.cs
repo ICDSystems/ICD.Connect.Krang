@@ -70,6 +70,11 @@ namespace ICD.Connect.Krang.Remote
 			}
 		}
 
+		public override string ToString()
+		{
+			return new ReprBuilder(this).AppendProperty("Host", m_RemoteHost).ToString();
+		}
+
 		/// <summary>
 		/// Queries the remote core for known originators.
 		/// </summary>
