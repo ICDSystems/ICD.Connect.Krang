@@ -78,7 +78,6 @@
     <Compile Include="Remote\InterCoreCommunication.cs" />
     <Compile Include="Remote\RemoteCore.cs" />
     <Compile Include="Remote\RemoteCoreCollection.cs" />
-    <Compile Include="Remote\RemoteCoreSettings.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
     <Compile Include="Remote\Broadcast\AbstractBroadcastHandler.cs" />
