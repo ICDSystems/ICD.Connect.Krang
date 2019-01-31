@@ -131,7 +131,7 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			{
 				Result = args.Success,
 				MessageId = message.MessageId,
-				ClientId = message.ClientId
+				MessageTo = message.MessageTo
 			};
 
 			RaiseReply(reply);
