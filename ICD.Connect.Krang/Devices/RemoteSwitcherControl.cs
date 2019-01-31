@@ -190,7 +190,7 @@ namespace ICD.Connect.Krang.Devices
 
 				RoutingGraph.PendingRouteStarted(info);
 
-				dmManager.Send<RouteDevicesReply>(Parent.HostInfo, new RouteDevicesMessage(info), r => RouteFinished(info, r));
+				dmManager.Send(Parent.HostInfo, new RouteDevicesMessage(info), r => RouteFinished(info, r as RouteDevicesReply));
 			}
 
 			return m_Cache.SetInputForOutput(info.LocalOutput, info.LocalInput, info.ConnectionType);
