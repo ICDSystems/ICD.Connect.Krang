@@ -122,6 +122,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			RemoteApiReply reply = new RemoteApiReply
 			{
 				MessageId = Guid.NewGuid(),
+				MessageTo = hostInfo,
 				Command = eventArgs.Data
 			};
 
