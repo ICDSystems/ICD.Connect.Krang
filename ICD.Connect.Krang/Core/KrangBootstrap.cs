@@ -69,12 +69,12 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		public KrangBootstrap()
 		{
+			ApiHandler.ControlSystem = this;
+			ApiConsole.RegisterChild(this);
+
 			AddServices();
 
 			m_Core = new KrangCore {Serialize = true};
-
-			ApiHandler.ControlSystem = this;
-			ApiConsole.RegisterChild(this);
 		}
 
 		#region Methods
