@@ -192,6 +192,9 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="reply"></param>
 		private void ApiResultHandlerOnApiResult(RemoteApiResultHandler sender, RemoteApiReply reply)
 		{
+			if (reply.MessageFrom != m_RemoteHost)
+				return;
+
 			ParseResponse(reply);
 		}
 
