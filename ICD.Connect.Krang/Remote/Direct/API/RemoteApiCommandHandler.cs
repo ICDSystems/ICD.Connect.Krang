@@ -9,7 +9,7 @@ using ICD.Connect.Protocol.Ports;
 namespace ICD.Connect.Krang.Remote.Direct.API
 {
 	/// <summary>
-	/// The RemoteApiCommandHandler receives 
+	/// The RemoteApiCommandHandler manages the communication between remote cores and the local API.
 	/// </summary>
 	public sealed class RemoteApiCommandHandler : AbstractMessageHandler<RemoteApiMessage, RemoteApiReply>
 	{
@@ -47,7 +47,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		}
 
 		/// <summary>
-		/// Handles the message receieved
+		/// Handles the message receieved from the remote core.
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns>Returns an AbstractMessage as a reply, or null for no reply</returns>
