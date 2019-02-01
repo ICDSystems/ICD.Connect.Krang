@@ -605,17 +605,23 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		private void PanelOnSetVolumeRampUp(object sender, EventArgs args)
 		{
+			IVolumeLevelDeviceControl controlLvl = m_VolumeControl as IVolumeLevelDeviceControl;
 			IVolumeRampDeviceControl control = m_VolumeControl as IVolumeRampDeviceControl;
-
-			if (control != null)
+			
+			if (controlLvl != null)
+				controlLvl.VolumePositionRampUp(0.05f);
+			else if (control != null)
 				control.VolumeRampUp();
 		}
 
 		private void PanelOnSetVolumeRampDown(object sender, EventArgs args)
 		{
+			IVolumeLevelDeviceControl controlLvl = m_VolumeControl as IVolumeLevelDeviceControl;
 			IVolumeRampDeviceControl control = m_VolumeControl as IVolumeRampDeviceControl;
 
-			if (control != null)
+			if (controlLvl != null)
+				controlLvl.VolumePositionRampDown(0.05f);
+			else if (control != null)
 				control.VolumeRampDown();
 		}
 
