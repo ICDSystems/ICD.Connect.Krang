@@ -83,7 +83,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 		{
 			base.BroadcasterOnBroadcastReceived(sender, e);
 
-			if (e.Data.Source == BroadcastManager.GetHostInfo())
+			if (e.Data.HostSession == BroadcastManager.GetHostSessionInfo())
 				return;
 
 			TielineDiscoveryData data = e.Data.Data as TielineDiscoveryData;
@@ -96,14 +96,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 					continue;
 				if (!m_Core.Originators.ContainsChild(pair.Value))
 				{
-					RemoteSwitcher switcher = new RemoteSwitcher {Id = pair.Value, HostInfo = e.Data.Source};
+					RemoteSwitcher switcher = new RemoteSwitcher {Id = pair.Value, HostInfo = e.Data.HostSession};
 					m_Core.Originators.AddChild(switcher);
 				}
 				else
 				{
 					RemoteSwitcher switcher = m_Core.Originators.GetChild(pair.Value) as RemoteSwitcher;
 					if (switcher != null)
-						switcher.HostInfo = e.Data.Source;
+						switcher.HostInfo = e.Data.HostSession;
 				}
 
 				IRoutingGraph graph = GetRoutingGraph();
@@ -125,9 +125,9 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 				ServiceProvider.TryGetService<ILoggerService>()
 				               .AddEntry(eSeverity.Informational,
 				                         "Sending response to Krang Discovery Broadcast. Device: {0}, Host: {1}", pair.Key,
-				                         e.Data.Source.ToString());
+				                         e.Data.HostSession.ToString());
 
-				DirectMessageManager.Send(e.Data.Source, new InitiateConnectionMessage {DeviceId = pair.Key});
+				DirectMessageManager.Send(e.Data.HostSession, new InitiateConnectionMessage {DeviceId = pair.Key});
 			}
 		}
 

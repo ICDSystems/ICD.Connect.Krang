@@ -1,6 +1,8 @@
-﻿using ICD.Common.Utils.Services;
+﻿using System;
+using ICD.Common.Utils.Services;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote.Direct.Disconnect;
+using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
@@ -13,9 +15,9 @@ namespace ICD.Connect.Krang.Devices
 
 		#region Properties
 
-		public HostInfo HostInfo { get; set; }
+		public HostSessionInfo HostInfo { get; set; }
 
-		public bool HasHostInfo { get { return HostInfo != default(HostInfo); } }
+		public bool HasHostInfo { get { return HostInfo != default(HostSessionInfo); } }
 
 		public RemoteSwitcherControl SwitcherControl { get { return m_SwitcherControl; } }
 
@@ -48,21 +50,21 @@ namespace ICD.Connect.Krang.Devices
 		{
 			base.ClearSettingsFinal();
 
-			HostInfo = default(HostInfo);
+			HostInfo = default(HostSessionInfo);
 		}
 
 		protected override void CopySettingsFinal(RemoteSwitcherSettings settings)
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.Address = HostInfo;
+			settings.Address = HostInfo.Host;
 		}
 
 		protected override void ApplySettingsFinal(RemoteSwitcherSettings settings, IDeviceFactory factory)
 		{
 			base.ApplySettingsFinal(settings, factory);
 
-			HostInfo = settings.Address;
+			HostInfo = new HostSessionInfo(settings.Address, new Guid());
 		}
 
 		#endregion
@@ -71,6 +73,7 @@ namespace ICD.Connect.Krang.Devices
 		{
 			if (!HasHostInfo)
 				return;
+
 			DirectMessageManager dm = ServiceProvider.GetService<DirectMessageManager>();
 			dm.Send(HostInfo, new DisconnectMessage());
 			base.DisposeFinal(disposing);

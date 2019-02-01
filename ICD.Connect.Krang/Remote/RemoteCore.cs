@@ -9,6 +9,7 @@ using ICD.Connect.API;
 using ICD.Connect.API.Info;
 using ICD.Connect.API.Proxies;
 using ICD.Connect.Krang.Remote.Direct.API;
+using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings.Cores;
@@ -28,14 +29,14 @@ namespace ICD.Connect.Krang.Remote
 		private readonly DirectMessageManager m_DirectMessageManager;
 		private readonly RemoteApiResultHandler m_ApiResultHandler;
 		private readonly ICore m_LocalCore;
-		private readonly HostInfo m_RemoteHost;
+		private readonly HostSessionInfo m_RemoteHost;
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
 		/// <param name="localCore"></param>
 		/// <param name="remoteHost"></param>
-		public RemoteCore(ICore localCore, HostInfo remoteHost)
+		public RemoteCore(ICore localCore, HostSessionInfo remoteHost)
 		{
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
 			m_CriticalSection = new SafeCriticalSection();

@@ -9,8 +9,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 	{
 		public int Id { get; set; }
 		public string Name { get; set; }
-		public HostInfo Source { get; set; }
-		public Guid Session { get; set; }
+		public HostSessionInfo Source { get; set; }
 		public DateTime DiscoveryTime { get; set; }
 
 		/// <summary>
@@ -25,9 +24,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 
 			Id = discovery.Id;
 			Name = discovery.Name;
-			Source = data.Source;
+			Source = data.HostSession;
 			DiscoveryTime = IcdEnvironment.GetLocalTime();
-			Session = data.Session;
 		}
 
 		/// <summary>
@@ -43,8 +41,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			if (Id != other.Id)
 				return false;
 
-			return Source != other.Source ||
-			       Session != other.Session;
+			return Source != other.Source;
 		}
 	}
 }

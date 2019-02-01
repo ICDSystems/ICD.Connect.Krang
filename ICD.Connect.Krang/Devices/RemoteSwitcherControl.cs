@@ -186,7 +186,7 @@ namespace ICD.Connect.Krang.Devices
 			if (Parent.HasHostInfo && info.RouteRequestFrom != Parent.HostInfo)
 			{
 				DirectMessageManager dmManager = ServiceProvider.GetService<DirectMessageManager>();
-				info.RouteRequestFrom = dmManager.GetHostInfo();
+				info.RouteRequestFrom = dmManager.GetHostSessionInfo();
 
 				RoutingGraph.PendingRouteStarted(info);
 

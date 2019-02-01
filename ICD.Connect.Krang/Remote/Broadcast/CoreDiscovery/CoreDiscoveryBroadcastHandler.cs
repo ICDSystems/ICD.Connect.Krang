@@ -25,7 +25,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private const long TIMEOUT_DURATION = DEFAULT_INTERVAL * 5;
 
 		private readonly Dictionary<int, CoreDiscoveryInfo> m_Discovered;
-		private readonly Dictionary<HostInfo, RemoteCore> m_RemoteCores;
+		private readonly Dictionary<HostSessionInfo, RemoteCore> m_RemoteCores;
 		private readonly SafeCriticalSection m_DiscoveredSection;
 		private readonly SafeTimer m_TimeoutTimer;
 		private readonly ICore m_Core;
@@ -39,7 +39,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			m_Core = core;
 			m_Discovered = new Dictionary<int, CoreDiscoveryInfo>();
-			m_RemoteCores = new Dictionary<HostInfo, RemoteCore>();
+			m_RemoteCores = new Dictionary<HostSessionInfo, RemoteCore>();
 			m_DiscoveredSection = new SafeCriticalSection();
 			m_TimeoutTimer = SafeTimer.Stopped(TimeoutCallback);
 
@@ -92,7 +92,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			{
 				CoreDiscoveryInfo existing;
 				if (!m_Discovered.TryGetValue(info.Id, out existing))
-					Logger.AddEntry(eSeverity.Informational, "Core {0} discovered {1} {2} {3}", info.Id, info.Source, info.Session, info.DiscoveryTime);
+					Logger.AddEntry(eSeverity.Informational, "Core {0} discovered {1} {2}", info.Id, info.Source, info.DiscoveryTime);
 
 				// Update discovery time even if we already know about the core.
 				m_Discovered[info.Id] = info;
@@ -126,7 +126,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			{
 				m_Discovered.Remove(item.Id);
 
-				Logger.AddEntry(eSeverity.Warning, "Core {0} lost {1} {2} {3}", item.Id, item.Source, item.Session, item.DiscoveryTime);
+				Logger.AddEntry(eSeverity.Warning, "Core {0} lost {1} {2}", item.Id, item.Source, item.DiscoveryTime);
 
 				RemoteCore remoteCore;
 				if (!m_RemoteCores.TryGetValue(item.Source, out remoteCore))
@@ -165,7 +165,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			base.BroadcasterOnBroadcastReceived(sender, e);
 
 			// Ignore local broadcasts
-			if (e.Data.Source.IsLocalHost && e.Data.Source.Port == NetworkUtils.GetBroadcastPortForSystem(BroadcastManager.SystemId))
+			if (e.Data.HostSession.Host.IsLocalHost &&
+				e.Data.HostSession.Host.Port == NetworkUtils.GetBroadcastPortForSystem(BroadcastManager.SystemId))
 				return;
 
 			CoreDiscoveryInfo info = new CoreDiscoveryInfo(e.Data);
@@ -178,19 +179,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 
 				// Check for conflicts
 				if (existing != null && existing.Conflicts(info))
-				{
-					// If the remote core has restarted it will appear here with a new session id
-					if (existing.Session != info.Session)
-					{
-						RemoveCore(existing);
-					}
-					else
-					{
-						Logger.AddEntry(eSeverity.Warning, "{0} - Conflict between Core Id={1} at {2} and {3}",
-						                GetType().Name, info.Id, info.Source, existing.Source);
-						return;
-					}
-				}
+					RemoveCore(existing);
 
 				LazyLoadRemoteCore(info);
 			}

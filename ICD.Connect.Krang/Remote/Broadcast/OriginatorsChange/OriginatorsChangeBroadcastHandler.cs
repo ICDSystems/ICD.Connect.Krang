@@ -13,7 +13,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 		/// <summary>
 		/// Raised when a remote broadcaster advertises an originator was added/removed.
 		/// </summary>
-		public event EventHandler<GenericEventArgs<HostInfo>> OnRemoteOriginatorsChanged;
+		public event EventHandler<GenericEventArgs<HostSessionInfo>> OnRemoteOriginatorsChanged;
 
 		private readonly ICore m_Core;
 
@@ -51,7 +51,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 
 			BroadcastData data = eventArgs.Data;
 
-			OnRemoteOriginatorsChanged.Raise(this, new GenericEventArgs<HostInfo>(data.Source));
+			OnRemoteOriginatorsChanged.Raise(this, new GenericEventArgs<HostSessionInfo>(data.HostSession));
 		}
 
 		#region Core Callbacks

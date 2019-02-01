@@ -8,6 +8,7 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Timers;
 using ICD.Connect.Krang.Devices;
 using ICD.Connect.Krang.Remote.Direct.RequestDevices;
+using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.Connections;
@@ -39,7 +40,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		private sealed class Row
 		{
 			public double Cost { get; set; }
-			public HostInfo RouteTo { get; set; }
+			public HostSessionInfo RouteTo { get; set; }
 			public bool RouteChanged { get; set; }
 			public SafeTimer Timeout { get; set; }
 			public SafeTimer Deletion { get; set; }
@@ -107,7 +108,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		private void InitializeCostTables()
 		{
-			HostInfo hostInfo = ServiceProvider.GetService<DirectMessageManager>().GetHostInfo();
+			HostSessionInfo hostInfo = ServiceProvider.GetService<DirectMessageManager>().GetHostSessionInfo();
 
 			IRoutingGraph routingGraph;
 			if (!m_Core.TryGetRoutingGraph(out routingGraph))
@@ -138,7 +139,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			}
 		}
 
-		private bool HandleCostUpdates(Dictionary<int, double> costs, HostInfo messageFrom, Dictionary<int, Row> table,
+		private bool HandleCostUpdates(Dictionary<int, double> costs, HostSessionInfo messageFrom, Dictionary<int, Row> table,
 		                               out List<int> missing)
 		{
 			bool triggerUpdate = false;
@@ -249,7 +250,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 							       m_Core.Originators.GetChildren<RemoteSwitcher>()
 							             .FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == table[id].RouteTo);
 						       if (switcher != null)
-							       switcher.HostInfo = default(HostInfo);
+							       switcher.HostInfo = default(HostSessionInfo);
 					       }
 				       }
 				       finally
@@ -410,12 +411,12 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		#region Output Processing
 
-		private static Dictionary<int, double> TableToCostMessage(Dictionary<int, Row> table, HostInfo host)
+		private static Dictionary<int, double> TableToCostMessage(Dictionary<int, Row> table, HostSessionInfo host)
 		{
 			return table.ToDictionary(s => s.Key, s => s.Value.RouteTo != host ? s.Value.Cost : MAX_COST);
 		}
 
-		private static CostUpdateMessage MakeCostUpdateMessage(Dictionary<int, Row> sources, Dictionary<int, Row> destinations, HostInfo host)
+		private static CostUpdateMessage MakeCostUpdateMessage(Dictionary<int, Row> sources, Dictionary<int, Row> destinations, HostSessionInfo host)
 		{
 			CostUpdateMessage message = new CostUpdateMessage
 			{
@@ -431,7 +432,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			DirectMessageManager dmManager = ServiceProvider.GetService<DirectMessageManager>();
 
-			foreach (HostInfo host in GetHosts())
+			foreach (HostSessionInfo host in GetHosts())
 			{
 				CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts, m_DestinationCosts, host);
 				dmManager.Send(host, message);
@@ -450,7 +451,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			try
 			{
 				//generate and send messages
-				foreach (HostInfo host in GetHosts())
+				foreach (HostSessionInfo host in GetHosts())
 				{
 					CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts.Where(s => s.Value.RouteChanged).ToDictionary(),
 					                                                  m_DestinationCosts.Where(s => s.Value.RouteChanged)
@@ -488,7 +489,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				SendTriggeredUpdate();
 		}
 
-		private IEnumerable<HostInfo> GetHosts()
+		private IEnumerable<HostSessionInfo> GetHosts()
 		{
 			return m_Core.Originators.GetChildren<RemoteSwitcher>().Where(rs => rs.HasHostInfo).Select(rs => rs.HostInfo);
 		}

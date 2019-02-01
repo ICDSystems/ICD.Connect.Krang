@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.Remote.Direct.Disconnect
 			               .AddEntry(eSeverity.Error,
 			                         "Remote Krang at {0} disconnected; RemoteSwitcher {1} going to discovery mode",
 			                         message.MessageFrom, switcher.Id);
-			switcher.HostInfo = default(HostInfo);
+			switcher.HostInfo = default(HostSessionInfo);
 
 			return null;
 		}

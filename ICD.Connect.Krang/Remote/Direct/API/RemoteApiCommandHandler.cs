@@ -3,6 +3,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
+using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 
@@ -13,7 +14,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 	/// </summary>
 	public sealed class RemoteApiCommandHandler : AbstractMessageHandler<RemoteApiMessage, RemoteApiReply>
 	{
-		private readonly BiDictionary<HostInfo, ApiRequestor> m_Requestors;
+		private readonly BiDictionary<HostSessionInfo, ApiRequestor> m_Requestors;
 		private readonly SafeCriticalSection m_RequestorsSection;
 
 		/// <summary>
@@ -21,7 +22,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// </summary>
 		public RemoteApiCommandHandler()
 		{
-			m_Requestors = new BiDictionary<HostInfo, ApiRequestor>();
+			m_Requestors = new BiDictionary<HostSessionInfo, ApiRequestor>();
 			m_RequestorsSection = new SafeCriticalSection();
 		}
 
@@ -37,7 +38,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 
 			try
 			{
-				foreach (HostInfo key in m_Requestors.Keys.ToArray(m_Requestors.Count))
+				foreach (HostSessionInfo key in m_Requestors.Keys.ToArray(m_Requestors.Count))
 					DisposeRequestor(key);
 			}
 			finally
@@ -59,7 +60,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			return new RemoteApiReply {Command = message.Command};
 		}
 
-		private ApiRequestor LazyLoadRequestor(HostInfo remoteEndpoint)
+		private ApiRequestor LazyLoadRequestor(HostSessionInfo remoteEndpoint)
 		{
 			m_RequestorsSection.Enter();
 
@@ -83,7 +84,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			}
 		}
 
-		private void DisposeRequestor(HostInfo remoteEndpoint)
+		private void DisposeRequestor(HostSessionInfo remoteEndpoint)
 		{
 			m_RequestorsSection.Enter();
 
@@ -117,7 +118,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 
 		private void RequestorOnApiFeedback(object sender, ApiClassInfoEventArgs eventArgs)
 		{
-			HostInfo hostInfo = m_RequestorsSection.Execute(() => m_Requestors.GetKey(sender as ApiRequestor));
+			HostSessionInfo hostInfo = m_RequestorsSection.Execute(() => m_Requestors.GetKey(sender as ApiRequestor));
 
 			RemoteApiReply reply = new RemoteApiReply
 			{
