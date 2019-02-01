@@ -611,6 +611,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			yield return new GenericConsoleCommand<int, eSourceTypeRouted>("Route", "Route (sourceid) (Audio|Video|AudioVideo)", (source, type) => SetSourceId(source, type));
 			yield return new ConsoleCommand("Unroute", "Unroutes all the destinations in the room", () => Unroute());
+			yield return new ConsoleCommand("UpdateCachedActiveSources", "Recaculates cached active sources", () => UpdateCachedActiveSources());
+			yield return new ConsoleCommand("GetActiveInputs", "Gets the active inputs for the room", () => GetActiveRoomSources());
 			yield return new ConsoleCommand("PrintCrosspoints", "Prints the crosspoints added to the room", () => PrintCrosspoints());
 		}
 
