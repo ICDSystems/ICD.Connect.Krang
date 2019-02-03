@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.API.Commands;
 using ICD.Connect.Devices.Simpl;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
@@ -219,6 +220,27 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device
 		                                         eVolumeMuteAvailableControl muteControl)
 		{
 			OnVolumeAvailableControlUpdate.Raise(this, new VolumeAvailableControlEventArgs(levelControl, muteControl));
+		}
+
+		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			foreach (IConsoleCommand command in GetBaseConsoleCommands())
+				yield return command;
+
+			yield return new ConsoleCommand("RefreshPanel", "Requeust the UI to refresh all data on the panel", () => OnRequestRefresh.Raise(this));
+		}
+
+		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
+		{
+			return base.GetConsoleCommands();
 		}
 
 		#endregion

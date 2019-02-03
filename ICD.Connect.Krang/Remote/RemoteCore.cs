@@ -126,18 +126,27 @@ namespace ICD.Connect.Krang.Remote
 		{
 			IOriginator originator;
 			if (!m_LocalCore.Originators.TryGetChild(id, out originator))
+			{
+				IcdConsole.PrintLine(eConsoleColor.Blue, "InitializeProxy: No originator at id {0}", id);
 				return null;
+			}
 
 			IProxyOriginator proxyOriginator = originator as IProxyOriginator;
 			if (proxyOriginator == null)
+			{
+				IcdConsole.PrintLine(eConsoleColor.Blue, "InitializeProxy: Originator at id {0} is a not a proxy", id);
 				return null;
+			}
 
 			m_CriticalSection.Enter();
 
 			try
 			{
 				if (m_ProxyBuildCommand.ContainsKey(proxyOriginator))
+				{
+					IcdConsole.PrintLine(eConsoleColor.Green, "InitalizeProxy: Skipping proxy already initialized {0}", id);
 					return proxyOriginator;
+				}
 
 				// Build the root command
 				Func<ApiClassInfo, ApiClassInfo> buildCommand = local =>
@@ -152,6 +161,8 @@ namespace ICD.Connect.Krang.Remote
 
 				// Start handling the proxy callbacks
 				Subscribe(proxyOriginator);
+
+				IcdConsole.PrintLine(eConsoleColor.Blue, "InitializeProxy: Inatilizing proxy {0}", id);
 
 				// Initialize the proxy
 				proxyOriginator.Initialize();
@@ -332,7 +343,7 @@ namespace ICD.Connect.Krang.Remote
 			{
 				// Don't create proxy around existing proxies
 				if (node.Node.IsProxy)
-					return;
+					continue;
 
 				InitializeProxyOriginator("Devices", (int)node.Key);
 			}
