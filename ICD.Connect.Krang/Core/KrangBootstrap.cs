@@ -58,6 +58,11 @@ namespace ICD.Connect.Krang.Core
 		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
 
 		/// <summary>
+		/// Gets the direct message manager instance.
+		/// </summary>
+		public DirectMessageManager DirectMessageManager { get { return m_DirectMessageManager; } }
+
+		/// <summary>
 		/// Gets the license manager instance.
 		/// </summary>
 		public LicenseManager LicenseManager { get { return m_LicenseManager; } }

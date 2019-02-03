@@ -30,6 +30,7 @@ namespace ICD.Connect.Krang.Core
 
 			yield return instance.Krang;
 			yield return instance.BroadcastManager;
+			yield return instance.DirectMessageManager;
 			yield return instance.LicenseManager;
 		}
 
