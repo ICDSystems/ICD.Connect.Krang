@@ -3,7 +3,6 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
-using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 
@@ -69,7 +68,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 				ApiRequestor requestor;
 				if (!m_Requestors.TryGetValue(remoteEndpoint, out requestor))
 				{
-					requestor = new ApiRequestor();
+					requestor = new ApiRequestor {Name = remoteEndpoint.ToString()};
 
 					m_Requestors.Add(remoteEndpoint, requestor);
 
