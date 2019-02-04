@@ -22,6 +22,8 @@ namespace ICD.Connect.Krang.Remote
 	/// </summary>
 	public sealed class RemoteCore : IDisposable
 	{
+		private const long MESSAGE_TIMEOUT = 10 * 1000;
+
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
 		private readonly SafeCriticalSection m_CriticalSection;
 
@@ -111,7 +113,7 @@ namespace ICD.Connect.Krang.Remote
 				throw new ArgumentNullException("command");
 
 			RemoteApiMessage message = new RemoteApiMessage { Command = command };
-			m_DirectMessageManager.Send(m_RemoteHost, message);
+			m_DirectMessageManager.Send(m_RemoteHost, message, r => { }, MESSAGE_TIMEOUT);
 		}
 
 		/// <summary>
