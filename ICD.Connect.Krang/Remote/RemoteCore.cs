@@ -133,7 +133,7 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="message"></param>
 		private void HandleMessageTimeout(RemoteApiMessage message)
 		{
-			IcdConsole.PrintLine(eConsoleColor.Magenta, JsonUtils.Format(message));
+			//IcdConsole.PrintLine(eConsoleColor.Magenta, JsonUtils.Format(message));
 		}
 
 		/// <summary>
