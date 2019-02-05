@@ -25,14 +25,7 @@ namespace ICD.Connect.Krang
 			if (configPath == nvramPath)
 				return;
 
-			// Abandon if new folder exists and isn't empty
-			if (IcdDirectory.Exists(configPath) &&
-				(IcdDirectory.GetFiles(configPath).Length > 0 || IcdDirectory.GetDirectories(configPath).Length > 0))
-				return;
-
-			logger.AddEntry(eSeverity.Informational, "Migrating {0} to {1}", nvramPath, configPath);
-
-			bool migrated = MigrateDirectory(nvramPath, configPath);
+			bool migrated = MigrateDirectory(logger, nvramPath, configPath);
 			if (migrated)
 				CreateNvramDeprecatedFile();
 		}
@@ -41,9 +34,10 @@ namespace ICD.Connect.Krang
 		/// Copies all the files and folders from oldDirectory to newDirectory, creating folders if needed.
 		/// Does not remove the files/folders at oldDirectory.
 		/// </summary>
+		/// <param name="logger"></param>
 		/// <param name="oldPath"></param>
 		/// <param name="newPath"></param>
-		private static bool MigrateDirectory(string oldPath, string newPath)
+		private static bool MigrateDirectory(ILoggerService logger, string oldPath, string newPath)
 		{
 			bool migrated = false;
 
@@ -53,7 +47,7 @@ namespace ICD.Connect.Krang
 				string relativePath = IcdPath.GetRelativePath(oldPath, oldFile);
 				string newFile = IcdPath.Combine(newPath, relativePath);
 
-				migrated |= MigrateFile(oldFile, newFile);
+				migrated |= MigrateFile(logger, oldFile, newFile);
 			}
 
 			// Migrate directories
@@ -62,7 +56,7 @@ namespace ICD.Connect.Krang
 				string relativePath = IcdPath.GetRelativePath(oldPath, oldSubdirectory);
 				string newSubdirectory = IcdPath.Combine(newPath, relativePath);
 
-				migrated |= MigrateDirectory(oldSubdirectory, newSubdirectory);
+				migrated |= MigrateDirectory(logger, oldSubdirectory, newSubdirectory);
 			}
 
 			return migrated;
@@ -72,10 +66,11 @@ namespace ICD.Connect.Krang
 		/// Copies the file at the old path to the new path.
 		/// Does nothing if a file already exists at the new path.
 		/// </summary>
+		/// <param name="logger"></param>
 		/// <param name="oldPath"></param>
 		/// <param name="newPath"></param>
 		/// <returns></returns>
-		private static bool MigrateFile(string oldPath, string newPath)
+		private static bool MigrateFile(ILoggerService logger, string oldPath, string newPath)
 		{
 			if (!IcdFile.Exists(oldPath))
 				throw new InvalidOperationException("File does not exist");
@@ -87,6 +82,7 @@ namespace ICD.Connect.Krang
 			IcdDirectory.CreateDirectory(directory);
 
 			// Copy file
+			logger.AddEntry(eSeverity.Informational, "Migrating {0} to {1}", oldPath, newPath);
 			IcdFile.Copy(oldPath, newPath);
 
 			return true;
