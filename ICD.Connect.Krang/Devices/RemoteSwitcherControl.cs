@@ -19,6 +19,8 @@ namespace ICD.Connect.Krang.Devices
 {
 	public sealed class RemoteSwitcherControl : AbstractRouteSwitcherControl<RemoteSwitcher>
 	{
+		private const long MESSAGE_TIMEOUT = 10 * 1000;
+
 		/// <summary>
 		/// Raised when the device starts/stops actively transmitting on an output.
 		/// </summary>
@@ -190,7 +192,9 @@ namespace ICD.Connect.Krang.Devices
 
 				RoutingGraph.PendingRouteStarted(info);
 
-				dmManager.Send(Parent.HostInfo, new RouteDevicesMessage(info), r => RouteFinished(info, r as RouteDevicesReply));
+				dmManager.Send<RouteDevicesMessage, RouteDevicesReply>(Parent.HostInfo, new RouteDevicesMessage(info),
+				                                                       r => RouteFinished(info, r),
+				                                                       null, MESSAGE_TIMEOUT);
 			}
 
 			return m_Cache.SetInputForOutput(info.LocalOutput, info.LocalInput, info.ConnectionType);

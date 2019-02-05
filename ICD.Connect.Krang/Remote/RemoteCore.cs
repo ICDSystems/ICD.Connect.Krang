@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
@@ -22,6 +23,8 @@ namespace ICD.Connect.Krang.Remote
 	/// </summary>
 	public sealed class RemoteCore : IDisposable
 	{
+		private const long MESSAGE_TIMEOUT = 10 * 1000;
+
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
 		private readonly SafeCriticalSection m_CriticalSection;
 
@@ -111,7 +114,26 @@ namespace ICD.Connect.Krang.Remote
 				throw new ArgumentNullException("command");
 
 			RemoteApiMessage message = new RemoteApiMessage { Command = command };
-			m_DirectMessageManager.Send(m_RemoteHost, message);
+			m_DirectMessageManager.Send<RemoteApiMessage, RemoteApiReply>(m_RemoteHost, message, HandleMessageReply,
+			                                                              HandleMessageTimeout, MESSAGE_TIMEOUT);
+		}
+
+		/// <summary>
+		/// Called when a message gets a reply.
+		/// </summary>
+		/// <param name="reply"></param>
+		private void HandleMessageReply(RemoteApiReply reply)
+		{
+			// Handled by the ApiResultHandler
+		}
+
+		/// <summary>
+		/// Called when a message times out.
+		/// </summary>
+		/// <param name="message"></param>
+		private void HandleMessageTimeout(RemoteApiMessage message)
+		{
+			//IcdConsole.PrintLine(eConsoleColor.Magenta, JsonUtils.Format(message));
 		}
 
 		/// <summary>
