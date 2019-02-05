@@ -168,6 +168,14 @@ namespace ICD.Connect.Krang.Core
 
 		private void PrintProgramInfo()
 		{
+			ProgramUtils.PrintProgramInfoLine("Configuration",
+#if DEBUG
+			                                  "Debug"
+#else
+			                                  "Release"
+#endif
+);
+
 #if LICENSING
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			if (!ValidateLicense())
