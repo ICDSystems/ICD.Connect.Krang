@@ -18,7 +18,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		private const string CROSSPOINT_ID_ELEMENT = "Id";
 		private const string CROSSPOINT_TYPE_ELEMENT = "Type";
 
-		private readonly Dictionary<ushort, eCrosspointType> m_Crosspoints;
+		private readonly Dictionary<eCrosspointType, ushort> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
 
 		/// <summary>
@@ -26,7 +26,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// </summary>
 		public SimplRoomSettings()
 		{
-			m_Crosspoints = new Dictionary<ushort, eCrosspointType>();
+			m_Crosspoints = new Dictionary<eCrosspointType, ushort>();
 			m_CrosspointsSection = new SafeCriticalSection();
 		}
 
@@ -36,16 +36,16 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// Gets the crosspoints.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<KeyValuePair<ushort, eCrosspointType>> GetCrosspoints()
+		public IEnumerable<KeyValuePair<eCrosspointType, ushort>> GetCrosspoints()
 		{
-			return m_CrosspointsSection.Execute(() => m_Crosspoints.OrderByKey().ToArray());
+			return m_CrosspointsSection.Execute(() => m_Crosspoints.ToArray());
 		}
 
 		/// <summary>
 		/// Sets the crosspoints.
 		/// </summary>
 		/// <param name="crosspoints"></param>
-		public void SetCrosspoints(IEnumerable<KeyValuePair<ushort, eCrosspointType>> crosspoints)
+		public void SetCrosspoints(IEnumerable<KeyValuePair<eCrosspointType,ushort>> crosspoints)
 		{
 			m_CrosspointsSection.Enter();
 
@@ -72,8 +72,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		{
 			base.WriteElements(writer);
 
-			XmlUtils.WriteDictToXml(writer, m_Crosspoints, CROSSPOINTS_ELEMENT, CROSSPOINT_ELEMENT, CROSSPOINT_ID_ELEMENT,
-			                        CROSSPOINT_TYPE_ELEMENT);
+			XmlUtils.WriteDictToXml(writer, m_Crosspoints, CROSSPOINTS_ELEMENT, CROSSPOINT_ELEMENT, CROSSPOINT_TYPE_ELEMENT,
+			                        CROSSPOINT_ID_ELEMENT);
 		}
 
 		/// <summary>
@@ -84,18 +84,18 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		{
 			base.ParseXml(xml);
 
-			IEnumerable<KeyValuePair<ushort, eCrosspointType>> crosspoints = ReadCrosspointsFromXml(xml);
+			IEnumerable<KeyValuePair<eCrosspointType,ushort>> crosspoints = ReadCrosspointsFromXml(xml);
 			SetCrosspoints(crosspoints);
 		}
 
-		private static IEnumerable<KeyValuePair<ushort, eCrosspointType>> ReadCrosspointsFromXml(string xml)
+		private static IEnumerable<KeyValuePair<eCrosspointType,ushort>> ReadCrosspointsFromXml(string xml)
 		{
-			Func<string, ushort> readKey = XmlUtils.ReadElementContentAsUShort;
-			Func<string, eCrosspointType> readValue =
-				s => XmlUtils.ReadElementContentAsEnum<eCrosspointType>(s, true);
+			Func<string, eCrosspointType> readKey = s => XmlUtils.ReadElementContentAsEnum<eCrosspointType>(s, true);
+			Func<string, ushort> readValue =
+				XmlUtils.ReadElementContentAsUShort;
 
-			return XmlUtils.ReadDictFromXml(xml, CROSSPOINTS_ELEMENT, CROSSPOINT_ELEMENT, CROSSPOINT_ID_ELEMENT,
-			                                CROSSPOINT_TYPE_ELEMENT, readKey, readValue);
+			return XmlUtils.ReadDictFromXml(xml, CROSSPOINTS_ELEMENT, CROSSPOINT_ELEMENT, CROSSPOINT_TYPE_ELEMENT,
+			                                CROSSPOINT_ID_ELEMENT, readKey, readValue);
 		}
 
 		#endregion

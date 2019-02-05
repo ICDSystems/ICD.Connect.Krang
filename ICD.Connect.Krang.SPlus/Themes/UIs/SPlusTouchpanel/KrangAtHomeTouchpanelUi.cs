@@ -150,7 +150,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				SetSource(null, eSourceTypeRouted.Audio);
 				return;
 			}
-
+			
 			IKrangAtHomeSourceBase source;
 
 			if (!m_SourceListAudioBiDictionary.TryGetValue(sourceIndex, out source))
@@ -178,20 +178,24 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// <summary>
 		/// Sets the selected source for the room
 		/// </summary>
-		/// <param name="source"></param>
+		/// <param name="sourceBase"></param>
 		/// <param name="type"></param>
-		private void SetSource(IKrangAtHomeSourceBase source, eSourceTypeRouted type)
+		private void SetSource(IKrangAtHomeSourceBase sourceBase, eSourceTypeRouted type)
 		{
 			if (m_Room == null)
 				return;
 
-			if (source == null)
+			if (sourceBase == null)
 			{
 				m_Room.SetSource(null, type);
 				return;
 			}
 
-			m_Room.SetSource(source.GetSource(), type);
+			//todo: fix this
+
+			IKrangAtHomeSource source = sourceBase as IKrangAtHomeSource;
+			if (source != null)
+				m_Room.SetSource(source, type);
 		}
 
 		private IKrangAtHomeSource GetSourceId(int id)

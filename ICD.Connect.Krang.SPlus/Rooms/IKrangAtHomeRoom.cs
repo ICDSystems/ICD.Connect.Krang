@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
@@ -20,5 +21,12 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		IKrangAtHomeSource GetSourceId(int id);
 
 		IVolumeDeviceControl ActiveVolumeControl { get; }
+
+
+		IEnumerable<KeyValuePair<eCrosspointType, ushort>> GetCrosspoints();
+
+		int GetCrosspointsCount();
+
+
 	}
 }

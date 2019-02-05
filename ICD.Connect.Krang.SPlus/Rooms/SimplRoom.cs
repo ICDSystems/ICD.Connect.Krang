@@ -40,9 +40,9 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 	public enum eCrosspointType
 	{
-		None,
-		Lighting,
-		Hvac
+		None = 0,
+		Lighting = 1,
+		Hvac = 2
 	}
 
 	public sealed class SimplRoom : AbstractRoom<SimplRoomSettings>, IKrangAtHomeRoom, ISimplOriginator
@@ -59,7 +59,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 		#region Fields
 
-		private readonly Dictionary<ushort, eCrosspointType> m_Crosspoints;
+		private readonly Dictionary<eCrosspointType, ushort> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
 
 		private readonly IcdHashSet<ISource> m_CachedActiveSources;
@@ -103,7 +103,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// </summary>
 		public SimplRoom()
 		{
-			m_Crosspoints = new Dictionary<ushort, eCrosspointType>();
+			m_Crosspoints = new Dictionary<eCrosspointType, ushort>();
 			m_CrosspointsSection = new SafeCriticalSection();
 
 			m_CachedActiveSources = new IcdHashSet<ISource>();
@@ -127,16 +127,21 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// Gets the crosspoints.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<KeyValuePair<ushort, eCrosspointType>> GetCrosspoints()
+		public IEnumerable<KeyValuePair<eCrosspointType, ushort>> GetCrosspoints()
 		{
 			return m_CrosspointsSection.Execute(() => m_Crosspoints.OrderByKey().ToArray());
+		}
+
+		public int GetCrosspointsCount()
+		{
+			return m_CrosspointsSection.Execute(() => m_Crosspoints.Count);
 		}
 
 		/// <summary>
 		/// Sets the crosspoints.
 		/// </summary>
 		/// <param name="crosspoints"></param>
-		public void SetCrosspoints(IEnumerable<KeyValuePair<ushort, eCrosspointType>> crosspoints)
+		public void SetCrosspoints(IEnumerable<KeyValuePair<eCrosspointType, ushort>> crosspoints)
 		{
 			m_CrosspointsSection.Enter();
 
@@ -637,7 +642,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			{
 				TableBuilder builder = new TableBuilder("Id", "Type");
 
-				foreach (KeyValuePair<ushort, eCrosspointType> kvp in m_Crosspoints)
+				foreach (KeyValuePair<eCrosspointType, ushort> kvp in m_Crosspoints)
 					builder.AddRow(kvp.Key, kvp.Value);
 
 				return builder.ToString();

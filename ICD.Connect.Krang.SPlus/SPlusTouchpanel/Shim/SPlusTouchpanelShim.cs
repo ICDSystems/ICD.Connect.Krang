@@ -5,6 +5,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Devices.SPlusShims;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
+using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
 using ICD.Connect.Krang.SPlus.SPlusTouchpanel.EventArgs;
 #if SIMPLSHARP
@@ -19,6 +20,8 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 	public delegate void ListSizeCallback(ushort size);
 
 	public delegate void RoomInfoCallback(int id, ICDPlatformString name, ushort index);
+
+	public delegate void RoomCrosspointCallback(ushort index, ushort crosspointId, ushort crosspointType);
 
 	public delegate void SourceInfoCallback(
 		int id, ICDPlatformString name, ushort crosspointId, ushort crosspointType, ushort sourceListIndex,
@@ -39,6 +42,15 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 
 		private const int INDEX_OFFSET_SPLUS = 1;
 
+
+		#region Fields
+
+		private readonly Dictionary<eCrosspointType, ushort> m_Crosspoints;
+
+		private readonly SafeCriticalSection m_CrosspointsSection;
+
+		#endregion
+
 		#region S+ Properties
 
 		/// <summary>
@@ -46,6 +58,12 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 		/// </summary>
 		[PublicAPI("S+")]
 		public RoomInfoCallback UpdateRoomInfo { get; set; }
+
+		/// <summary>
+		/// Updates the room crosspoint info (HVAC, Lighting, etc)
+		/// </summary>
+		[PublicAPI("S+")]
+		public RoomCrosspointCallback UpdateRoomCrosspoint { get; set; }
 
 		/// <summary>
 		/// Raises for each source that is routed to the room destinations.
@@ -85,7 +103,17 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 
 		#endregion
 
-		#region SPlus 
+		#region Constructor
+
+		public SPlusTouchpanelShim()
+		{
+			m_Crosspoints = new Dictionary<eCrosspointType, ushort>();
+			m_CrosspointsSection = new SafeCriticalSection();
+		}
+
+		#endregion
+
+		#region SPlus
 
 		[PublicAPI("S+")]
 		public void SetRoomIndex(ushort index)
@@ -189,6 +217,27 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 			Originator.SetVolumeMuteToggle();
 		}
 
+
+		[PublicAPI("S+")]
+		public void SetCrosspointType(ushort index, ushort crosspointType)
+		{
+			if (!EnumUtils.IsDefined(typeof(eCrosspointType), crosspointType))
+				return;
+			
+			eCrosspointType type = (eCrosspointType)crosspointType;
+
+			if (type == eCrosspointType.None)
+				return;
+
+			m_CrosspointsSection.Execute(() => m_Crosspoints[type] = index);
+		}
+
+		[PublicAPI("S+")]
+		public void ClearCrosspointTypes()
+		{
+			m_CrosspointsSection.Execute(() => m_Crosspoints.Clear());
+		}
+
 		#endregion
 
 		#region Private/Protected Methods
@@ -213,6 +262,9 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 			var callback = UpdateRoomInfo;
 			if (callback != null && roomInfo != null)
 				callback(roomInfo.Id, SPlusSafeString(roomInfo.Name), (ushort)(index + INDEX_OFFSET_SPLUS));
+			
+			if (roomInfo != null)
+				SetCrosspoints(roomInfo.Crosspoints);
 		}
 
 		/// <summary>
@@ -309,6 +361,59 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 				return;
 
 			callback((ushort)levelAvailableControl, (ushort)muteAvailableControl);
+		}
+
+		/// <summary>
+		/// Sets the given crosspoints on the shim
+		/// </summary>
+		/// <param name="crosspoints"></param>
+		private void SetCrosspoints(IEnumerable<KeyValuePair<eCrosspointType, ushort>> crosspoints)
+		{
+			var callback = UpdateRoomCrosspoint;
+			if (callback == null)
+				return;
+			
+			Dictionary<eCrosspointType, ushort> crosspointsDictionary = crosspoints.ToDictionary();
+
+			List<KeyValuePair<eCrosspointType, ushort>> shimCrosspoints = null;
+
+			m_CrosspointsSection.Execute(() => shimCrosspoints = m_Crosspoints.ToList(m_Crosspoints.Count));
+
+			if (shimCrosspoints == null)
+				return;
+
+			// Update all the crosspoints on the shim
+			foreach (KeyValuePair<eCrosspointType, ushort> kvp in shimCrosspoints)
+			{
+				ushort crosspointId;
+				// If the type is in the room, set the crosspointID, otherwise set 0
+				if (crosspointsDictionary.TryGetValue(kvp.Key, out crosspointId))
+					callback(kvp.Value, crosspointId, kvp.Key.ToUShort());
+				else
+				{
+					callback(kvp.Value, 0, kvp.Key.ToUShort());
+				}
+			}
+		}
+
+		/// <summary>
+		/// Clears all the crosspoints on the shim
+		/// </summary>
+		private void ClearCrosspoints()
+		{
+			var callback = UpdateRoomCrosspoint;
+			if (callback == null)
+				return;
+
+			List<KeyValuePair<eCrosspointType, ushort>> shimCrosspoints = null;
+
+			m_CrosspointsSection.Execute(() => shimCrosspoints = m_Crosspoints.ToList(m_Crosspoints.Count));
+
+			foreach (var kvp in shimCrosspoints)
+			{
+				callback(kvp.Value, 0, kvp.Key.ToUShort());
+			}
+
 		}
 
 		#endregion
