@@ -36,8 +36,9 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		private readonly Dictionary<IKrangAtHomeSource, Dictionary<IKrangAtHomeRoom, eSourceRoomStatus>> m_SourcesRoomStatus;
 		private readonly Dictionary<IKrangAtHomeRoom, Dictionary<IKrangAtHomeSourceGroup, IKrangAtHomeSource>> m_RoomActiveSourceGroup;
 		private readonly SafeCriticalSection m_SourcesRoomSection;
-		private KrangAtHomeRouting m_Routing
-			;
+
+
+		private KrangAtHomeRouting m_Routing;
 
 		#endregion
 
@@ -408,6 +409,40 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			}
 		}
 
+		private void SetRoomsForSource(IKrangAtHomeSource source, IEnumerable<IKrangAtHomeRoom> rooms)
+		{
+
+			List<IKrangAtHomeRoom> roomsList = rooms.ToList();
+
+			Dictionary<IKrangAtHomeRoom, eSourceRoomStatus> oldRoomsDict;
+			IEnumerable<IKrangAtHomeRoom> oldRoomsInUse;
+
+			m_SourcesRoomSection.Enter();
+			try
+			{
+				if (m_SourcesRoomStatus.TryGetValue(source, out oldRoomsDict))
+				{
+					oldRoomsInUse = oldRoomsDict.Where(kvp => kvp.Value == eSourceRoomStatus.InUse).Select(kvp => kvp.Key);
+				}
+				else
+				{
+					oldRoomsInUse = Enumerable.Empty<IKrangAtHomeRoom>();
+				}
+			}
+			finally
+			{
+				m_SourcesRoomSection.Leave();
+			}
+
+			IEnumerable<IKrangAtHomeRoom> oldRoomsNoLongerActive = oldRoomsInUse.Except(roomsList);
+
+			foreach (IKrangAtHomeRoom room in oldRoomsNoLongerActive)
+			{
+				
+			}
+
+		}
+
 		/// <summary>
 		/// Assigns the given group/source to the room, in both collections
 		/// NOTE: Doesn't Raise Events
@@ -462,6 +497,31 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			AssignRoomSouce(room, sourceGroup, source, out sourceInUsedChanged, out sourceRoomsUsedChanged);
 
 			if (sourceInUsedChanged)
+				OnSourceInUseUpdated.Raise(this, new SourceInUseUpdatedEventArgs(source, true));
+			if (sourceRoomsUsedChanged)
+				OnSourceRoomsUsedUpdated.Raise(this, new SourceRoomsUsedUpdatedEventArgs(source, GetRoomsUsedBySource(source)));
+		}
+
+		/// <summary>
+		/// Assigns the source to a room
+		/// Raises Events
+		/// </summary>
+		/// <param name="room"></param>
+		/// <param name="source"></param>
+		/// <returns></returns>
+		public void SetSourceStatusForRoom(IKrangAtHomeRoom room, IKrangAtHomeSource source, eSourceRoomStatus status)
+		{
+			if (room == null)
+				throw new ArgumentNullException("room");
+			if (source == null)
+				throw new ArgumentNullException("source");
+
+			bool sourceInUseChanged;
+			bool sourceRoomsUsedChanged;
+
+			SetRoomSourceStatusUsed(source, room, status, out sourceInUseChanged, out sourceRoomsUsedChanged);
+
+			if (sourceInUseChanged)
 				OnSourceInUseUpdated.Raise(this, new SourceInUseUpdatedEventArgs(source, true));
 			if (sourceRoomsUsedChanged)
 				OnSourceRoomsUsedUpdated.Raise(this, new SourceRoomsUsedUpdatedEventArgs(source, GetRoomsUsedBySource(source)));

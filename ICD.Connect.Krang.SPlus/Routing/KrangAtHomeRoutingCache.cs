@@ -4,12 +4,14 @@ using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Services;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.SPlus.Routing
 {
@@ -54,7 +56,7 @@ namespace ICD.Connect.Krang.SPlus.Routing
 		public IEnumerable<ISource> GetSouresForType(eConnectionType type)
 		{
 			if (EnumUtils.HasMultipleFlags(type))
-				throw new ArgumentException("type can onyl be a single flag");
+				throw new ArgumentException("type can only be a single flag");
 
 			m_SourcesSection.Enter();
 			try
@@ -84,8 +86,12 @@ namespace ICD.Connect.Krang.SPlus.Routing
 				IcdHashSet<IRoom> roomsForDestination;
 				if (!m_DestinationToRoomsCache.TryGetValue(destination, out roomsForDestination))
 				{
-					//todo: Caculate rooms for unknown destination
-					throw new NotImplementedException();
+					//Get rooms for destination
+					ICore core = ServiceProvider.GetService<ICore>();
+					IEnumerable<IRoom> rooms = core.Originators.GetChildren<IRoom>();
+					roomsForDestination = new IcdHashSet<IRoom>(rooms.Where(room => room.Originators.Contains(destination.Id)));
+
+					m_DestinationToRoomsCache.Add(destination, roomsForDestination);
 				}
 				return roomsForDestination;
 

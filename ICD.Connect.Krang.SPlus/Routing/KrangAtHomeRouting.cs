@@ -11,6 +11,7 @@ using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.RoutingCaches;
+using ICD.Connect.Routing.RoutingGraphs;
 
 namespace ICD.Connect.Krang.SPlus.Routing
 {
@@ -22,11 +23,11 @@ namespace ICD.Connect.Krang.SPlus.Routing
 		public event EventHandler<SourceInUseUpdatedEventArgs> OnSourceInUseUpdated;
 		public event EventHandler<SourceRoomsUsedUpdatedEventArgs> OnSourceRoomsUsedUpdated;
 
-		public KrangAtHomeRouting(RoutingCache routingCache)
+		public KrangAtHomeRouting(IRoutingGraph routingGraph)
 		{
 			m_KrangAtHomeCache = new KrangAtHomeRoutingCache();
 
-			m_RoutingCache = routingCache;
+			m_RoutingCache = routingGraph.RoutingCache;
 			Subscribe(m_RoutingCache);
 
 			

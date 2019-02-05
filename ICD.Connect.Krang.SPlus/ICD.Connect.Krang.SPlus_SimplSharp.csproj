@@ -78,9 +78,12 @@
     <Compile Include="Routing\Endpoints\Sources\IKrangAtHomeSource.cs" />
     <Compile Include="Routing\IKrangAtHomeSourceBase.cs" />
     <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSource.cs" />
+    <Compile Include="Routing\KrangAtHomeRouting.cs" />
+    <Compile Include="Routing\KrangAtHomeRoutingCache.cs" />
     <Compile Include="Routing\KrangAtHomeSourceGroup\IKrangAtHomeSourceGroup.cs" />
     <Compile Include="Routing\KrangAtHomeSourceGroup\KrangAtHomeSourceGroup.cs" />
     <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSourceSettings.cs" />
+    <Compile Include="Routing\KrangAtHomeSourceGroup\KrangAtHomeSourceGroupManager.cs" />
     <Compile Include="Routing\KrangAtHomeSourceGroup\KrangAtHomeSourceGroupSettings.cs" />
     <Compile Include="Routing\KrangAtHomeSourceGroup\SourceInUseUpdatedEventArgs.cs" />
     <Compile Include="Routing\KrangAtHomeSourceGroup\SourceRoomsUsedUpdatedEventArgs.cs" />
