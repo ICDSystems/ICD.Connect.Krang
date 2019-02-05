@@ -79,11 +79,28 @@ namespace ICD.Connect.Krang
 				return false;
 
 			string directory = IcdPath.GetDirectoryName(newPath);
-			IcdDirectory.CreateDirectory(directory);
 
-			// Copy file
-			logger.AddEntry(eSeverity.Informational, "Migrating {0} to {1}", oldPath, newPath);
-			IcdFile.Copy(oldPath, newPath);
+			try
+			{
+				IcdDirectory.CreateDirectory(directory);
+			}
+			catch (Exception e)
+			{
+				logger.AddEntry(eSeverity.Error, "Failed to create directory {0} - {1}", directory, e.Message);
+				return false;
+			}
+
+			try
+			{
+				IcdFile.Copy(oldPath, newPath);
+			}
+			catch (Exception e)
+			{
+				logger.AddEntry(eSeverity.Error, "Failed to copy {0} to {1} - {2}", oldPath, newPath, e.Message);
+				return false;
+			}
+
+			logger.AddEntry(eSeverity.Informational, "Migrated {0} to {1}", oldPath, newPath);
 
 			return true;
 		}
