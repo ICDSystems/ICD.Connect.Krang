@@ -78,15 +78,10 @@ namespace ICD.Connect.Krang.Core
 		/// </summary>
 		public void Start()
 		{
+			PrintProgramInfo();
 			ValidateProgram();
 
 			NvramMigration.Migrate(m_Logger);
-
-			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
-			if (!ValidateLicense())
-				return;
-
-			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
 			try
 			{
@@ -169,6 +164,17 @@ namespace ICD.Connect.Krang.Core
 
 			m_ActionSchedulerService = new ActionSchedulerService();
 			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
+		}
+
+		private void PrintProgramInfo()
+		{
+#if LICENSING
+			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
+			if (!ValidateLicense())
+				return;
+#endif
+
+			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 		}
 
 		/// <summary>
