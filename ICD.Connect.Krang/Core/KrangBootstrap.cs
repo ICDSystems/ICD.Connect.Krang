@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ICD.Common.Logging.Console;
 using ICD.Common.Logging.Console.Loggers;
 using ICD.Common.Permissions;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -24,14 +22,10 @@ namespace ICD.Connect.Krang.Core
 	[ApiClass("ControlSystem", null)]
 	public sealed class KrangBootstrap : IConsoleNode
 	{
-		private const string NVRAM_FILE = "NVRAM_DEPRECATED";
-
 		private readonly KrangCore m_Core;
 
 		private ILoggerService m_Logger;
 		private DirectMessageManager m_DirectMessageManager;
-		private BroadcastManager m_BroadcastManager;
-		private LicenseManager m_LicenseManager;
 		private ActionSchedulerService m_ActionSchedulerService;
 
 		#region Properties
@@ -55,12 +49,12 @@ namespace ICD.Connect.Krang.Core
 		/// <summary>
 		/// Gets the broadcast manager instance.
 		/// </summary>
-		public BroadcastManager BroadcastManager { get { return m_BroadcastManager; } }
+		public BroadcastManager BroadcastManager { get; private set; }
 
 		/// <summary>
 		/// Gets the license manager instance.
 		/// </summary>
-		public LicenseManager LicenseManager { get { return m_LicenseManager; } }
+		public LicenseManager LicenseManager { get; private set; }
 
 		#endregion
 
@@ -86,7 +80,7 @@ namespace ICD.Connect.Krang.Core
 		{
 			ValidateProgram();
 
-			MigrateNvram();
+			NvramMigration.Migrate(m_Logger);
 
 			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
 			if (!ValidateLicense())
@@ -112,7 +106,7 @@ namespace ICD.Connect.Krang.Core
 			try
 			{
 				m_DirectMessageManager.Dispose();
-				m_BroadcastManager.Dispose();
+				BroadcastManager.Dispose();
 
 				Clear();
 			}
@@ -165,13 +159,13 @@ namespace ICD.Connect.Krang.Core
 			m_DirectMessageManager = new DirectMessageManager();
 			ServiceProvider.TryAddService(m_DirectMessageManager);
 
-			m_BroadcastManager = new BroadcastManager();
-			ServiceProvider.TryAddService(m_BroadcastManager);
+			BroadcastManager = new BroadcastManager();
+			ServiceProvider.TryAddService(BroadcastManager);
 
 			ServiceProvider.TryAddService(new PermissionsManager());
 
-			m_LicenseManager = new LicenseManager();
-			ServiceProvider.AddService(m_LicenseManager);
+			LicenseManager = new LicenseManager();
+			ServiceProvider.AddService(LicenseManager);
 
 			m_ActionSchedulerService = new ActionSchedulerService();
 			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
@@ -205,114 +199,6 @@ namespace ICD.Connect.Krang.Core
 #else
 			return true;
 #endif
-		}
-
-		#endregion
-
-		#region Migration
-
-		/// <summary>
-		/// Migrates the contents of NVRAM to the USER directory.
-		/// </summary>
-		private void MigrateNvram()
-		{
-			string nvramPath = PathUtils.Join(PathUtils.RootPath, "NVRAM");
-			if (!IcdDirectory.Exists(nvramPath))
-				return;
-
-			string configPath = PathUtils.RootConfigPath;
-			if (configPath == nvramPath)
-				return;
-
-			// Abandon if new folder exists and isn't empty
-			if (IcdDirectory.Exists(configPath) &&
-				(IcdDirectory.GetFiles(configPath).Length > 0 || IcdDirectory.GetDirectories(configPath).Length > 0))
-				return;
-
-			m_Logger.AddEntry(eSeverity.Informational, "Migrating {0} to {1}", nvramPath, configPath);
-
-			bool migrated = MigrateDirectory(nvramPath, configPath);
-			if (migrated)
-				CreateNvramDeprecatedFile();
-		}
-
-		/// <summary>
-		/// Copies all the files and folders from oldDirectory to newDirectory, creating folders if needed.
-		/// Does not remove the files/folders at oldDirectory.
-		/// </summary>
-		/// <param name="oldPath"></param>
-		/// <param name="newPath"></param>
-		private static bool MigrateDirectory(string oldPath, string newPath)
-		{
-			bool migrated = false;
-
-			// Migrate files
-			foreach (string oldFile in IcdDirectory.GetFiles(oldPath))
-			{
-				string relativePath = IcdPath.GetRelativePath(oldPath, oldFile);
-				string newFile = IcdPath.Combine(newPath, relativePath);
-
-				migrated |= MigrateFile(oldFile, newFile);
-			}
-
-			// Migrate directories
-			foreach (string oldSubdirectory in IcdDirectory.GetDirectories(oldPath))
-			{
-				string relativePath = IcdPath.GetRelativePath(oldPath, oldSubdirectory);
-				string newSubdirectory = IcdPath.Combine(newPath, relativePath);
-
-				migrated |= MigrateDirectory(oldSubdirectory, newSubdirectory);
-			}
-
-			return migrated;
-		}
-
-		/// <summary>
-		/// Copies the file at the old path to the new path.
-		/// Does nothing if a file already exists at the new path.
-		/// </summary>
-		/// <param name="oldPath"></param>
-		/// <param name="newPath"></param>
-		/// <returns></returns>
-		private static bool MigrateFile(string oldPath, string newPath)
-		{
-			if (!IcdFile.Exists(oldPath))
-				throw new InvalidOperationException("File does not exist");
-
-			if (IcdFile.Exists(newPath))
-				return false;
-
-			string directory = IcdPath.GetDirectoryName(newPath);
-			IcdDirectory.CreateDirectory(directory);
-
-			// Copy file
-			IcdFile.Copy(oldPath, newPath);
-
-			return true;
-		}
-
-		/// <summary>
-		/// Creates a file with info about the NVRAM deprection in the NVRAM folder.
-		/// Does not override if file exists.
-		/// </summary>
-		private static void CreateNvramDeprecatedFile()
-		{
-			string directory = IcdPath.Combine(PathUtils.RootPath, "NVRAM");
-			if (!IcdDirectory.Exists(directory))
-				return;
-
-			string deprecationFile = IcdPath.Combine(directory, NVRAM_FILE);
-			if (IcdFile.Exists(deprecationFile))
-				return;
-
-			string subDirectory = PathUtils.RootConfigPath.Remove(PathUtils.RootPath);
-
-			using (IcdFileStream stream = IcdFile.Create(deprecationFile))
-			{
-				string data = string.Format("The 'NVRAM' directory has been deprecated in favor of the '{0}' directory",
-											subDirectory);
-				stream.Write(data, Encoding.UTF8);
-			}
 		}
 
 		#endregion
