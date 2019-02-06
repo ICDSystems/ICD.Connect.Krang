@@ -130,7 +130,6 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			RouteDevicesReply reply = new RouteDevicesReply
 			{
 				Result = args.Success,
-				MessageId = message.MessageId,
 				MessageTo = message.MessageTo
 			};
 
