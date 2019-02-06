@@ -15,7 +15,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 	{
 		private const string CROSSPOINTS_ELEMENT = "Crosspoints";
 		private const string CROSSPOINT_ELEMENT = "Crosspoint";
-		private const string CROSSPOINT_ID_ELEMENT = "Id";
+		private const string CROSSPOINT_ID_ELEMENT = "CrosspointId";
 		private const string CROSSPOINT_TYPE_ELEMENT = "Type";
 
 		private readonly Dictionary<eCrosspointType, ushort> m_Crosspoints;

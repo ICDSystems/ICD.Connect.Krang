@@ -640,7 +640,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			try
 			{
-				TableBuilder builder = new TableBuilder("Id", "Type");
+				TableBuilder builder = new TableBuilder("Type", "CrosspointId");
 
 				foreach (KeyValuePair<eCrosspointType, ushort> kvp in m_Crosspoints)
 					builder.AddRow(kvp.Key, kvp.Value);

@@ -388,10 +388,10 @@ namespace ICD.Connect.Krang.SPlus.SPlusTouchpanel.Shim
 				ushort crosspointId;
 				// If the type is in the room, set the crosspointID, otherwise set 0
 				if (crosspointsDictionary.TryGetValue(kvp.Key, out crosspointId))
-					callback(kvp.Value, crosspointId, kvp.Key.ToUShort());
+					callback(kvp.Value, crosspointId, (ushort)kvp.Key);
 				else
 				{
-					callback(kvp.Value, 0, kvp.Key.ToUShort());
+					callback(kvp.Value, 0, (ushort)kvp.Key);
 				}
 			}
 		}
