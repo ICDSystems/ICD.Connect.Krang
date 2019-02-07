@@ -9,6 +9,7 @@ using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup;
+using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel;
 using ICD.Connect.Routing.RoutingCaches;
 using ICD.Connect.Routing.RoutingGraphs;
@@ -43,7 +44,8 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			m_UiFactories = new IcdHashSet<IKrangAtHomeUserInterfaceFactory>
 			{
-				new KrangAtHomeTouchpanelUiFactory(this)
+				new KrangAtHomeTouchpanelUiFactory(this),
+				new KrangAtHomeRemoteUiFactory(this)
 			};
 
 			m_UiFactoriesSection = new SafeCriticalSection();

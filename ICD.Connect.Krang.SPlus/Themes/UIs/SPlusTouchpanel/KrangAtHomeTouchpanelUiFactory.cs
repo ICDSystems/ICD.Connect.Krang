@@ -1,5 +1,5 @@
-﻿using ICD.Connect.Krang.SPlus.Rooms;
-using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
+﻿using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device;
+using ICD.Connect.Krang.SPlus.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 {

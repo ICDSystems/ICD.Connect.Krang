@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
@@ -10,34 +9,21 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Audio.Controls.Mute;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Audio.EventArguments;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
-using ICD.Connect.Krang.SPlus.SPlusTouchpanel.Device;
-using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 {
-	public sealed class KrangAtHomeTouchpanelUi : IKrangAtHomeUserInterface
+	public sealed class KrangAtHomeTouchpanelUi : AbstractKrangAtHomeUi<KrangAtHomeSPlusTouchpanelDevice>
 	{
 		private const int INDEX_NOT_FOUND = -1;
 		private const int INDEX_OFF = -1;
 		private const int INDEX_START = 0;
 
 		#region Fields
-
-		private readonly KrangAtHomeTheme m_Theme;
-
-		private IKrangAtHomeRoom m_Room;
-
-		private IVolumeDeviceControl m_VolumeControl;
-
-		private IVolumePositionDeviceControl m_VolumePositionControl;
-
-		private IVolumeMuteFeedbackDeviceControl m_VolumeMuteFeedbackControl;
-
-		private readonly KrangAtHomeSPlusTouchpanelDevice m_Panel;
 
 		/// <summary>
 		/// List of rooms and indexes
@@ -50,25 +36,16 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		#endregion
 
-		#region Properties
-
-		public KrangAtHomeSPlusTouchpanelDevice Panel {get { return m_Panel; }}
-
-		#endregion
-
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public KrangAtHomeTouchpanelUi(KrangAtHomeTheme theme,KrangAtHomeSPlusTouchpanelDevice panel)
+		public KrangAtHomeTouchpanelUi(KrangAtHomeTheme theme,KrangAtHomeSPlusTouchpanelDevice panel) : base(theme, panel)
 		{
 			m_RoomListBiDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
 			m_SourceListAudioBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
 			m_SourceListVideoBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
 
-			m_Panel = panel;
-			m_Theme = theme;
-
-			Subscribe(m_Panel);
+			Subscribe(Panel);
 		}
 
 		#region Methods
@@ -77,11 +54,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// <summary>
 		/// Release resources.
 		/// </summary>
-		public void Dispose()
+		public override void Dispose()
 		{
-			Unsubscribe(m_Panel);
-
-			SetRoom(null);
+			base.Dispose();
 			
 			m_RoomListBiDictionary.Clear();
 			m_SourceListAudioBiDictionary.Clear();
@@ -91,19 +66,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		#endregion
 
 		#region Room Select
-
-		/// <summary>
-		/// Sets the current room for routing operations.
-		/// </summary>
-		/// <param name="roomId"></param>
-		private void SetRoomId(int roomId)
-		{
-			//ServiceProvider.GetService<ILoggerService>()
-			//               .AddEntry(eSeverity.Informational, "{0} setting room to {1}", this, roomId);
-
-			IKrangAtHomeRoom room = GetRoom(roomId);
-			SetRoom(room);
-		}
 
 		/// <summary>
 		/// Sets the current room, based on the room list index
@@ -159,22 +121,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			SetSource(source, eSourceTypeRouted.Audio);
 		}
 
-		private void SetSourceId(int sourceId, eSourceTypeRouted type)
-		{
-			if (sourceId == 0)
-			{
-				SetSource(null, type);
-				return;
-			}
-
-			IKrangAtHomeSource source = GetSourceId(sourceId);
-
-			if (source == null)
-				return;
-
-			SetSource(source, type);
-		}
-
 		/// <summary>
 		/// Sets the selected source for the room
 		/// </summary>
@@ -182,12 +128,12 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// <param name="type"></param>
 		private void SetSource(IKrangAtHomeSourceBase sourceBase, eSourceTypeRouted type)
 		{
-			if (m_Room == null)
+			if (Room == null)
 				return;
 
 			if (sourceBase == null)
 			{
-				m_Room.SetSource(null, type);
+				Room.SetSource(null, type);
 				return;
 			}
 
@@ -195,86 +141,26 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 			IKrangAtHomeSource source = sourceBase as IKrangAtHomeSource;
 			if (source != null)
-				m_Room.SetSource(source, type);
-		}
-
-		private IKrangAtHomeSource GetSourceId(int id)
-		{
-			if (m_Room == null)
-				return null;
-
-			return m_Room.GetSourceId(id);
+				Room.SetSource(source, type);
 		}
 
 		#endregion
 
 		#region Private Methods
 
-		/// <summary>
-		/// Sets the current room for routing operations.
-		/// </summary>
-		/// <param name="room"></param>
-		public void SetRoom(IKrangAtHomeRoom room)
+		protected override void RaiseRoomInfo()
 		{
-			//ServiceProvider.GetService<ILoggerService>().AddEntry(eSeverity.Informational, "{0} setting room to {1}", this, room);
-
-			if (room == m_Room)
-				return;
-
-			Unsubscribe(m_Room);
-
-			m_Room = room;
-			Subscribe(m_Room);
-
-			// Update Volume Control
-			if (m_Room != null)
+			if (Room == null)
 			{
-				SetVolumeControl(m_Room.ActiveVolumeControl);
-			}
-
-			RaiseRoomInfo();
-		}
-
-		private void SetVolumeControl(IVolumeDeviceControl control)
-		{
-			if (m_VolumeControl == control)
-				return;
-
-			Unsubscribe(m_VolumeControl);
-
-			m_VolumeControl = control;
-
-			Subscribe(m_VolumeControl);
-
-			InstantiateVolumeControl(m_VolumeControl);
-		}
-
-		/// <summary>
-		/// Gets the room for the given room id.
-		/// </summary>
-		/// <returns></returns>
-		[CanBeNull]
-		private IKrangAtHomeRoom GetRoom(int id)
-		{
-			IOriginator output;
-
-			m_Theme.Core.Originators.TryGetChild(id, out output);
-			return output as IKrangAtHomeRoom;
-		}
-
-		private void RaiseRoomInfo()
-		{
-			if (m_Room == null)
-			{
-				m_Panel.SetRoomInfo(null, INDEX_NOT_FOUND);
+				Panel.SetRoomInfo(null, INDEX_NOT_FOUND);
 				return;
 			}
 
 			int index;
-			if (!m_RoomListBiDictionary.TryGetKey(m_Room, out index))
+			if (!m_RoomListBiDictionary.TryGetKey(Room, out index))
 				index = INDEX_NOT_FOUND;
 
-			m_Panel.SetRoomInfo(m_Room, index);
+			Panel.SetRoomInfo(Room, index);
 
 			RaiseSourceList();
 		}
@@ -284,13 +170,13 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			BiDictionary<int, IKrangAtHomeRoom> roomListDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
 
 			ushort counter = INDEX_START;
-			foreach (IKrangAtHomeRoom room in m_Theme.Core.Originators.GetChildren<IKrangAtHomeRoom>())
+			foreach (IKrangAtHomeRoom room in Theme.Core.Originators.GetChildren<IKrangAtHomeRoom>())
 			{
 				roomListDictionary.Add(counter, room);
 				counter++;
 			}
 
-			m_Panel.SetRoomList(ConvertToRoomInfo(roomListDictionary));
+			Panel.SetRoomList(ConvertToRoomInfo(roomListDictionary));
 
 			m_RoomListBiDictionary = roomListDictionary;
 
@@ -307,9 +193,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			ushort videoListIndexCounter = INDEX_START;
 
 			IEnumerable<IKrangAtHomeSourceBase> sources =
-				m_Room == null
+				Room == null
 					? Enumerable.Empty<IKrangAtHomeSourceBase>()
-					: m_Room.Originators.GetInstancesRecursive<IKrangAtHomeSourceBase>();
+					: Room.Originators.GetInstancesRecursive<IKrangAtHomeSourceBase>();
 
 			foreach (IKrangAtHomeSourceBase source in sources)
 			{
@@ -327,8 +213,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				}
 
 			}
-			m_Panel.SetAudioSourceList(ConvertToSourceInfo(sourceListAudioBiDictionary));
-			m_Panel.SetVideoSourceList(ConvertToSourceInfo(sourceListVideoBiDictionary));
+			Panel.SetAudioSourceList(ConvertToSourceInfo(sourceListAudioBiDictionary));
+			Panel.SetVideoSourceList(ConvertToSourceInfo(sourceListVideoBiDictionary));
 
 			m_SourceListAudioBiDictionary = sourceListAudioBiDictionary;
 			m_SourceListVideoBiDictionary = sourceListVideoBiDictionary;
@@ -339,39 +225,13 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		#region Room Callbacks
 
 		/// <summary>
-		/// Subscribe to the room events.
-		/// </summary>
-		/// <param name="room"></param>
-		private void Subscribe(IKrangAtHomeRoom room)
-		{
-			if (room == null)
-				return;
-
-			room.OnActiveSourcesChange += RoomOnActiveSourcesChange;
-			room.OnActiveVolumeControlChanged += RoomOnActiveVolumeControlChanged;
-		}
-
-		/// <summary>
-		/// Unsubscribe from the room events.
-		/// </summary>
-		/// <param name="room"></param>
-		private void Unsubscribe(IKrangAtHomeRoom room)
-		{
-			if (room == null)
-				return;
-
-			room.OnActiveSourcesChange -= RoomOnActiveSourcesChange;
-			room.OnActiveVolumeControlChanged -= RoomOnActiveVolumeControlChanged;
-		}
-
-		/// <summary>
 		/// Raised when source/s become actively/inactively routed.
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="eventArgs"></param>
-		private void RoomOnActiveSourcesChange(object sender, EventArgs eventArgs)
+		protected override void RoomOnActiveSourcesChange(object sender, EventArgs eventArgs)
 		{
-			IKrangAtHomeSource source = m_Room == null ? null : m_Room.GetSource();
+			IKrangAtHomeSource source = Room == null ? null : Room.GetSource();
 
 			int index;
 			if (source == null)
@@ -379,48 +239,21 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			else if (!m_SourceListVideoBiDictionary.TryGetKey(source, out index))
 				index = -1;
 
-			m_Panel.SetSourceInfo(source, index, eSourceTypeRouted.Video);
-		}
-
-		private void RoomOnActiveVolumeControlChanged(object sender, GenericEventArgs<IVolumeDeviceControl> args)
-		{
-			SetVolumeControl(args.Data);
+			Panel.SetSourceInfo(source, index, eSourceTypeRouted.Video);
 		}
 
 		#endregion
 
 		#region VolumeDeviceControl
 
-		private void Subscribe(IVolumeDeviceControl volumeDevice)
-		{
-			if (volumeDevice == null)
-				return;
-
-			m_VolumePositionControl = volumeDevice as IVolumePositionDeviceControl;
-			SubscribeVolumePositionDeviceControl(m_VolumePositionControl);
-
-			m_VolumeMuteFeedbackControl = volumeDevice as IVolumeMuteFeedbackDeviceControl;
-			SubscribeVolumeMuteFeedbackDeviceControl(m_VolumeMuteFeedbackControl);
-
-		}
-
-		private void Unsubscribe(IVolumeDeviceControl volumeDevice)
-		{
-			if (volumeDevice == null)
-				return;
-
-			UnsubscribeVolumePositionDeviceControl(m_VolumePositionControl);
-			UnsubscribeVolumeMuteFeedbackDeviceControl(m_VolumeMuteFeedbackControl);
-		}
-
-		private void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
+		protected override void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
 		{
 			// Test for ActiveVolumeControl being Null
 			if (volumeDevice == null)
 			{
-				m_Panel.SetVolumeAvaliableControls(eVolumeLevelAvailableControl.None, eVolumeMuteAvailableControl.None);
-				m_Panel.SetVolumeLevelFeedback(0);
-				m_Panel.SetVolumeMuteFeedback(false);
+				Panel.SetVolumeAvaliableControls(eVolumeLevelAvailableControl.None, eVolumeMuteAvailableControl.None);
+				Panel.SetVolumeLevelFeedback(0);
+				Panel.SetVolumeMuteFeedback(false);
 				return;
 			}
 
@@ -458,14 +291,14 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				muteAvailableControl = eVolumeMuteAvailableControl.Toggle;
 
 			// Send Feedback to Panel
-			m_Panel.SetVolumeAvaliableControls(volumeAvailableControl, muteAvailableControl);
-			m_Panel.SetVolumeLevelFeedback(volumeLevelFeedback);
-			m_Panel.SetVolumeMuteFeedback(muteStateFeedback);
+			Panel.SetVolumeAvaliableControls(volumeAvailableControl, muteAvailableControl);
+			Panel.SetVolumeLevelFeedback(volumeLevelFeedback);
+			Panel.SetVolumeMuteFeedback(muteStateFeedback);
 		}
 
 		#region VolumePositionDeviceControl
 
-		private void SubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
+		protected override void SubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
 		{
 			if (control == null)
 				return;
@@ -473,7 +306,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			control.OnVolumeChanged += ControlOnVolumeChanged;
 		}
 
-		private void UnsubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
+		protected override void UnsubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
 		{
 			if (control == null)
 				return;
@@ -483,14 +316,14 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		private void ControlOnVolumeChanged(object sender, VolumeDeviceVolumeChangedEventArgs args)
 		{
-			m_Panel.SetVolumeLevelFeedback(args.VolumePosition);
+			Panel.SetVolumeLevelFeedback(args.VolumePosition);
 		}
 
 		#endregion
 
 		#region MuteFeedbackDeviceControl
 
-		private void SubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
+		protected override void SubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
 		{
 			if (control == null)
 				return;
@@ -498,7 +331,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			control.OnMuteStateChanged += ControlOnMuteStateChanged;
 		}
 
-		private void UnsubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
+		protected override void UnsubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
 		{
 			if (control == null)
 				return;
@@ -508,7 +341,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		private void ControlOnMuteStateChanged(object sender, BoolEventArgs args)
 		{
-			m_Panel.SetVolumeMuteFeedback(args.Data);
+			Panel.SetVolumeMuteFeedback(args.Data);
 		}
 
 		#endregion
@@ -517,44 +350,26 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		#region Panel Callback
 
-		private void Subscribe(KrangAtHomeSPlusTouchpanelDevice panel)
+		protected override void Subscribe(KrangAtHomeSPlusTouchpanelDevice panel)
 		{
 			if (panel == null)
 				return;
 
 			panel.OnRequestRefresh += PanelOnRequestRefresh;
 			panel.OnSetRoomIndex += PanelOnSetRoomIndex;
-			panel.OnSetRoomId += PanelOnSetRoomId;
 			panel.OnSetAudioSourceIndex += PanelOnSetAudioSourceIndex;
-			panel.OnSetAudioSourceId += PanelOnSetAudioSourceId;
 			panel.OnSetVideoSourceIndex += PanelOnSetVideoSourceIndex;
-			panel.OnSetVideoSourceId += PanelOnSetVideoSourceId;
-			panel.OnSetVolumeLevel += PanelOnSetVolumeLevel;
-			panel.OnSetVolumeRampUp += PanelOnSetVolumeRampUp;
-			panel.OnSetVolumeRampDown += PanelOnSetVolumeRampDown;
-			panel.OnSetVolumeRampStop += PanelOnSetVolumeRampStop;
-			panel.OnSetVolumeMute += PanelOnSetVolumeMute;
-			panel.OnSetVolumeMuteToggle += PanelOnSetVolumeMuteToggle;
 		}
 
-		private void Unsubscribe(KrangAtHomeSPlusTouchpanelDevice panel)
+		protected override void Unsubscribe(KrangAtHomeSPlusTouchpanelDevice panel)
 		{
 			if (panel == null)
 				return;
 
 			panel.OnRequestRefresh -= PanelOnRequestRefresh;
 			panel.OnSetRoomIndex -= PanelOnSetRoomIndex;
-			panel.OnSetRoomId -= PanelOnSetRoomId;
 			panel.OnSetAudioSourceIndex -= PanelOnSetAudioSourceIndex;
-			panel.OnSetAudioSourceId -= PanelOnSetAudioSourceId;
 			panel.OnSetVideoSourceIndex -= PanelOnSetVideoSourceIndex;
-			panel.OnSetVideoSourceId -= PanelOnSetVideoSourceId;
-			panel.OnSetVolumeLevel -= PanelOnSetVolumeLevel;
-			panel.OnSetVolumeRampUp -= PanelOnSetVolumeRampUp;
-			panel.OnSetVolumeRampDown -= PanelOnSetVolumeRampDown;
-			panel.OnSetVolumeRampStop -= PanelOnSetVolumeRampStop;
-			panel.OnSetVolumeMute -= PanelOnSetVolumeMute;
-			panel.OnSetVolumeMuteToggle -= PanelOnSetVolumeMuteToggle;
 		}
 
 		/// <summary>
@@ -574,83 +389,14 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			SetRoomIndex(args.Data);
 		}
 
-		private void PanelOnSetRoomId(object sender, IntEventArgs args)
-		{
-			SetRoomId(args.Data);
-		}
-
 		private void PanelOnSetAudioSourceIndex(object sender, IntEventArgs args)
 		{
 			SetAudioSourceIndex(args.Data);
 		}
 
-		private void PanelOnSetAudioSourceId(object sender, IntEventArgs args)
-		{
-			SetSourceId(args.Data, eSourceTypeRouted.Audio);
-		}
-
 		private void PanelOnSetVideoSourceIndex(object sender, IntEventArgs args)
 		{
 			SetVideoSourceIndex(args.Data);
-		}
-
-		private void PanelOnSetVideoSourceId(object sender, IntEventArgs args)
-		{
-			SetSourceId(args.Data, eSourceTypeRouted.AudioVideo);
-		}
-
-		private void PanelOnSetVolumeLevel(object sender, FloatEventArgs args)
-		{
-			IVolumePositionDeviceControl control = m_VolumeControl as IVolumePositionDeviceControl;
-
-			if (control != null)
-				control.SetVolumePosition(args.Data);
-		}
-
-		private void PanelOnSetVolumeRampUp(object sender, EventArgs args)
-		{
-			IVolumeLevelDeviceControl controlLvl = m_VolumeControl as IVolumeLevelDeviceControl;
-			IVolumeRampDeviceControl control = m_VolumeControl as IVolumeRampDeviceControl;
-			
-			if (controlLvl != null)
-				controlLvl.VolumePositionRampUp(0.05f);
-			else if (control != null)
-				control.VolumeRampUp();
-		}
-
-		private void PanelOnSetVolumeRampDown(object sender, EventArgs args)
-		{
-			IVolumeLevelDeviceControl controlLvl = m_VolumeControl as IVolumeLevelDeviceControl;
-			IVolumeRampDeviceControl control = m_VolumeControl as IVolumeRampDeviceControl;
-
-			if (controlLvl != null)
-				controlLvl.VolumePositionRampDown(0.05f);
-			else if (control != null)
-				control.VolumeRampDown();
-		}
-
-		private void PanelOnSetVolumeRampStop(object sender, EventArgs args)
-		{
-			IVolumeRampDeviceControl control = m_VolumeControl as IVolumeRampDeviceControl;
-
-			if (control != null)
-				control.VolumeRampStop();
-		}
-
-		private void PanelOnSetVolumeMute(object sender, BoolEventArgs args)
-		{
-			IVolumeMuteDeviceControl control = m_VolumeControl as IVolumeMuteDeviceControl;
-
-			if (control != null)
-				control.SetVolumeMute(args.Data);
-		}
-
-		private void PanelOnSetVolumeMuteToggle(object sender, EventArgs args)
-		{
-			IVolumeMuteBasicDeviceControl control = m_VolumeControl as IVolumeMuteBasicDeviceControl;
-
-			if (control != null)
-				control.VolumeMuteToggle();
 		}
 
 		#endregion
