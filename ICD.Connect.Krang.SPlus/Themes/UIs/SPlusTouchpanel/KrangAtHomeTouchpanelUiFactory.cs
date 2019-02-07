@@ -31,7 +31,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// <returns></returns>
 		protected override bool RoomContainsOriginator(IKrangAtHomeRoom room, KrangAtHomeTouchpanelUi ui)
 		{
-			return room.Originators.ContainsRecursive(ui.Panel.Id);
+			return room.Originators.ContainsRecursive(ui.UiDevice.Id);
 		}
 	}
 }

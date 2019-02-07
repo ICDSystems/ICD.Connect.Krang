@@ -18,13 +18,13 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		private readonly KrangAtHomeTheme m_Theme;
 
-		private readonly T m_Panel;
+		private readonly T m_UiDevice;
 
 		#endregion
 
 		#region Properties
 
-		public T Panel { get { return m_Panel; } }
+		public T UiDevice { get { return m_UiDevice; } }
 
 		protected KrangAtHomeTheme Theme {get { return m_Theme; }}
 
@@ -41,9 +41,9 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		protected AbstractKrangAtHomeUi(KrangAtHomeTheme theme, T panel)
+		protected AbstractKrangAtHomeUi(KrangAtHomeTheme theme, T uiDevice)
 		{
-			m_Panel = panel;
+			m_UiDevice = uiDevice;
 			m_Theme = theme;
 
 		}
@@ -56,7 +56,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		/// </summary>
 		public virtual void Dispose()
 		{
-			Unsubscribe(m_Panel);
+			Unsubscribe(m_UiDevice);
 
 			SetRoom(null);
 		}

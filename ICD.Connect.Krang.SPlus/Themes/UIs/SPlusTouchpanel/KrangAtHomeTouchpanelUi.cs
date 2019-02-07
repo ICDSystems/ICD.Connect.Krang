@@ -39,13 +39,13 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public KrangAtHomeTouchpanelUi(KrangAtHomeTheme theme,KrangAtHomeSPlusTouchpanelDevice panel) : base(theme, panel)
+		public KrangAtHomeTouchpanelUi(KrangAtHomeTheme theme,KrangAtHomeSPlusTouchpanelDevice uiDevice) : base(theme, uiDevice)
 		{
 			m_RoomListBiDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
 			m_SourceListAudioBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
 			m_SourceListVideoBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
 
-			Subscribe(Panel);
+			Subscribe(UiDevice);
 		}
 
 		#region Methods
@@ -152,7 +152,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		{
 			if (Room == null)
 			{
-				Panel.SetRoomInfo(null, INDEX_NOT_FOUND);
+				UiDevice.SetRoomInfo(null, INDEX_NOT_FOUND);
 				return;
 			}
 
@@ -160,7 +160,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			if (!m_RoomListBiDictionary.TryGetKey(Room, out index))
 				index = INDEX_NOT_FOUND;
 
-			Panel.SetRoomInfo(Room, index);
+			UiDevice.SetRoomInfo(Room, index);
 
 			RaiseSourceList();
 		}
@@ -176,7 +176,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				counter++;
 			}
 
-			Panel.SetRoomList(ConvertToRoomInfo(roomListDictionary));
+			UiDevice.SetRoomList(ConvertToRoomInfo(roomListDictionary));
 
 			m_RoomListBiDictionary = roomListDictionary;
 
@@ -213,8 +213,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				}
 
 			}
-			Panel.SetAudioSourceList(ConvertToSourceInfo(sourceListAudioBiDictionary));
-			Panel.SetVideoSourceList(ConvertToSourceInfo(sourceListVideoBiDictionary));
+			UiDevice.SetAudioSourceList(ConvertToSourceInfo(sourceListAudioBiDictionary));
+			UiDevice.SetVideoSourceList(ConvertToSourceInfo(sourceListVideoBiDictionary));
 
 			m_SourceListAudioBiDictionary = sourceListAudioBiDictionary;
 			m_SourceListVideoBiDictionary = sourceListVideoBiDictionary;
@@ -239,7 +239,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			else if (!m_SourceListVideoBiDictionary.TryGetKey(source, out index))
 				index = -1;
 
-			Panel.SetSourceInfo(source, index, eSourceTypeRouted.Video);
+			UiDevice.SetSourceInfo(source, index, eSourceTypeRouted.Video);
 		}
 
 		#endregion
@@ -251,9 +251,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			// Test for ActiveVolumeControl being Null
 			if (volumeDevice == null)
 			{
-				Panel.SetVolumeAvaliableControls(eVolumeLevelAvailableControl.None, eVolumeMuteAvailableControl.None);
-				Panel.SetVolumeLevelFeedback(0);
-				Panel.SetVolumeMuteFeedback(false);
+				UiDevice.SetVolumeAvaliableControls(eVolumeLevelAvailableControl.None, eVolumeMuteAvailableControl.None);
+				UiDevice.SetVolumeLevelFeedback(0);
+				UiDevice.SetVolumeMuteFeedback(false);
 				return;
 			}
 
@@ -291,9 +291,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				muteAvailableControl = eVolumeMuteAvailableControl.Toggle;
 
 			// Send Feedback to Panel
-			Panel.SetVolumeAvaliableControls(volumeAvailableControl, muteAvailableControl);
-			Panel.SetVolumeLevelFeedback(volumeLevelFeedback);
-			Panel.SetVolumeMuteFeedback(muteStateFeedback);
+			UiDevice.SetVolumeAvaliableControls(volumeAvailableControl, muteAvailableControl);
+			UiDevice.SetVolumeLevelFeedback(volumeLevelFeedback);
+			UiDevice.SetVolumeMuteFeedback(muteStateFeedback);
 		}
 
 		#region VolumePositionDeviceControl
@@ -316,7 +316,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		private void ControlOnVolumeChanged(object sender, VolumeDeviceVolumeChangedEventArgs args)
 		{
-			Panel.SetVolumeLevelFeedback(args.VolumePosition);
+			UiDevice.SetVolumeLevelFeedback(args.VolumePosition);
 		}
 
 		#endregion
@@ -341,7 +341,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		private void ControlOnMuteStateChanged(object sender, BoolEventArgs args)
 		{
-			Panel.SetVolumeMuteFeedback(args.Data);
+			UiDevice.SetVolumeMuteFeedback(args.Data);
 		}
 
 		#endregion

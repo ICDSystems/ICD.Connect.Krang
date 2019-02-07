@@ -9,13 +9,14 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public KrangAtHomeRemoteUi(KrangAtHomeTheme theme, KrangAtHomeSPlusRemoteDevice panel) : base(theme, panel)
+		public KrangAtHomeRemoteUi(KrangAtHomeTheme theme, KrangAtHomeSPlusRemoteDevice uiDevice) : base(theme, uiDevice)
 		{
+			Subscribe(UiDevice);
 		}
 
 		protected override void RaiseRoomInfo()
 		{
-			Panel.RaiseRoomChanged(Room);
+			UiDevice.RaiseRoomChanged(Room);
 		}
 
 		/// <summary>
@@ -25,7 +26,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote
 		/// <param name="eventArgs"></param>
 		protected override void RoomOnActiveSourcesChange(object sender, EventArgs eventArgs)
 		{
-			Panel.RaiseSourceChanged(Room.GetSource());
+			UiDevice.RaiseSourceChanged(Room.GetSource());
 		}
 
 		protected override void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
