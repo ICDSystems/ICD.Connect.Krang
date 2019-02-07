@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Added
  - Added VolumePoints to the core console
+ - Added ConferencePoints to the core
+
+### Changed
+ - Attempt to migrate NVRAM even if the destination directory is not empty
+ - Fail gracefully when unable to migrate NVRAM
+ - Only printing licensing information when licensing is enabled
 
 ## [12.0.0] - 2019-01-10
 ### Changed
