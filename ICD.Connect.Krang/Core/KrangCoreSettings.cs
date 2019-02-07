@@ -6,6 +6,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Audio.VolumePoints;
+using ICD.Connect.Conferencing.ConferencePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning.PartitionManagers;
@@ -40,6 +41,8 @@ namespace ICD.Connect.Krang.Core
 		private const string ROOM_ELEMENT = "Room";
 		private const string VOLUME_POINTS_ELEMENT = "VolumePoints";
 		private const string VOLUME_POINT_ELEMENT = "VolumePoint";
+		private const string CONFERENCE_POINTS_ELEMENT = "ConferencePoints";
+		private const string CONFERENCE_POINT_ELEMENT = "ConferencePoint";
 
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
@@ -53,54 +56,6 @@ namespace ICD.Connect.Krang.Core
 		#region Properties
 
 		public override SettingsCollection OriginatorSettings { get { return m_OriginatorSettings; } }
-
-		/// <summary>
-		/// Gets the theme settings.
-		/// </summary>
-		private SettingsCollection ThemeSettings
-		{
-			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IThemeSettings)); }
-		}
-
-		/// <summary>
-		/// Gets the device settings.
-		/// </summary>
-		private SettingsCollection DeviceSettings
-		{
-			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IDeviceSettings)); }
-		}
-
-		/// <summary>
-		/// Gets the port settings.
-		/// </summary>
-		private SettingsCollection PortSettings
-		{
-			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IPortSettings)); }
-		}
-
-		/// <summary>
-		/// Gets the panel settings.
-		/// </summary>
-		private SettingsCollection PanelSettings
-		{
-			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IPanelDeviceSettings)); }
-		}
-
-		/// <summary>
-		/// Gets the room settings.
-		/// </summary>
-		private SettingsCollection RoomSettings
-		{
-			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IRoomSettings)); }
-		}
-
-		/// <summary>
-		/// Gets the volume point settings.
-		/// </summary>
-		private SettingsCollection VolumePointSettings
-		{
-			get { return new SettingsCollection(m_OriginatorSettings.Where(s => s is IVolumePointSettings)); }
-		}
 
 		private RoutingGraphSettings RoutingGraphSettings
 		{
@@ -136,6 +91,8 @@ namespace ICD.Connect.Krang.Core
 			m_OriginatorSettings.OnItemRemoved += SettingsOnItemRemoved;
 		}
 
+		#region Methods
+
 		/// <summary>
 		/// Writes property elements to xml.
 		/// </summary>
@@ -148,12 +105,13 @@ namespace ICD.Connect.Krang.Core
 
 			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
 
-			ThemeSettings.ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
-			PanelSettings.ToXml(writer, PANELS_ELEMENT, PANEL_ELEMENT);
-			PortSettings.ToXml(writer, PORTS_ELEMENT, PORT_ELEMENT);
-			DeviceSettings.ToXml(writer, DEVICES_ELEMENT, DEVICE_ELEMENT);
-			RoomSettings.ToXml(writer, ROOMS_ELEMENT, ROOM_ELEMENT);
-			VolumePointSettings.ToXml(writer, VOLUME_POINTS_ELEMENT, VOLUME_POINT_ELEMENT);
+			GetSettings<IThemeSettings>().ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
+			GetSettings<IPanelDeviceSettings>().ToXml(writer, PANELS_ELEMENT, PANEL_ELEMENT);
+			GetSettings<IPortSettings>().ToXml(writer, PORTS_ELEMENT, PORT_ELEMENT);
+			GetSettings<IDeviceSettings>().ToXml(writer, DEVICES_ELEMENT, DEVICE_ELEMENT);
+			GetSettings<IRoomSettings>().ToXml(writer, ROOMS_ELEMENT, ROOM_ELEMENT);
+			GetSettings<IVolumePointSettings>().ToXml(writer, VOLUME_POINTS_ELEMENT, VOLUME_POINT_ELEMENT);
+			GetSettings<IConferencePointSettings>().ToXml(writer, CONFERENCE_POINTS_ELEMENT, CONFERENCE_POINT_ELEMENT);
 
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
 			if (routingGraphSettings != null)
@@ -181,13 +139,15 @@ namespace ICD.Connect.Krang.Core
 			IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
 			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
 			IEnumerable<ISettings> volumePoints = PluginFactory.GetSettingsFromXml(xml, VOLUME_POINTS_ELEMENT);
+			IEnumerable<ISettings> conferencePoints = PluginFactory.GetSettingsFromXml(xml, CONFERENCE_POINTS_ELEMENT);
 
 			IEnumerable<ISettings> concat =
 				themes.Concat(panels)
 					  .Concat(ports)
 					  .Concat(devices)
 					  .Concat(rooms)
-					  .Concat(volumePoints);
+					  .Concat(volumePoints)
+					  .Concat(conferencePoints);
 
 			AddSettingsSkipDuplicateIds(concat);
 
@@ -212,7 +172,15 @@ namespace ICD.Connect.Krang.Core
 			return header;
 		}
 
-		#region Protected Methods
+		#endregion
+
+		#region Private Methods
+
+		private SettingsCollection GetSettings<T>()
+			where T : ISettings
+		{
+			return new SettingsCollection(m_OriginatorSettings.Where(s => s is T));
+		}
 
 		/// <summary>
 		/// Adds the given settings instances to the core settings collection.
