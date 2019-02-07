@@ -72,6 +72,7 @@
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\EventArgs\RoomChangedApiEventArgs.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\EventArgs\SourceChangedApiEventArgs.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Proxy\ProxySPlusRemoteDevice.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Proxy\ProxySPlusRemoteDeviceSettings.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Proxy\SPlusRemoteApi.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Shim\SPlusRemoteShim.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Proxy\AbstractProxySPlusUiDevice.cs" />
