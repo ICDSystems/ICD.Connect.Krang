@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
@@ -23,28 +22,26 @@ namespace ICD.Connect.Krang.Remote
 	/// </summary>
 	public sealed class RemoteCore : IDisposable
 	{
-		private readonly IcdHashSet<IProxy> m_SubscribedProxies;
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
 		private readonly SafeCriticalSection m_CriticalSection;
 
 		private readonly DirectMessageManager m_DirectMessageManager;
 		private readonly RemoteApiResultHandler m_ApiResultHandler;
 		private readonly ICore m_LocalCore;
-		private readonly HostInfo m_Source;
+		private readonly HostInfo m_RemoteHost;
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
 		/// <param name="localCore"></param>
-		/// <param name="source"></param>
-		public RemoteCore(ICore localCore, HostInfo source)
+		/// <param name="remoteHost"></param>
+		public RemoteCore(ICore localCore, HostInfo remoteHost)
 		{
-			m_SubscribedProxies = new IcdHashSet<IProxy>();
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
 			m_CriticalSection = new SafeCriticalSection();
 
 			m_LocalCore = localCore;
-			m_Source = source;
+			m_RemoteHost = remoteHost;
 
 			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
 			m_ApiResultHandler = m_DirectMessageManager.GetMessageHandler<RemoteApiReply>() as RemoteApiResultHandler;
@@ -63,9 +60,9 @@ namespace ICD.Connect.Krang.Remote
 
 			try
 			{
-				foreach (IProxy proxy in m_SubscribedProxies)
+				foreach (IProxy proxy in m_ProxyBuildCommand.Keys)
 					Unsubscribe(proxy);
-				m_SubscribedProxies.Clear();
+				m_ProxyBuildCommand.Clear();
 			}
 			finally
 			{
@@ -109,7 +106,7 @@ namespace ICD.Connect.Krang.Remote
 				throw new ArgumentNullException("command");
 
 			RemoteApiMessage message = new RemoteApiMessage { Command = command };
-			m_DirectMessageManager.Send(m_Source, message);
+			m_DirectMessageManager.Send(m_RemoteHost, message);
 		}
 
 		/// <summary>
@@ -133,7 +130,7 @@ namespace ICD.Connect.Krang.Remote
 
 			try
 			{
-				if (m_SubscribedProxies.Contains(proxyOriginator))
+				if (m_ProxyBuildCommand.ContainsKey(proxyOriginator))
 					return proxyOriginator;
 
 				// Build the root command
@@ -148,7 +145,6 @@ namespace ICD.Connect.Krang.Remote
 				m_ProxyBuildCommand.Add(proxyOriginator, buildCommand);
 
 				// Start handling the proxy callbacks
-				m_SubscribedProxies.Add(proxyOriginator);
 				Subscribe(proxyOriginator);
 
 				// Initialize the proxy
@@ -164,7 +160,7 @@ namespace ICD.Connect.Krang.Remote
 
 		#endregion
 
-		#region Parse Response
+		#region API Result Callbacks
 
 		/// <summary>
 		/// Subscribe to the result handler events.
@@ -223,6 +219,42 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
+		/// Logs the given result to the logger service.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <param name="path"></param>
+		private void LogResults(ApiResult result, Stack<IApiInfo> path)
+		{
+			if (result == null)
+				throw new ArgumentNullException("result");
+
+			eSeverity severity;
+			string message = string.Format("{0}", result.Value);
+
+			switch (result.ErrorCode)
+			{
+				case ApiResult.eErrorCode.Ok:
+					severity = eSeverity.Debug;
+					message = "Command OK.";
+					break;
+
+				case ApiResult.eErrorCode.MissingMember:
+				case ApiResult.eErrorCode.MissingNode:
+				case ApiResult.eErrorCode.InvalidParameter:
+				case ApiResult.eErrorCode.Exception:
+					severity = eSeverity.Error;
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+			string pathText = string.Join("/", path.Reverse().Select(i => i.Name).Where(n => n != null).ToArray());
+
+			m_LocalCore.Logger.AddEntry(severity, "{0} - {1} - {2}", this, message, pathText);
+		}
+
+		/// <summary>
 		/// Parses the control system info for results.
 		/// </summary>
 		/// <param name="controlSystemInfo"></param>
@@ -275,36 +307,13 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
-		/// Parses the device info for results.
-		/// </summary>
-		/// <param name="index"></param>
-		/// <param name="deviceInfo"></param>
-		private void ParseDeviceResponse(uint index, ApiClassInfo deviceInfo)
-		{
-			if (deviceInfo == null)
-				throw new ArgumentNullException("deviceInfo");
-
-			// Don't create proxy around existing proxies
-			if (deviceInfo.IsProxy)
-				return;
-
-			IProxyOriginator proxy = InitializeProxyOriginator("Devices", (int)index);
-			if (proxy != null)
-				proxy.ParseInfo(deviceInfo);
-		}
-
-		#endregion
-
-		#region Parse Results
-
-		/// <summary>
 		/// Parses the devices group result.
 		/// </summary>
 		/// <param name="result"></param>
 		private void ParseDevicesGroupResult(ApiResult result)
 		{
 			if (result == null)
-				throw new ArgumentNullException("devicesGroupInfo");
+				throw new ArgumentNullException("result");
 
 			ApiNodeGroupInfo devicesGroupInfo = result.Value as ApiNodeGroupInfo;
 			if (devicesGroupInfo == null)
@@ -321,39 +330,22 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
-		/// Logs the given result to the logger service.
+		/// Parses the device info for results.
 		/// </summary>
-		/// <param name="result"></param>
-		/// <param name="path"></param>
-		private void LogResults(ApiResult result, Stack<IApiInfo> path)
+		/// <param name="index"></param>
+		/// <param name="deviceInfo"></param>
+		private void ParseDeviceResponse(uint index, ApiClassInfo deviceInfo)
 		{
-			if (result == null)
-				throw new ArgumentNullException("result");
+			if (deviceInfo == null)
+				throw new ArgumentNullException("deviceInfo");
 
-			eSeverity severity;
-			string message = string.Format("{0}", result.Value);
+			// Don't create proxy around existing proxies
+			if (deviceInfo.IsProxy)
+				return;
 
-			switch (result.ErrorCode)
-			{
-				case ApiResult.eErrorCode.Ok:
-					severity = eSeverity.Debug;
-					message = "Command OK.";
-					break;
-
-				case ApiResult.eErrorCode.MissingMember:
-				case ApiResult.eErrorCode.MissingNode:
-				case ApiResult.eErrorCode.InvalidParameter:
-				case ApiResult.eErrorCode.Exception:
-					severity = eSeverity.Error;
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-			string pathText = string.Join("/", path.Reverse().Select(i => i.Name).Where(n => n != null).ToArray());
-
-			m_LocalCore.Logger.AddEntry(severity, "{0} - {1} - {2}", this, message, pathText);
+			IProxyOriginator proxy = InitializeProxyOriginator("Devices", (int)index);
+			if (proxy != null)
+				proxy.ParseInfo(deviceInfo);
 		}
 
 		#endregion

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Audio.VolumePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning.Rooms;
@@ -23,11 +24,12 @@ namespace ICD.Connect.Krang.Core
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 
-			yield return ConsoleNodeGroup.KeyNodeMap("Themes", instance.Originators.GetChildren<ITheme>().OfType<IConsoleNode>(), p => (uint)((ITheme)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Panels", instance.Originators.GetChildren<IPanelDevice>().OfType<IConsoleNode>(), p => (uint)((IPanelDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Devices", instance.Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Ports", instance.Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", instance.Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Themes", instance.Originators.GetChildren<ITheme>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Panels", instance.Originators.GetChildren<IPanelDevice>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Ports", instance.Originators.GetChildren<IPort>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Devices", instance.Originators.GetChildren<IDevice>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", instance.Originators.GetChildren<IRoom>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("VolumePoints", instance.Originators.GetChildren<IVolumePoint>(), p => (uint)p.Id);
 
 			if (instance.RoutingGraph != null)
 				yield return instance.RoutingGraph;
@@ -46,11 +48,12 @@ namespace ICD.Connect.Krang.Core
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 
-			addRow("Theme count", instance.Originators.GetChildren<ITheme>().Count());
-			addRow("Panel count", instance.Originators.GetChildren<IPanelDevice>().Count());
-			addRow("Device count", instance.Originators.GetChildren<IDevice>().Count());
-			addRow("Port count", instance.Originators.GetChildren<IPort>().Count());
-			addRow("Room count", instance.Originators.GetChildren<IRoom>().Count());
+			addRow("Theme Count", instance.Originators.GetChildren<ITheme>().Count());
+			addRow("Panel Count", instance.Originators.GetChildren<IPanelDevice>().Count());
+			addRow("Port Count", instance.Originators.GetChildren<IPort>().Count());
+			addRow("Device Count", instance.Originators.GetChildren<IDevice>().Count());
+			addRow("Room Count", instance.Originators.GetChildren<IRoom>().Count());
+			addRow("VolumePoint Count", instance.Originators.GetChildren<IVolumePoint>().Count());
 		}
 
 		/// <summary>

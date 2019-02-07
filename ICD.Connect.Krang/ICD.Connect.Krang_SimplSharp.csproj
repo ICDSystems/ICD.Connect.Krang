@@ -74,11 +74,11 @@
     <Compile Include="Core\BroadcastSettings.cs" />
     <Compile Include="Core\KrangBootstrapConsole.cs" />
     <Compile Include="Core\KrangCoreConsole.cs" />
+    <Compile Include="NvramMigration.cs" />
     <Compile Include="Remote\Broadcast\IBroadcastHandler.cs" />
     <Compile Include="Remote\InterCoreCommunication.cs" />
     <Compile Include="Remote\RemoteCore.cs" />
     <Compile Include="Remote\RemoteCoreCollection.cs" />
-    <Compile Include="Remote\RemoteCoreSettings.cs" />
     <Compile Include="Core\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
     <Compile Include="Remote\Broadcast\AbstractBroadcastHandler.cs" />
@@ -107,9 +107,9 @@
     <Compile Include="Remote\Direct\RouteDevices\RouteDevicesReply.cs" />
     <Compile Include="Remote\Direct\ShareDevices\ShareDevicesHandler.cs" />
     <Compile Include="Remote\Direct\ShareDevices\ShareDevicesMessage.cs" />
-    <Compile Include="Remote\RemoteSwitcher.cs" />
-    <Compile Include="Remote\RemoteSwitcherControl.cs" />
-    <Compile Include="Remote\RemoteSwitcherSettings.cs" />
+    <Compile Include="Devices\RemoteSwitcher.cs" />
+    <Compile Include="Devices\RemoteSwitcherControl.cs" />
+    <Compile Include="Devices\RemoteSwitcherSettings.cs" />
     <Compile Include="Rooms\SimplRoom.cs" />
     <Compile Include="Rooms\SimplRoomSettings.cs" />
     <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />

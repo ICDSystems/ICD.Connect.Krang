@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
 using ICD.Connect.Protocol.Network.Direct;
 
@@ -11,8 +12,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 	/// </summary>
 	public sealed class RemoteApiCommandHandler : AbstractMessageHandler<RemoteApiMessage, RemoteApiReply>
 	{
-		private readonly Dictionary<uint, ApiRequestor> m_Requestors;
-		private readonly Dictionary<ApiRequestor, uint> m_RequestorClientIds;
+		private readonly BiDictionary<uint, ApiRequestor> m_Requestors;
 		private readonly SafeCriticalSection m_RequestorsSection;
 
 		/// <summary>
@@ -20,9 +20,29 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// </summary>
 		public RemoteApiCommandHandler()
 		{
-			m_Requestors = new Dictionary<uint, ApiRequestor>();
-			m_RequestorClientIds = new Dictionary<ApiRequestor, uint>();
+			m_Requestors = new BiDictionary<uint, ApiRequestor>();
 			m_RequestorsSection = new SafeCriticalSection();
+		}
+
+		/// <summary>
+		/// Release resources.
+		/// </summary>
+		/// <param name="disposing"></param>
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			m_RequestorsSection.Enter();
+
+			try
+			{
+				foreach (uint key in m_Requestors.Keys.ToArray(m_Requestors.Count))
+					DisposeRequestor(key);
+			}
+			finally
+			{
+				m_RequestorsSection.Leave();
+			}
 		}
 
 		/// <summary>
@@ -38,34 +58,23 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			return new RemoteApiReply {Command = message.Command};
 		}
 
-		/// <summary>
-		/// Called to inform the message handler of a client disconnect.
-		/// </summary>
-		/// <param name="clientId"></param>
-		public override void HandleClientDisconnect(uint clientId)
-		{
-			base.HandleClientDisconnect(clientId);
-
-			DisposeRequestor(clientId);
-		}
-
 		private ApiRequestor LazyLoadRequestor(uint clientId)
 		{
 			m_RequestorsSection.Enter();
 
 			try
 			{
-				if (!m_Requestors.ContainsKey(clientId))
+				ApiRequestor requestor;
+				if (!m_Requestors.TryGetValue(clientId, out requestor))
 				{
-					ApiRequestor requestor = new ApiRequestor();
+					requestor = new ApiRequestor();
 
-					m_Requestors[clientId] = requestor;
-					m_RequestorClientIds[requestor] = clientId;
+					m_Requestors.Add(clientId, requestor);
 
 					Subscribe(requestor);
 				}
 
-				return m_Requestors[clientId];
+				return requestor;
 			}
 			finally
 			{
@@ -85,8 +94,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 
 				Unsubscribe(requestor);
 
-				m_Requestors.Remove(clientId);
-				m_RequestorClientIds.Remove(requestor);
+				m_Requestors.RemoveKey(clientId);
 			}
 			finally
 			{
@@ -108,7 +116,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 
 		private void RequestorOnOnApiFeedback(object sender, ApiClassInfoEventArgs eventArgs)
 		{
-			uint clientId = m_RequestorsSection.Execute(() => m_RequestorClientIds[sender as ApiRequestor]);
+			uint clientId = m_RequestorsSection.Execute(() => m_Requestors.GetKey(sender as ApiRequestor));
 
 			RemoteApiReply reply = new RemoteApiReply
 			{
