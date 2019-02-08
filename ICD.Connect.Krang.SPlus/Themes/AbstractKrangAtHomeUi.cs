@@ -103,7 +103,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		/// </summary>
 		/// <param name="sourceBase"></param>
 		/// <param name="type"></param>
-		private void SetSource(IKrangAtHomeSourceBase sourceBase, eSourceTypeRouted type)
+		protected void SetSource(IKrangAtHomeSourceBase sourceBase, eSourceTypeRouted type)
 		{
 			if (Room == null)
 				return;
@@ -114,14 +114,14 @@ namespace ICD.Connect.Krang.SPlus.Themes
 				return;
 			}
 
-			//todo: fix this
+			//todo: set source through the theme, support souce groups
 
 			IKrangAtHomeSource source = sourceBase as IKrangAtHomeSource;
 			if (source != null)
 				Room.SetSource(source, type);
 		}
 
-		private IKrangAtHomeSource GetSourceId(int id)
+		protected IKrangAtHomeSource GetSourceId(int id)
 		{
 			if (Room == null)
 				return null;

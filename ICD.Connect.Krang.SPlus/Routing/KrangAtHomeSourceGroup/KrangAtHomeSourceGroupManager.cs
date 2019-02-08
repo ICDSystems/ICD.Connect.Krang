@@ -69,7 +69,11 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 
 		private void RoutingOnSourceRoomsUsedUpdated(object sender, Routing.SourceRoomsUsedUpdatedEventArgs args)
 		{
-			throw new NotImplementedException();
+			IKrangAtHomeSource source = args.Source as IKrangAtHomeSource;
+			if (source == null)
+				return;
+
+			SetRoomsForSource(source, args.RoomsInUse.OfType<IKrangAtHomeRoom>());
 		}
 
 		#endregion
@@ -216,7 +220,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			bool sourceInUseChanged;
 			bool sourceRoomsUsedChanged;
 
-			SetRoomSourceStatusUsed(source, room, eSourceRoomStatus.Assigned, out sourceInUseChanged, out sourceRoomsUsedChanged);
+			SetRoomSourceStatusUsed(source, room, eSourceRoomStatus.Assigned,false, out sourceInUseChanged, out sourceRoomsUsedChanged);
 
 			if (sourceInUseChanged)
 				OnSourceInUseUpdated.Raise(this, new SourceInUseUpdatedEventArgs(source, true));
@@ -414,12 +418,12 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 
 			List<IKrangAtHomeRoom> roomsList = rooms.ToList();
 
-			Dictionary<IKrangAtHomeRoom, eSourceRoomStatus> oldRoomsDict;
 			IEnumerable<IKrangAtHomeRoom> oldRoomsInUse;
 
 			m_SourcesRoomSection.Enter();
 			try
 			{
+				Dictionary<IKrangAtHomeRoom, eSourceRoomStatus> oldRoomsDict;
 				if (m_SourcesRoomStatus.TryGetValue(source, out oldRoomsDict))
 				{
 					oldRoomsInUse = oldRoomsDict.Where(kvp => kvp.Value == eSourceRoomStatus.InUse).Select(kvp => kvp.Key);
@@ -438,7 +442,12 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 
 			foreach (IKrangAtHomeRoom room in oldRoomsNoLongerActive)
 			{
-				
+				SetSourceStatusForRoom(room, source, eSourceRoomStatus.Assigned, true);
+			}
+
+			foreach (IKrangAtHomeRoom room in roomsList)
+			{
+				SetSourceStatusForRoom(room, source, eSourceRoomStatus.InUse, false);
 			}
 
 		}
@@ -474,7 +483,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 				}
 				roomSources[sourceGroup] = source;
 
-				SetRoomSourceStatusUsed(source, room, eSourceRoomStatus.Assigned, out sourceInUseChanged, out sourceRoomsUsedChanged);
+				SetRoomSourceStatusUsed(source, room, eSourceRoomStatus.Assigned,false, out sourceInUseChanged, out sourceRoomsUsedChanged);
 			}
 			finally
 			{
@@ -508,8 +517,10 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		/// </summary>
 		/// <param name="room"></param>
 		/// <param name="source"></param>
+		/// <param name="status"></param>
+		/// <param name="overrideInUse">if true, will override in use with assigned</param>
 		/// <returns></returns>
-		public void SetSourceStatusForRoom(IKrangAtHomeRoom room, IKrangAtHomeSource source, eSourceRoomStatus status)
+		public void SetSourceStatusForRoom(IKrangAtHomeRoom room, IKrangAtHomeSource source, eSourceRoomStatus status, bool overrideInUse)
 		{
 			if (room == null)
 				throw new ArgumentNullException("room");
@@ -519,7 +530,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			bool sourceInUseChanged;
 			bool sourceRoomsUsedChanged;
 
-			SetRoomSourceStatusUsed(source, room, status, out sourceInUseChanged, out sourceRoomsUsedChanged);
+			SetRoomSourceStatusUsed(source, room, status, overrideInUse, out sourceInUseChanged, out sourceRoomsUsedChanged);
 
 			if (sourceInUseChanged)
 				OnSourceInUseUpdated.Raise(this, new SourceInUseUpdatedEventArgs(source, true));
@@ -537,9 +548,10 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		/// <param name="source"></param>
 		/// <param name="room"></param>
 		/// <param name="status"></param>
+		/// <param name="overrideInUse"></param>
 		/// <param name="sourceInUseChanged"></param>
 		/// <param name="sourceRoomsUsedChanged"></param>
-		private void SetRoomSourceStatusUsed(IKrangAtHomeSource source, IKrangAtHomeRoom room, eSourceRoomStatus status, out bool sourceInUseChanged, out bool sourceRoomsUsedChanged)
+		private void SetRoomSourceStatusUsed(IKrangAtHomeSource source, IKrangAtHomeRoom room, eSourceRoomStatus status,bool overrideInUse, out bool sourceInUseChanged, out bool sourceRoomsUsedChanged)
 		{
 			if (room == null)
 				throw new ArgumentNullException("room");
@@ -566,8 +578,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 				}
 				if (sourceRooms.ContainsKey(room))
 				{
-					// If status is already in use, that trumps assigned
-					if (sourceRooms[room] < status)
+					// if different and (override or not in use), update
+					if ((sourceRooms[room] != status) && (overrideInUse || sourceRooms[room] != eSourceRoomStatus.InUse))
 					{
 						sourceRooms[room] = status;
 						sourceRoomsUsedChanged = true;

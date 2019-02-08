@@ -121,29 +121,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			SetSource(source, eSourceTypeRouted.Audio);
 		}
 
-		/// <summary>
-		/// Sets the selected source for the room
-		/// </summary>
-		/// <param name="sourceBase"></param>
-		/// <param name="type"></param>
-		private void SetSource(IKrangAtHomeSourceBase sourceBase, eSourceTypeRouted type)
-		{
-			if (Room == null)
-				return;
-
-			if (sourceBase == null)
-			{
-				Room.SetSource(null, type);
-				return;
-			}
-
-			//todo: fix this
-
-			IKrangAtHomeSource source = sourceBase as IKrangAtHomeSource;
-			if (source != null)
-				Room.SetSource(source, type);
-		}
-
 		#endregion
 
 		#region Private Methods
@@ -200,13 +177,13 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			foreach (IKrangAtHomeSourceBase source in sources)
 			{
 
-				if (source.SourceVisibility.HasFlag(KrangAtHomeSource.eSourceVisibility.Audio))
+				if (source.SourceVisibility.HasFlag(eSourceVisibility.Audio))
 				{
 					sourceListAudioBiDictionary.Add(audioListIndexCounter, source);
 					audioListIndexCounter++;
 				}
 
-				if (source.SourceVisibility.HasFlag(KrangAtHomeSource.eSourceVisibility.Video))
+				if (source.SourceVisibility.HasFlag(eSourceVisibility.Video))
 				{
 					sourceListVideoBiDictionary.Add(videoListIndexCounter, source);
 					videoListIndexCounter++;
@@ -401,7 +378,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		#endregion
 
-		private static List<RoomInfo> ConvertToRoomInfo(BiDictionary<int, IKrangAtHomeRoom> list)
+		private static List<RoomInfo> ConvertToRoomInfo(IEnumerable<KeyValuePair<int, IKrangAtHomeRoom>> list)
 		{
 			List<RoomInfo> returnList = new List<RoomInfo>();
 			foreach (var kvp in list)
@@ -412,7 +389,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			return returnList;
 		}
 
-		private static List<SourceBaseInfo> ConvertToSourceInfo(BiDictionary<int, IKrangAtHomeSourceBase> list)
+		private static List<SourceBaseInfo> ConvertToSourceInfo(IEnumerable<KeyValuePair<int, IKrangAtHomeSourceBase>> list)
 		{
 			List<SourceBaseInfo> returnList = new List<SourceBaseInfo>();
 			foreach (var kvp in list)

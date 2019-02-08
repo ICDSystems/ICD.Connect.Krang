@@ -8,13 +8,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 {
 	public sealed class KrangAtHomeSource : AbstractSource<KrangAtHomeSourceSettings>, IKrangAtHomeSource
 	{
-		[Flags]
-		public enum eSourceVisibility
-		{
-			None = 0,
-			Audio = 1,
-			Video = 2,
-		}
+		
 
 		#region Events
 

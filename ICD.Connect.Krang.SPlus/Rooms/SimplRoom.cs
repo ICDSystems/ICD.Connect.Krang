@@ -224,6 +224,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			{
 				// Unroute all video destinations if we aren't routing anything there
 				videoDestinations.ForEach(destination => Unroute(destination, eConnectionType.Video));
+				
 			}
 
 			// Route Audio
@@ -294,6 +295,10 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			}
 
 			//Todo: handle lack of path approprately
+
+
+
+			//todo: Power off displays if not used for audio source
 
 			// Power On + Input Switch Destinations
 			foreach (ConnectionPath path in paths)
