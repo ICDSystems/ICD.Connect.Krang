@@ -37,9 +37,11 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="core"></param>
 		public InterCoreCommunication(ICore core)
 		{
+			CoreDiscoveryBroadcastHandler coreDiscovery = new CoreDiscoveryBroadcastHandler(core);
+
 			m_BroadcastHandlers = new IcdHashSet<IBroadcastHandler>
 			{
-				new CoreDiscoveryBroadcastHandler(core),
+				coreDiscovery,
 				new OriginatorsChangeBroadcastHandler(core),
 				new TielineDiscoveryBroadcastHandler()
 			};
@@ -52,7 +54,7 @@ namespace ICD.Connect.Krang.Remote
 				new RequestDevicesHandler(),
 				new DisconnectHandler(),
 				new RouteDevicesHandler(),
-				new RemoteApiCommandHandler(),
+				new RemoteApiCommandHandler(coreDiscovery),
 				new RemoteApiResultHandler()
 			};
 

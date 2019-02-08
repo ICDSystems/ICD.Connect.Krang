@@ -1,7 +1,9 @@
 ﻿using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
+using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 
@@ -14,14 +16,18 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 	{
 		private readonly BiDictionary<HostSessionInfo, ApiRequestor> m_Requestors;
 		private readonly SafeCriticalSection m_RequestorsSection;
+		private readonly CoreDiscoveryBroadcastHandler m_CoreDiscovery;
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public RemoteApiCommandHandler()
+		public RemoteApiCommandHandler(CoreDiscoveryBroadcastHandler coreDiscovery)
 		{
 			m_Requestors = new BiDictionary<HostSessionInfo, ApiRequestor>();
 			m_RequestorsSection = new SafeCriticalSection();
+
+			m_CoreDiscovery = coreDiscovery;
+			Subscribe(m_CoreDiscovery);
 		}
 
 		/// <summary>
@@ -31,6 +37,8 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);
+
+			Unsubscribe(m_CoreDiscovery);
 
 			m_RequestorsSection.Enter();
 
@@ -107,6 +115,38 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			{
 				m_RequestorsSection.Leave();
 			}
+		}
+
+		#endregion
+
+		#region Core Discovery Callbacks
+
+		/// <summary>
+		/// Subscribe to core discovery events.
+		/// </summary>
+		/// <param name="coreDiscovery"></param>
+		private void Subscribe(CoreDiscoveryBroadcastHandler coreDiscovery)
+		{
+			coreDiscovery.OnCoreLost += CoreDiscoveryOnCoreLost;
+		}
+
+		/// <summary>
+		/// Unsubscribe from core discovery events.
+		/// </summary>
+		/// <param name="coreDiscovery"></param>
+		private void Unsubscribe(CoreDiscoveryBroadcastHandler coreDiscovery)
+		{
+			coreDiscovery.OnCoreLost -= CoreDiscoveryOnCoreLost;
+		}
+
+		/// <summary>
+		/// Called when a remote core is lost.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
+		private void CoreDiscoveryOnCoreLost(object sender, GenericEventArgs<HostSessionInfo> eventArgs)
+		{
+			DisposeRequestor(eventArgs.Data);
 		}
 
 		#endregion
