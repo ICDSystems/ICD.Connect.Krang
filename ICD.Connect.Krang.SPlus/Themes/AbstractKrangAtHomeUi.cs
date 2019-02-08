@@ -114,11 +114,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 				return;
 			}
 
-			//todo: set source through the theme, support souce groups
-
-			IKrangAtHomeSource source = sourceBase as IKrangAtHomeSource;
-			if (source != null)
-				Room.SetSource(source, type);
+			Room.SetSource(sourceBase, type);
 		}
 
 		protected IKrangAtHomeSource GetSourceId(int id)

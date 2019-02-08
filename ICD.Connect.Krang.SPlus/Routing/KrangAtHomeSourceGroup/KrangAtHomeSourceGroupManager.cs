@@ -7,6 +7,8 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 
@@ -20,7 +22,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		
 	}
 
-	public sealed class KrangAtHomeSourceGroupManager
+	public sealed class KrangAtHomeSourceGroupManager : IDisposable, IConsoleNode
 	{
 
 		#region Fields
@@ -38,7 +40,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		private readonly SafeCriticalSection m_SourcesRoomSection;
 
 
-		private KrangAtHomeRouting m_Routing;
+		private readonly KrangAtHomeRouting m_Routing;
 
 		#endregion
 
@@ -67,13 +69,26 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			m_Routing.OnSourceRoomsUsedUpdated += RoutingOnSourceRoomsUsedUpdated;
 		}
 
-		private void RoutingOnSourceRoomsUsedUpdated(object sender, Routing.SourceRoomsUsedUpdatedEventArgs args)
+		public void Dispose()
 		{
-			IKrangAtHomeSource source = args.Source as IKrangAtHomeSource;
-			if (source == null)
-				return;
 
-			SetRoomsForSource(source, args.RoomsInUse.OfType<IKrangAtHomeRoom>());
+			m_Routing.OnSourceRoomsUsedUpdated -= RoutingOnSourceRoomsUsedUpdated;
+
+
+			m_SourceGroupsSection.Execute(() => m_SourceGroups.Clear());
+			m_GroupsForSourceSection.Execute(() => m_GroupsForSource.Clear());
+			m_SourcesRoomSection.Enter();
+			try
+			{
+				m_SourcesRoomStatus.Clear();
+				m_RoomActiveSourceGroup.Clear();
+			}
+			finally
+			{
+				m_SourcesRoomSection.Leave();
+			}
+
+
 		}
 
 		#endregion
@@ -597,6 +612,15 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			}
 		}
 
+		private void RoutingOnSourceRoomsUsedUpdated(object sender, Routing.SourceRoomsUsedUpdatedEventArgs args)
+		{
+			IKrangAtHomeSource source = args.Source as IKrangAtHomeSource;
+			if (source == null)
+				return;
+
+			SetRoomsForSource(source, args.RoomsInUse.OfType<IKrangAtHomeRoom>());
+		}
+
 		#endregion
 
 		#region SourceGroups Cache
@@ -655,6 +679,83 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		{
 			message = string.Format(message, args);
 			Log(severity, message);
+		}
+
+		#endregion
+
+
+		#region Console
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public string ConsoleName { get { return "SourceGroupManager"; } }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public string ConsoleHelp { get { return "Manages source groups for KrangAtHome"; } }
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			yield break;
+		}
+
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			addRow("Source Groups", m_SourceGroupsSection.Execute(() => m_SourceGroups.Count));
+			addRow("Sources in Groups", m_GroupsForSourceSection.Execute(() => m_GroupsForSource.Count));
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			yield return new ConsoleCommand("PrintSourceGroups", "Prints all the source groups and their sources", () => PrintSourceGroups());
+			yield return
+				new ConsoleCommand("PrintSourceRoomStatus", "Prints all the source assignments for rooms",
+				                   () => PrintSourceRoomStatus());
+		}
+
+		private string PrintSourceGroups()
+		{
+			TableBuilder table = new TableBuilder("Id", "Name", "Visibility", "Sources");
+			
+			m_SourceGroupsSection.Enter();
+			try
+			{
+				foreach (var group in m_SourceGroups)
+				{
+					table.AddRow(group.Id, group.Name, group.SourceVisibility,
+					             string.Join(", ", group.GetSources().Select(s => s.Id.ToString()).ToArray(group.Count)));
+				}
+			}
+			finally
+			{
+				m_SourcesRoomSection.Leave();
+			}
+
+			return table.ToString();
+		}
+
+		private string PrintSourceRoomStatus()
+		{
+			TableBuilder table = new TableBuilder("Source","Room","Status");
+
+
+
+
+
+			return table.ToString();
 		}
 
 		#endregion

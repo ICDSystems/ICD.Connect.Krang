@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
-using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel;
-using ICD.Connect.Routing.RoutingCaches;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
@@ -25,18 +23,15 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		private readonly IcdHashSet<IKrangAtHomeUserInterfaceFactory> m_UiFactories;
 		private readonly SafeCriticalSection m_UiFactoriesSection;
 
-		private KrangAtHomeRouting m_KrangAtHomeRouting;
-
-		private ICore m_Core;
-		private KrangAtHomeSourceGroupManager m_KrangAtHomeSourceGroupManager;
+		private ICore m_CachedCore;
 
 		#region Properties
 
-		public ICore Core { get { return m_Core = m_Core ?? ServiceProvider.GetService<ICore>(); } }
+		public ICore Core { get { return m_CachedCore = m_CachedCore ?? ServiceProvider.GetService<ICore>(); } }
 
-		public KrangAtHomeRouting KrangAtHomeRouintg { get { return m_KrangAtHomeRouting; }}
+		public KrangAtHomeRouting KrangAtHomeRouting { get; private set; }
 
-		public KrangAtHomeSourceGroupManager KrangAtHomeSourceGroupManager{ get { return m_KrangAtHomeSourceGroupManager; }}
+		public KrangAtHomeSourceGroupManager KrangAtHomeSourceGroupManager { get; private set; }
 
 		#endregion
 
@@ -103,6 +98,11 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			}
 		}
 
+		private void ApplyThemeToRooms(IEnumerable<IKrangAtHomeRoom> rooms)
+		{
+			rooms.ForEach(room => room.ApplyTheme(this));
+		}
+
 		#region User Interfaces
 
 		/// <summary>
@@ -134,7 +134,6 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		protected override void ApplySettingsFinal(KrangAtHomeThemeSettings settings, IDeviceFactory factory)
 		{
 			// Ensure other originators are loaded
-			factory.LoadOriginators<IKrangAtHomeSource>();
 			factory.LoadOriginators<IKrangAtHomeSourceGroup>();
 			factory.LoadOriginators<IRoutingGraph>();
 			factory.LoadOriginators<IKrangAtHomeRoom>();
@@ -143,16 +142,28 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 			IRoutingGraph routingGraph = ServiceProvider.GetService<IRoutingGraph>();
 
-			m_KrangAtHomeRouting = new KrangAtHomeRouting(routingGraph);
+			KrangAtHomeRouting = new KrangAtHomeRouting(routingGraph);
 
-			m_KrangAtHomeSourceGroupManager = new KrangAtHomeSourceGroupManager(m_KrangAtHomeRouting);
+			KrangAtHomeSourceGroupManager = new KrangAtHomeSourceGroupManager(KrangAtHomeRouting);
+
+
+			try
+			{
+				IEnumerable<IKrangAtHomeRoom> rooms = factory.GetOriginators<IKrangAtHomeRoom>();
+
+				if (rooms != null)
+					ApplyThemeToRooms(rooms);
+			}
+			catch (Exception)
+			{
+			}
 
 			try
 			{
 				IEnumerable<IKrangAtHomeSourceGroup> sourceGroups = factory.GetOriginators<IKrangAtHomeSourceGroup>();
 
 				if (sourceGroups != null)
-					m_KrangAtHomeSourceGroupManager.AddSourceGroup(sourceGroups);
+					KrangAtHomeSourceGroupManager.AddSourceGroup(sourceGroups);
 			}
 			catch
 			{
@@ -169,7 +180,31 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			base.ClearSettingsFinal();
 
-			m_KrangAtHomeRouting = null;
+			KrangAtHomeRouting = null;
+		}
+
+		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			foreach (IConsoleNodeBase consoleNode in GetBaseConsoleNodes())
+				yield return consoleNode;
+
+			if (KrangAtHomeRouting != null)
+				yield return KrangAtHomeRouting;
+			if (KrangAtHomeSourceGroupManager != null)
+				yield return KrangAtHomeSourceGroupManager;
+		}
+
+		private IEnumerable<IConsoleNodeBase> GetBaseConsoleNodes()
+		{
+			return base.GetConsoleNodes();
 		}
 
 		#endregion

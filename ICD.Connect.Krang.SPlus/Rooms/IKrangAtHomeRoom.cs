@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Audio.Controls.Volume;
+using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.Themes;
 using ICD.Connect.Partitioning.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Rooms
@@ -16,7 +18,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 		IKrangAtHomeSource GetSource();
 
-		void SetSource(IKrangAtHomeSource source, eSourceTypeRouted routed);
+		void SetSource(IKrangAtHomeSourceBase source, eSourceTypeRouted routed);
 
 		IKrangAtHomeSource GetSourceId(int id);
 
@@ -27,6 +29,6 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 		int GetCrosspointsCount();
 
-
+		void ApplyTheme(KrangAtHomeTheme krangAtHomeTheme);
 	}
 }

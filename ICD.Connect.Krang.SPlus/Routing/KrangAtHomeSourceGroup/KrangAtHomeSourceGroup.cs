@@ -24,6 +24,11 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			m_Sources = new IcdOrderedDictionary<int, List<IKrangAtHomeSource>>();
 		}
 
+		/// <summary>
+		/// The number of sources in the group
+		/// </summary>
+		public int Count { get { return m_Sources.Count; } }
+
 		public IEnumerable<IKrangAtHomeSource> GetSources()
 		{
 			return m_Sources.SelectMany(kvp => kvp.Value);

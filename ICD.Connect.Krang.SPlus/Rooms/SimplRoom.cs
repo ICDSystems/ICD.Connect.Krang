@@ -13,8 +13,11 @@ using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Devices;
 using ICD.Connect.Devices.Controls;
 using ICD.Connect.Devices.Extensions;
+using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Destinations;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup;
+using ICD.Connect.Krang.SPlus.Themes;
 using ICD.Connect.Krang.SPlus.VolumePoints;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing.Connections;
@@ -96,6 +99,10 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			}
 		}
 
+		public KrangAtHomeRouting Routing { get; private set; }
+
+		public KrangAtHomeSourceGroupManager SourceGroupManager { get; private set; }
+
 		#endregion
 
 		/// <summary>
@@ -137,6 +144,13 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			return m_CrosspointsSection.Execute(() => m_Crosspoints.Count);
 		}
 
+		public void ApplyTheme(KrangAtHomeTheme theme)
+		{
+			Routing = theme.KrangAtHomeRouting;
+			SourceGroupManager = theme.KrangAtHomeSourceGroupManager;
+
+		}
+
 		/// <summary>
 		/// Sets the crosspoints.
 		/// </summary>
@@ -169,14 +183,14 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			return krangAtHomeSource;
 		}
 
-		public void SetSource(IKrangAtHomeSource source, eSourceTypeRouted type)
+		public void SetSource(IKrangAtHomeSourceBase source, eSourceTypeRouted type)
 		{
 			Route(source, type);
 		}
 
 		public void SetSourceId(int sourceId, eSourceTypeRouted type)
 		{
-			IKrangAtHomeSource source = GetSourceId(sourceId);
+			IKrangAtHomeSourceBase source = GetSourceId(sourceId);
 
 			SetSource(source, type);
 
@@ -189,13 +203,13 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// <summary>
 		/// Routes the source to all destinations in the current room.
 		/// </summary>
-		/// <param name="source"></param>
+		/// <param name="sourceBase"></param>
 		/// <param name="sourceType"></param>
-		private void Route(IKrangAtHomeSource source, eSourceTypeRouted sourceType)
+		private void Route(IKrangAtHomeSourceBase sourceBase, eSourceTypeRouted sourceType)
 		{
-			Log(eSeverity.Debug, "Routing Source:{0} Type:{1}", source, sourceType);
+			Log(eSeverity.Debug, "Routing SourceBase:{0} Type:{1}", sourceBase, sourceType);
 
-			if (source == null)
+			if (sourceBase == null)
 			{
 				Unroute();
 				return;
@@ -203,6 +217,14 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			if (m_SubscribedRoutingGraph == null)
 				return;
+
+			IKrangAtHomeSource source = SourceGroupManager.GetAndAssignSourceForRoom(this, sourceBase);
+
+			if (source == null)
+			{
+				Log(eSeverity.Error, "Couldn't get source for base {0}", sourceBase);
+				return;
+			}
 
 			IKrangAtHomeDestination[] videoDestinations = GetRoomDestinations(eConnectionType.Video).ToArray();
 			IKrangAtHomeDestination[] audioDestinations = GetRoomDestinations(eConnectionType.Audio).ToArray();
@@ -321,6 +343,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			Log(eSeverity.Informational, "Unrouting all");
 
 			GetRoomDestinations().ForEach(Unroute);
+			SourceGroupManager.ClearRoomAssignedSources(this);
 		}
 
 		/// <summary>
