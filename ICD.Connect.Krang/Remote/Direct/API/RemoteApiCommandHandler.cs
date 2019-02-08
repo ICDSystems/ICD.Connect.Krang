@@ -1,8 +1,9 @@
-﻿using System;
-using ICD.Common.Utils;
+﻿using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
+using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 
@@ -15,14 +16,18 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 	{
 		private readonly BiDictionary<HostSessionInfo, ApiRequestor> m_Requestors;
 		private readonly SafeCriticalSection m_RequestorsSection;
+		private readonly CoreDiscoveryBroadcastHandler m_CoreDiscovery;
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public RemoteApiCommandHandler()
+		public RemoteApiCommandHandler(CoreDiscoveryBroadcastHandler coreDiscovery)
 		{
 			m_Requestors = new BiDictionary<HostSessionInfo, ApiRequestor>();
 			m_RequestorsSection = new SafeCriticalSection();
+
+			m_CoreDiscovery = coreDiscovery;
+			Subscribe(m_CoreDiscovery);
 		}
 
 		/// <summary>
@@ -32,6 +37,8 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);
+
+			Unsubscribe(m_CoreDiscovery);
 
 			m_RequestorsSection.Enter();
 
@@ -46,6 +53,8 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			}
 		}
 
+		#region Methods
+
 		/// <summary>
 		/// Handles the message receieved from the remote core.
 		/// </summary>
@@ -59,6 +68,10 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			return new RemoteApiReply {Command = message.Command};
 		}
 
+		#endregion
+
+		#region Private Methods
+
 		private ApiRequestor LazyLoadRequestor(HostSessionInfo remoteEndpoint)
 		{
 			m_RequestorsSection.Enter();
@@ -71,7 +84,6 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 					requestor = new ApiRequestor {Name = remoteEndpoint.ToString()};
 
 					m_Requestors.Add(remoteEndpoint, requestor);
-
 					Subscribe(requestor);
 				}
 
@@ -94,14 +106,50 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 					return;
 
 				Unsubscribe(requestor);
-
 				m_Requestors.RemoveKey(remoteEndpoint);
+
+				// Remove the requestor from the API
+				ApiHandler.UnsubscribeAll(requestor);
 			}
 			finally
 			{
 				m_RequestorsSection.Leave();
 			}
 		}
+
+		#endregion
+
+		#region Core Discovery Callbacks
+
+		/// <summary>
+		/// Subscribe to core discovery events.
+		/// </summary>
+		/// <param name="coreDiscovery"></param>
+		private void Subscribe(CoreDiscoveryBroadcastHandler coreDiscovery)
+		{
+			coreDiscovery.OnCoreLost += CoreDiscoveryOnCoreLost;
+		}
+
+		/// <summary>
+		/// Unsubscribe from core discovery events.
+		/// </summary>
+		/// <param name="coreDiscovery"></param>
+		private void Unsubscribe(CoreDiscoveryBroadcastHandler coreDiscovery)
+		{
+			coreDiscovery.OnCoreLost -= CoreDiscoveryOnCoreLost;
+		}
+
+		/// <summary>
+		/// Called when a remote core is lost.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="eventArgs"></param>
+		private void CoreDiscoveryOnCoreLost(object sender, GenericEventArgs<HostSessionInfo> eventArgs)
+		{
+			DisposeRequestor(eventArgs.Data);
+		}
+
+		#endregion
 
 		#region Requestor Callbacks
 
