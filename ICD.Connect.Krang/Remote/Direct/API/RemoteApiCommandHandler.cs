@@ -1,5 +1,4 @@
-﻿using System;
-using ICD.Common.Utils;
+﻿using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
@@ -46,6 +45,8 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			}
 		}
 
+		#region Methods
+
 		/// <summary>
 		/// Handles the message receieved from the remote core.
 		/// </summary>
@@ -59,6 +60,10 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			return new RemoteApiReply {Command = message.Command};
 		}
 
+		#endregion
+
+		#region Private Methods
+
 		private ApiRequestor LazyLoadRequestor(HostSessionInfo remoteEndpoint)
 		{
 			m_RequestorsSection.Enter();
@@ -71,7 +76,6 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 					requestor = new ApiRequestor {Name = remoteEndpoint.ToString()};
 
 					m_Requestors.Add(remoteEndpoint, requestor);
-
 					Subscribe(requestor);
 				}
 
@@ -94,14 +98,18 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 					return;
 
 				Unsubscribe(requestor);
-
 				m_Requestors.RemoveKey(remoteEndpoint);
+
+				// Remove the requestor from the API
+				ApiHandler.UnsubscribeAll(requestor);
 			}
 			finally
 			{
 				m_RequestorsSection.Leave();
 			}
 		}
+
+		#endregion
 
 		#region Requestor Callbacks
 
