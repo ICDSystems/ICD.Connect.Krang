@@ -23,7 +23,7 @@ namespace ICD.Connect.Krang.Remote
 	/// </summary>
 	public sealed class RemoteCore : IDisposable
 	{
-		private const long MESSAGE_TIMEOUT = 10 * 1000;
+		private const long MESSAGE_TIMEOUT = 60 * 1000;
 
 		private readonly Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>> m_ProxyBuildCommand;
 		private readonly SafeCriticalSection m_CriticalSection;
