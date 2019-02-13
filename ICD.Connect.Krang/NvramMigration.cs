@@ -82,7 +82,8 @@ namespace ICD.Connect.Krang
 
 			try
 			{
-				IcdDirectory.CreateDirectory(directory);
+				if (!IcdDirectory.Exists(directory))
+					IcdDirectory.CreateDirectory(directory);
 			}
 			catch (Exception e)
 			{
