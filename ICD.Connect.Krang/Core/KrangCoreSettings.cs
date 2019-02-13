@@ -280,6 +280,7 @@ namespace ICD.Connect.Krang.Core
 				return;
 
 			// Add partitioning's child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(partitioning.CellSettings);
 			AddSettingsRemoveOnDuplicateId(partitioning.PartitionSettings);
 		}
 
