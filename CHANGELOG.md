@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [11.1.1] - 2019-02-13
+### Changed
+ - NVRAM no longer bails if USER directory is not empty due to EDID, AvF, etc generation
+
 ## [11.1.0] - 2019-01-02
 ### Added
  - Added command line argument for setting program number on Net Standard
