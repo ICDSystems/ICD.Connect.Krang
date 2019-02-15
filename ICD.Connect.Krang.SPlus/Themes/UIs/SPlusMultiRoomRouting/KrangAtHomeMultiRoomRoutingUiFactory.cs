@@ -19,7 +19,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		/// </summary>
 		public void Clear()
 		{
-			m_UserInterface.Dispose();
+			if (m_UserInterface != null)
+				m_UserInterface.Dispose();
 			m_UserInterface = null;
 		}
 
