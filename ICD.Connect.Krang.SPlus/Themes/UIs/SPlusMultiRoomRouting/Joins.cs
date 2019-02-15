@@ -3,7 +3,7 @@
 	public static class Joins
 	{
 		public const ushort DIGITAL_CONTROL_SOURCE = 4;
-		public const ushort DIGITAL_CONTROL_OFF = 5;
+		public const ushort DIGITAL_OFF = 5;
 
 		#region Room Group
 

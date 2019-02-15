@@ -276,7 +276,37 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 		{
 			ControlCrosspointState crosspointState = LazyLoadCrosspointState(id);
 
-			
+			// Select source
+			if (sig.SmartObject == Joins.SMARTOBJECT_SOURCES && sig.Type == eSigType.Digital)
+			{
+				
+			}
+
+			// Select room
+
+			// Volume up
+
+			// Volume down
+
+			// Mute toggle
+
+			// Room group
+			if (sig.SmartObject == Joins.SMARTOBJECT_ROOM_GROUP && sig.Type == eSigType.Analog)
+			{
+				
+			}
+
+			// Control source
+			if (sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_CONTROL_SOURCE)
+			{
+
+			}
+
+			// Off
+			if (sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_OFF)
+			{
+				
+			}
 		}
 
 		#endregion

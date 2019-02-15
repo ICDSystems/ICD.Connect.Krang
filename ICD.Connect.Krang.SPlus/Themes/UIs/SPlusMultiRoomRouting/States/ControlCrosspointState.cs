@@ -1,4 +1,5 @@
-﻿using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages;
+﻿using ICD.Common.Utils.Collections;
+using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages;
 using ICD.Connect.Protocol.Crosspoints;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
@@ -7,43 +8,40 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 	{
 		private readonly AudioVideoEquipmentPage m_Page;
 		private readonly int m_ControlCrosspointId;
-		private int? m_SelectedRoom;
 		private int? m_SelectedSource;
 
 		public int ControlCrosspointId { get { return m_ControlCrosspointId; } }
 
 		public AudioVideoEquipmentPage Page { get { return m_Page; } }
 
-		public int? SelectedRoom
+		private readonly IcdHashSet<int> m_SelectedRooms;
+
+		public void AddSelectedRoom(int index)
 		{
-			get { return m_SelectedRoom; }
-			set
-			{
-				if (value == m_SelectedRoom)
-					return;
+			if (!m_SelectedRooms.Add(index))
+				return;
 
-				int? old = m_SelectedRoom;
-				m_SelectedRoom = value;
+			CrosspointData data = new CrosspointData();
+			data.AddControlId(m_ControlCrosspointId);
 
-				CrosspointData data = new CrosspointData();
-				data.AddControlId(m_ControlCrosspointId);
+			ushort buttonJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_SELECT);
+			data.AddSig(Joins.SMARTOBJECT_ROOMS, buttonJoin, true);
 
-				if (old != null)
-				{
-					ushort buttonJoin = Joins.GetDigitalJoinOffset(old.Value, Joins.DIGITAL_ROOMS_OFFSET,
-					                                               Joins.DIGITAL_ROOMS_SELECT);
-					data.AddSig(Joins.SMARTOBJECT_ROOMS, buttonJoin, false);
-				}
+			m_Page.Equipment.SendInputData(data);
+		}
 
-				if (m_SelectedRoom != null)
-				{
-					ushort buttonJoin = Joins.GetDigitalJoinOffset(m_SelectedRoom.Value, Joins.DIGITAL_ROOMS_OFFSET,
-																   Joins.DIGITAL_ROOMS_SELECT);
-					data.AddSig(Joins.SMARTOBJECT_ROOMS, buttonJoin, false);
-				}
+		public void RemoveSelectedRoom(int index)
+		{
+			if (!m_SelectedRooms.Remove(index))
+				return;
 
-				m_Page.Equipment.SendInputData(data);
-			}
+			CrosspointData data = new CrosspointData();
+			data.AddControlId(m_ControlCrosspointId);
+
+			ushort buttonJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_SELECT);
+			data.AddSig(Joins.SMARTOBJECT_ROOMS, buttonJoin, false);
+
+			m_Page.Equipment.SendInputData(data);
 		}
 
 		public int? SelectedSource
@@ -82,6 +80,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 		{
 			m_Page = audioVideoEquipmentPage;
 			m_ControlCrosspointId = id;
+			m_SelectedRooms = new IcdHashSet<int>();
 		}
 	}
 }
