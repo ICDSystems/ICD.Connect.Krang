@@ -27,6 +27,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 		private readonly EquipmentCrosspoint m_Equipment;
 		private readonly KrangAtHomeTheme m_Theme;
+		private readonly eConnectionType m_ConnectionType;
 
 		public EquipmentCrosspoint Equipment { get { return m_Equipment; } }
 		public KrangAtHomeTheme Theme { get { return m_Theme; } }
@@ -45,6 +46,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 			m_Sessions = new Dictionary<int, ControlCrosspointState>();
 			m_RoomGroupStates = new Dictionary<int, RoomGroupState>();
 			m_SessionsSection = new SafeCriticalSection();
+
+			m_ConnectionType = connectionType;
 
 			m_IndexToRoomGroup =
 				new IcdOrderedDictionary<int, SPlusRoomGroup>(theme.Core
@@ -275,37 +278,92 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 		private void HandleSigFromControl(int id, SigInfo sig)
 		{
 			ControlCrosspointState crosspointState = LazyLoadCrosspointState(id);
-
-			// Select source
-			if (sig.SmartObject == Joins.SMARTOBJECT_SOURCES && sig.Type == eSigType.Digital)
-			{
-				
-			}
-
-			// Select room
-
-			// Volume up
-
-			// Volume down
-
-			// Mute toggle
-
-			// Room group
-			if (sig.SmartObject == Joins.SMARTOBJECT_ROOM_GROUP && sig.Type == eSigType.Analog)
-			{
-				
-			}
+			RoomGroupState roomGroupState = m_RoomGroupStates.Values.First(s => s.ContainsControlId(id));
 
 			// Control source
 			if (sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_CONTROL_SOURCE)
 			{
-
+				// Do nothing
 			}
 
 			// Off
 			if (sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_OFF)
 			{
-				
+				// Unroute selected rooms
+				foreach (int roomIndex in crosspointState.GetSelectedRooms())
+				{
+					IKrangAtHomeRoom room = roomGroupState.GetRoomStateAtIndex(roomIndex).Room;
+
+					eSourceTypeRouted type = m_ConnectionType == eConnectionType.Audio
+												 ? eSourceTypeRouted.Audio
+												 : eSourceTypeRouted.Video;
+
+					room.SetSource(null, type);
+				}
+
+				crosspointState.ClearSelectedRooms();
+			}
+
+			// Select source
+			if (sig.SmartObject == Joins.SMARTOBJECT_SOURCES && sig.Type == eSigType.Digital)
+			{
+				int index;
+				ushort join = Joins.GetDigitalJoinFromOffset((ushort)sig.Number, Joins.DIGITAL_SOURCES_OFFSET, out index);
+
+				if (join == Joins.DIGITAL_SOURCES_SELECT)
+				{
+					IKrangAtHomeSource source = m_Sources[index];
+
+                    foreach (int roomIndex in crosspointState.GetSelectedRooms())
+                    {
+						IKrangAtHomeRoom room = roomGroupState.GetRoomStateAtIndex(roomIndex).Room;
+
+	                    eSourceTypeRouted type = m_ConnectionType == eConnectionType.Audio
+		                                             ? eSourceTypeRouted.Audio
+		                                             : eSourceTypeRouted.Video;
+
+						room.SetSource(source, type);
+                    }
+
+					crosspointState.ClearSelectedRooms();
+				}
+			}
+
+			if (sig.SmartObject == Joins.SMARTOBJECT_ROOMS && sig.Type == eSigType.Digital)
+			{
+				int index;
+				ushort join = Joins.GetDigitalJoinFromOffset((ushort)sig.Number, Joins.DIGITAL_SOURCES_OFFSET, out index);
+
+				// Select room
+				if (join == Joins.DIGITAL_ROOMS_SELECT)
+				{
+					crosspointState.ToggleSelectedRoom(index);
+				}
+
+				// Volume up
+				if (join == Joins.DIGITAL_ROOMS_VOLUME_UP)
+				{
+					roomGroupState.GetRoomStateAtIndex(index).VolumeUp();
+				}
+
+				// Volume down
+				if (join == Joins.DIGITAL_ROOMS_VOLUME_DOWN)
+				{
+					roomGroupState.GetRoomStateAtIndex(index).VolumeDown();
+				}
+
+				// Mute toggle
+				if (join == Joins.DIGITAL_ROOMS_MUTE)
+				{
+					roomGroupState.GetRoomStateAtIndex(index).ToggleMute();
+				}
+			}
+
+			// Room group
+			if (sig.SmartObject == Joins.SMARTOBJECT_ROOM_GROUP && sig.Type == eSigType.Analog && sig.Number == Joins.DYNAMIC_BUTTON_LIST_DIGITAL_START_SELECTED_JOIN)
+			{
+				int index = sig.GetUShortValue();
+				SetRoomGroup(crosspointState, index);
 			}
 		}
 

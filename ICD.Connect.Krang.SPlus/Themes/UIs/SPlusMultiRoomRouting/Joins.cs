@@ -95,6 +95,24 @@
 			return (ushort)((START_SERIAL_JOIN - 1) + (index * increment) + join);
 		}
 
+		public static ushort GetDigitalJoinFromOffset(ushort joinWithOffset, ushort increment, out int index)
+		{
+			index = (joinWithOffset - START_DIGITAL_JOIN) / increment;
+			return (ushort)((joinWithOffset - START_DIGITAL_JOIN) % increment + 1);
+		}
+
+		public static ushort GetAnalogJoinFromOffset(ushort joinWithOffset, ushort increment, out int index)
+		{
+			index = (joinWithOffset - START_ANALOG_JOIN) / increment;
+			return (ushort)((joinWithOffset - START_ANALOG_JOIN) % increment + 1);
+		}
+
+		public static ushort GetSerialJoinFromOffset(ushort joinWithOffset, ushort increment, out int index)
+		{
+			index = (joinWithOffset - START_SERIAL_JOIN) / increment;
+			return (ushort)((joinWithOffset - START_SERIAL_JOIN) % increment + 1);
+		}
+
 		#endregion
 	}
 }

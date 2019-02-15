@@ -182,5 +182,15 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 		}
 
 		#endregion
+
+		public bool ContainsControlId(int id)
+		{
+			return m_ControlIds.Contains(id);
+		}
+
+		public RoomState GetRoomStateAtIndex(int roomIndex)
+		{
+			return m_RoomStates[roomIndex];
+		}
 	}
 }
