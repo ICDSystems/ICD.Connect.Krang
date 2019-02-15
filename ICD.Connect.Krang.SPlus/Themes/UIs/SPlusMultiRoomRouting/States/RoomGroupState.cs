@@ -122,7 +122,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			{
 				RoomState roomState = m_RoomStates[index];
 				string name = roomState.Room.Name;
-				string[] sources = null; //m_Page.Theme.KrangAtHomeRouting.KrangAtHomeRoutingCache.get
+				string[] sources = new string[0];
 				string sourcesFeedback = string.Join(", ", sources);
 
 				// Labels
