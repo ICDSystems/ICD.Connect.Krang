@@ -105,6 +105,8 @@
     <Compile Include="Routing\SourceRoomsUsedUpdatedEventArgs.cs" />
     <Compile Include="SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusKrangEventRelay.cs" />
+    <Compile Include="SPlusRoomGroup\SPlusRoomGroup.cs" />
+    <Compile Include="SPlusRoomGroup\SPlusRoomGroupSettings.cs" />
     <Compile Include="SPlusRoomInfo\Device\ISPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfoSettings.cs" />
