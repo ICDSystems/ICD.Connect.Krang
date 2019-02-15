@@ -9,10 +9,6 @@
 
 		public const ushort SMARTOBJECT_ROOM_GROUP = 102;
 
-		public const ushort DIGITAL_ROOMS_GROUP_1_PRESS = 1;
-		public const ushort DIGITAL_ROOMS_GROUP_2_PRESS = 2;
-		public const ushort DIGITAL_ROOMS_GROUP_3_PRESS = 3;
-
 		#endregion
 
 		#region Rooms
@@ -49,13 +45,15 @@
 
 		#region Dynamic Button List
 
-		private const ushort DYNAMING_BUTTON_LIST_NUMBER_OF_ITEMS_JOIN = 4;
+		public const ushort DYNAMIC_BUTTON_LIST_NUMBER_OF_ITEMS_JOIN = 4;
+		public const ushort DYNAMIC_BUTTON_LIST_DIGITAL_START_SELECTED_JOIN = 11;
+		public const ushort DYNAMIC_BUTTON_LIST_SERIAL_START_TEXT_JOIN = 11;
 
 		#endregion
 
 		#region SRL
 
-		private const ushort SRL_NUMBER_OF_ITEMS_JOIN = 3;
+		public const ushort SRL_NUMBER_OF_ITEMS_JOIN = 3;
 
 		private const ushort START_DIGITAL_JOIN = 4011;
 		private const ushort START_ANALOG_JOIN = 11;

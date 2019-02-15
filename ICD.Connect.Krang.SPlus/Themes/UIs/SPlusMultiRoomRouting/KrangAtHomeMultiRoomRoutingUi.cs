@@ -1,12 +1,13 @@
 ﻿using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages;
+using ICD.Connect.Routing.Connections;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 {
 	public sealed class KrangAtHomeMultiRoomRoutingUi : IKrangAtHomeUserInterface
 	{
-		private readonly AudioEquipmentPage m_AudioPage;
-		private readonly VideoEquipmentPage m_VideoPage;
+		private readonly AudioVideoEquipmentPage m_AudioPage;
+		private readonly AudioVideoEquipmentPage m_VideoPage;
 
 		/// <summary>
 		/// Constructor.
@@ -15,10 +16,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		public KrangAtHomeMultiRoomRoutingUi(KrangAtHomeTheme theme)
 		{
 			if (theme.AudioEquipment != null)
-				m_AudioPage = new AudioEquipmentPage(theme.AudioEquipment);
+				m_AudioPage = new AudioVideoEquipmentPage(theme, theme.AudioEquipment, eConnectionType.Audio);
 
 			if (theme.VideoEquipment != null)
-				m_VideoPage = new VideoEquipmentPage(theme.VideoEquipment);
+				m_VideoPage = new AudioVideoEquipmentPage(theme, theme.VideoEquipment, eConnectionType.Video);
 		}
 
 		public void Dispose()

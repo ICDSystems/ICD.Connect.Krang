@@ -1,7 +1,7 @@
 ﻿using ICD.Connect.Partitioning.RoomGroups;
 using ICD.Connect.Settings;
 
-namespace ICD.Connect.Krang.SPlus.SPlusRoomGroup
+namespace ICD.Connect.Krang.SPlus.RoomGroups
 {
 	public sealed class SPlusRoomGroup : AbstractRoomGroup<SPlusRoomGroupSettings>
 	{

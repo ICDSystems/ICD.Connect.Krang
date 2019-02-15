@@ -105,8 +105,8 @@
     <Compile Include="Routing\SourceRoomsUsedUpdatedEventArgs.cs" />
     <Compile Include="SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusKrangEventRelay.cs" />
-    <Compile Include="SPlusRoomGroup\SPlusRoomGroup.cs" />
-    <Compile Include="SPlusRoomGroup\SPlusRoomGroupSettings.cs" />
+    <Compile Include="RoomGroups\SPlusRoomGroup.cs" />
+    <Compile Include="RoomGroups\SPlusRoomGroupSettings.cs" />
     <Compile Include="SPlusRoomInfo\Device\ISPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfoSettings.cs" />
@@ -131,14 +131,13 @@
     <Compile Include="Themes\IKrangAtHomeUserInterface.cs" />
     <Compile Include="Themes\AbstractKrangAtHomeUserInterfaceFactory.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Device\IKrangAtHomeUiDevice.cs" />
-    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Pages\AbstractAudioVideoEquipmentPage.cs" />
-    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Pages\AudioEquipmentPage.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Pages\AudioVideoEquipmentPage.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\ControlCrosspointState.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Joins.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\RoomGroupState.cs" />
-    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Pages\VideoEquipmentPage.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\KrangAtHomeMultiRoomRoutingUiFactory.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\KrangAtHomeMultiRoomRoutingUi.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\RoomState.cs" />
     <Compile Include="Themes\UIs\SPlusTouchpanel\KrangAtHomeTouchpanelUi.cs" />
     <Compile Include="Themes\UIs\SPlusRemote\KrangAtHomeRemoteUi.cs" />
     <Compile Include="Themes\UIs\SPlusRemote\KrangAtHomeRemoteUiFactory.cs" />

@@ -97,14 +97,14 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			base.DisposeFinal(disposing);
 		}
 
-		public IEnumerable<KrangAtHomeSource> GetAudioSources()
+		public IEnumerable<IKrangAtHomeSource> GetAudioSources()
 		{
-			return Core.Originators.GetChildren<KrangAtHomeSource>(m_AudioSources).OrderBy(s => s.Id);
+			return Core.Originators.GetChildren<IKrangAtHomeSource>(m_AudioSources).OrderBy(s => s.Id);
 		}
 
-		public IEnumerable<KrangAtHomeSource> GetVideoSources()
+		public IEnumerable<IKrangAtHomeSource> GetVideoSources()
 		{
-			return Core.Originators.GetChildren<KrangAtHomeSource>(m_VideoSources).OrderBy(s => s.Id);
+			return Core.Originators.GetChildren<IKrangAtHomeSource>(m_VideoSources).OrderBy(s => s.Id);
 		}
 
 		private void OriginatorsOnChildrenChanged(object sender, EventArgs e)
