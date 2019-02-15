@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
@@ -7,9 +8,14 @@ using ICD.Common.Utils.Services;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup;
+using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel;
+using ICD.Connect.Protocol.Crosspoints;
+using ICD.Connect.Protocol.Crosspoints.CrosspointManagers;
+using ICD.Connect.Protocol.Crosspoints.Crosspoints;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
@@ -19,10 +25,13 @@ namespace ICD.Connect.Krang.SPlus.Themes
 {
 	public sealed class KrangAtHomeTheme : AbstractTheme<KrangAtHomeThemeSettings>
 	{
-
 		private readonly IcdHashSet<IKrangAtHomeUserInterfaceFactory> m_UiFactories;
 		private readonly SafeCriticalSection m_UiFactoriesSection;
 
+		private readonly IcdHashSet<int> m_AudioSources;
+		private readonly IcdHashSet<int> m_VideoSources; 
+
+		private Xp3 m_CachedXp3;
 		private ICore m_CachedCore;
 
 		#region Properties
@@ -33,14 +42,43 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		public KrangAtHomeSourceGroupManager KrangAtHomeSourceGroupManager { get; private set; }
 
+		public int SystemId { get; set; }
+
+		public EquipmentCrosspoint AudioEquipment { get; set; }
+
+		public EquipmentCrosspoint VideoEquipment { get; set; }
+
+		public Xp3 Xp3
+		{
+			get
+			{
+				if (m_CachedXp3 != null)
+					return m_CachedXp3;
+
+				if (ServiceProvider.TryGetService<Xp3>() == null)
+					ServiceProvider.AddService(new Xp3());
+
+				return m_CachedXp3 = ServiceProvider.GetService<Xp3>();
+			}
+		}
+
+		public EquipmentCrosspointManager EquipmentCrosspointManager
+		{
+			get { return Xp3.GetOrCreateSystem(SystemId).GetOrCreateEquipmentCrosspointManager(); }
+		} 
+
 		#endregion
 
+		/// <summary>
+		/// Constructor.
+		/// </summary>
 		public KrangAtHomeTheme()
 		{
 			m_UiFactories = new IcdHashSet<IKrangAtHomeUserInterfaceFactory>
 			{
 				new KrangAtHomeTouchpanelUiFactory(this),
-				new KrangAtHomeRemoteUiFactory(this)
+				new KrangAtHomeRemoteUiFactory(this),
+				new KrangAtHomeMultiRoomRoutingUiFactory(this)
 			};
 
 			m_UiFactoriesSection = new SafeCriticalSection();
@@ -57,6 +95,16 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			Core.Originators.OnChildrenChanged -= OriginatorsOnChildrenChanged;
 
 			base.DisposeFinal(disposing);
+		}
+
+		public IEnumerable<KrangAtHomeSource> GetAudioSources()
+		{
+			return Core.Originators.GetChildren<KrangAtHomeSource>(m_AudioSources).OrderBy(s => s.Id);
+		}
+
+		public IEnumerable<KrangAtHomeSource> GetVideoSources()
+		{
+			return Core.Originators.GetChildren<KrangAtHomeSource>(m_VideoSources).OrderBy(s => s.Id);
 		}
 
 		private void OriginatorsOnChildrenChanged(object sender, EventArgs e)
@@ -127,6 +175,25 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		#region Settings
 
 		/// <summary>
+		/// Override to apply properties to the settings instance.
+		/// </summary>
+		/// <param name="settings"></param>
+		protected override void CopySettingsFinal(KrangAtHomeThemeSettings settings)
+		{
+			base.CopySettingsFinal(settings);
+
+			settings.SystemId = SystemId;
+			settings.AudioEquipmentId = AudioEquipment == null ? (int?)null : AudioEquipment.Id;
+			settings.VideoEquipmentId = VideoEquipment == null ? (int?)null : VideoEquipment.Id;
+
+			settings.AudioSourceIds.Clear();
+			settings.AudioSourceIds.AddRange(m_AudioSources);
+
+			settings.VideoSourceIds.Clear();
+			settings.VideoSourceIds.AddRange(m_VideoSources);
+		}
+
+		/// <summary>
 		/// Override to apply settings to the instance.
 		/// </summary>
 		/// <param name="settings"></param>
@@ -138,14 +205,17 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			factory.LoadOriginators<IRoutingGraph>();
 			factory.LoadOriginators<IKrangAtHomeRoom>();
 
+			m_AudioSources.Clear();
+			m_AudioSources.AddRange(settings.AudioSourceIds);
 
+			m_VideoSources.Clear();
+			m_VideoSources.AddRange(settings.VideoSourceIds);
 
 			IRoutingGraph routingGraph = ServiceProvider.GetService<IRoutingGraph>();
 
 			KrangAtHomeRouting = new KrangAtHomeRouting(routingGraph);
 
 			KrangAtHomeSourceGroupManager = new KrangAtHomeSourceGroupManager(KrangAtHomeRouting);
-
 
 			try
 			{
@@ -167,7 +237,21 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			}
 			catch
 			{
-				
+			}
+
+			// Setup the equipment crosspoints
+			SystemId = settings.SystemId ?? 0;
+			
+			if (settings.AudioEquipmentId.HasValue)
+			{
+				AudioEquipment = new EquipmentCrosspoint(settings.AudioEquipmentId.Value, "AudioEquipment");
+				EquipmentCrosspointManager.RegisterCrosspoint(AudioEquipment);
+			}
+
+			if (settings.VideoEquipmentId.HasValue)
+			{
+				VideoEquipment = new EquipmentCrosspoint(settings.VideoEquipmentId.Value, "VideoEquipment");
+				EquipmentCrosspointManager.RegisterCrosspoint(VideoEquipment);
 			}
 
 			base.ApplySettingsFinal(settings, factory);
@@ -180,7 +264,26 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			base.ClearSettingsFinal();
 
+			if (AudioEquipment != null)
+			{
+				EquipmentCrosspointManager.UnregisterCrosspoint(AudioEquipment);
+				AudioEquipment.Dispose();
+				AudioEquipment = null;
+			}
+
+			if (VideoEquipment != null)
+			{
+				EquipmentCrosspointManager.UnregisterCrosspoint(VideoEquipment);
+				VideoEquipment.Dispose();
+				VideoEquipment = null;
+			}
+
+			SystemId = 0;
+
 			KrangAtHomeRouting = null;
+
+			m_AudioSources.Clear();
+			m_VideoSources.Clear();
 		}
 
 		#endregion
