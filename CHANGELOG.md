@@ -5,18 +5,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [12.1.0] - 2019-02-13
 ### Added
  - Added VolumePoints to the core console
  - Added ConferencePoints to the core
 
 ### Changed
- - Attempt to migrate NVRAM even if the destination directory is not empty
- - Fail gracefully when unable to migrate NVRAM
  - Only printing licensing information when licensing is enabled
 
 ## [12.0.0] - 2019-01-10
 ### Changed
  - Core namespace renamed
+
+## [11.1.1] - 2019-02-13
+### Changed
+ - NVRAM no longer bails if USER directory is not empty due to EDID, AvF, etc generation
 
 ## [11.1.0] - 2019-01-02
 ### Added
