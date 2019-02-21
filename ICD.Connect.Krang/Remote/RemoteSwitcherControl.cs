@@ -280,6 +280,15 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
+		/// Gets the Output Name of the switcher's outputs (ie Content, Display In)
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<string> GetSwitcherVideoOutputNames()
+		{
+			return GetSwitcherVideoOutputIds();
+		}
+
+		/// <summary>
 		/// Gets the input routed to the given output matching the given type.
 		/// </summary>
 		/// <param name="output"></param>
