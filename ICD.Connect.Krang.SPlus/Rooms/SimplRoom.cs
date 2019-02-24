@@ -183,6 +183,21 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			return krangAtHomeSource;
 		}
 
+		public IEnumerable<IKrangAtHomeSourceBase> GetSourcesBase()
+		{
+			IKrangAtHomeSource source = GetSource();
+
+			IcdHashSet<IKrangAtHomeSourceBase> sourcesAndGroups = new IcdHashSet<IKrangAtHomeSourceBase>();
+
+			if (source != null)
+			{
+				sourcesAndGroups.Add(source);
+				sourcesAndGroups.AddRange(SourceGroupManager.GetSourceGroupsForSource(source).OfType<IKrangAtHomeSourceBase>());
+			}
+
+			return sourcesAndGroups;
+		}
+
 		public void SetSource(IKrangAtHomeSourceBase source, eSourceTypeRouted type)
 		{
 			Route(source, type);
