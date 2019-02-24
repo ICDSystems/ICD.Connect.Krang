@@ -10,6 +10,7 @@ using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel;
+using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
@@ -134,6 +135,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		protected override void ApplySettingsFinal(KrangAtHomeThemeSettings settings, IDeviceFactory factory)
 		{
 			// Ensure other originators are loaded
+			factory.LoadOriginators<ISource>();
 			factory.LoadOriginators<IKrangAtHomeSourceGroup>();
 			factory.LoadOriginators<IRoutingGraph>();
 			factory.LoadOriginators<IKrangAtHomeRoom>();
@@ -149,14 +151,14 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 			try
 			{
-				IEnumerable<IKrangAtHomeRoom> rooms = factory.GetOriginators<IKrangAtHomeRoom>();
-
-				if (rooms != null)
-					ApplyThemeToRooms(rooms);
+				IEnumerable<ISource> sources = factory.GetOriginators<ISource>();
+				KrangAtHomeRouting.AddSources(sources);
 			}
-			catch (Exception)
+			catch
 			{
+				
 			}
+			
 
 			try
 			{
@@ -168,6 +170,17 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			catch
 			{
 				
+			}
+
+			try
+			{
+				IEnumerable<IKrangAtHomeRoom> rooms = factory.GetOriginators<IKrangAtHomeRoom>();
+
+				if (rooms != null)
+					ApplyThemeToRooms(rooms);
+			}
+			catch (Exception)
+			{
 			}
 
 			base.ApplySettingsFinal(settings, factory);

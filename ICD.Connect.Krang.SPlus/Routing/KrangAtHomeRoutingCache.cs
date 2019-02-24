@@ -7,6 +7,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Endpoints.Destinations;
@@ -221,6 +222,32 @@ namespace ICD.Connect.Krang.SPlus.Routing
 			}
 		}
 
+		public void AddSource(ISource source)
+		{
+			m_SourcesSection.Enter();
+			try
+			{
+				foreach (eConnectionType type in EnumUtils.GetFlagsExceptNone(source.ConnectionType))
+				{
+					IcdHashSet<ISource> typeHash;
+					if (!m_Sources.TryGetValue(type, out typeHash))
+					{
+						typeHash = new IcdHashSet<ISource>();
+						m_Sources.Add(type, typeHash);
+					}
+					typeHash.Add(source);
+				}
+			}
+			finally
+			{
+				m_SourcesSection.Leave();
+			}
+		}
+
+		public void AddSources(IEnumerable<ISource> sources)
+		{
+			sources.ForEach(AddSource);
+		}
 		public void Dispose()
 		{
 			//todo: Dispose all the things?

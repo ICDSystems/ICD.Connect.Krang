@@ -131,6 +131,16 @@ namespace ICD.Connect.Krang.SPlus.Routing
 			return sourcesForType;
 		}
 
+		/// <summary>
+		/// Adds the source to the cache
+		/// </summary>
+		public void AddSources(IEnumerable<ISource> sources)
+		{
+			if (m_KrangAtHomeCache != null)
+				m_KrangAtHomeCache.AddSources(sources);
+
+		}
+
 		
 
 		#endregion
