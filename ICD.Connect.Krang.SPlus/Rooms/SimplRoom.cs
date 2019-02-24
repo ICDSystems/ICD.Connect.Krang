@@ -259,8 +259,9 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			}
 			else
 			{
-				// Unroute all video destinations if we aren't routing anything there
+				// Unroute and power off all video destinations if we aren't routing anything there
 				videoDestinations.ForEach(destination => Unroute(destination, eConnectionType.Video));
+				videoDestinations.Where(d => d.ConnectionType == eConnectionType.Video).Select(d => d.Device).ForEach(PowerOffDestinationDevice);
 				
 			}
 
@@ -333,14 +334,11 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			//Todo: handle lack of path approprately
 
-
-
-			//todo: Power off displays if not used for audio source
-
 			// Power On + Input Switch Destinations
 			foreach (ConnectionPath path in paths)
 			{
 				PowerOnDestinationDevice(path.DestinationEndpoint);
+				
 				SetActiveInputDestinationDevice(path.DestinationEndpoint, eConnectionType.Audio | eConnectionType.Video);
 			}
 
