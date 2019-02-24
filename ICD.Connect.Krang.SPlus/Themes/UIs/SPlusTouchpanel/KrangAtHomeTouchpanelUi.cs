@@ -329,6 +329,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		protected override void Subscribe(KrangAtHomeSPlusTouchpanelDevice panel)
 		{
+			base.Subscribe(panel);
+
 			if (panel == null)
 				return;
 
@@ -340,6 +342,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		protected override void Unsubscribe(KrangAtHomeSPlusTouchpanelDevice panel)
 		{
+			base.Unsubscribe(panel);
+
 			if (panel == null)
 				return;
 
