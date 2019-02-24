@@ -1,6 +1,6 @@
 ﻿using System;
 using ICD.Common.Properties;
-using ICD.Connect.Settings.Originators;
+using ICD.Connect.Routing.Endpoints.Sources;
 
 namespace ICD.Connect.Krang.SPlus.Routing
 {
@@ -12,9 +12,11 @@ namespace ICD.Connect.Krang.SPlus.Routing
 		Video = 2,
 	}
 
-	public interface IKrangAtHomeSourceBase : IOriginator
+	public interface IKrangAtHomeSourceBase : ISourceBase
 	{
 		[PublicAPI]
 		eSourceVisibility SourceVisibility { get; set; }
+
+		int Order { get; }
 	}
 }

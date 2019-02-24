@@ -6,6 +6,7 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Settings;
@@ -18,6 +19,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		private readonly IcdOrderedDictionary<int, List<IKrangAtHomeSource>> m_Sources;
 
 		public eSourceVisibility SourceVisibility { get; set; }
+
+		public int Order { get; private set; }
 
 		public KrangAtHomeSourceGroup()
 		{
@@ -115,6 +118,10 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		{
 			base.ApplySettingsFinal(settings, factory);
 
+			SourceVisibility = settings.SourceVisibility;
+
+			Order = settings.Order;
+
 			settings.Sources.ForEach(kvp => AddSource(kvp, factory));
 		}
 
@@ -126,6 +133,10 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		{
 			base.CopySettingsFinal(settings);
 
+			settings.SourceVisibility = SourceVisibility;
+
+			settings.Order = Order;
+
 			settings.Sources = SourcesToDictionary();
 		}
 
@@ -136,6 +147,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		{
 			base.ClearSettingsFinal();
 
+			SourceVisibility = eSourceVisibility.None;
+			Order = int.MaxValue;
 			m_Sources.Clear();
 		}
 
@@ -153,8 +166,17 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 				yield return command;
 
 			yield return new ConsoleCommand("Print Source Table", "Prints the table of sources and their priority", () => PrintSources());
+		}
 
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public override void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			base.BuildConsoleStatus(addRow);
 
+			addRow("SourceCount", Count);
 		}
 
 		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()

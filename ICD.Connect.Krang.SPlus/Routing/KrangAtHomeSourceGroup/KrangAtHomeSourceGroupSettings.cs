@@ -11,9 +11,11 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 	{
 		#region Constants
 		private const string SOURCE_VISIBILITY_ELEMENT = "SourceVisibility";
-		private const string PRIORITY_ATTRIBUTE = "priority";
+		private const string ORDER_ELEMENT = "Order";
 		private const string LIST_ELEMENT = "Sources";
 		private const string LIST_CHILD_ELEMENT = "Source";
+		private const string PRIORITY_ATTRIBUTE = "priority";
+
 		#endregion
 
 		#region Properties
@@ -29,6 +31,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		/// What lists this source group should show up under
 		/// </summary>
 		public eSourceVisibility SourceVisibility { get; set; }
+
+		public int Order { get; set; }
 
 		#endregion
 
@@ -55,6 +59,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 				XmlUtils.TryReadChildElementContentAsEnum<eSourceVisibility>(xml, SOURCE_VISIBILITY_ELEMENT, true) ??
 				eSourceVisibility.None;
 
+			Order = XmlUtils.TryReadChildElementContentAsInt(xml, ORDER_ELEMENT) ?? int.MaxValue;
+
 			Sources.AddRange(XmlUtils.ReadListFromXml<KeyValuePair<int, int>>(xml, LIST_ELEMENT, LIST_CHILD_ELEMENT, ReadChildFromXml));
 		}
 
@@ -67,6 +73,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			base.WriteElements(writer);
 
 			writer.WriteElementString(SOURCE_VISIBILITY_ELEMENT, SourceVisibility.ToString());
+
+			writer.WriteElementString(ORDER_ELEMENT, IcdXmlConvert.ToString(Order));
 
 			XmlUtils.WriteListToXml(writer, Sources, LIST_ELEMENT, WriteChildToXml);
 		}
