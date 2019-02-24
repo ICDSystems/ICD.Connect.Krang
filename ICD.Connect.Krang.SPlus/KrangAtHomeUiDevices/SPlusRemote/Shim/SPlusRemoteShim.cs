@@ -91,7 +91,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Shim
 			if (sourceInfo == null)
 				callback(0, "", 0, 0);
 			else
-				callback(sourceInfo.Id, sourceInfo.Name, sourceInfo.CrosspointId, sourceInfo.CrosspointType);
+				callback(sourceInfo.Id, SPlusSafeString(sourceInfo.Name), sourceInfo.CrosspointId, sourceInfo.CrosspointType);
 		}
 	}
 }
