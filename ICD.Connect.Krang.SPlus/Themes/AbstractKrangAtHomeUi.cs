@@ -6,7 +6,6 @@ using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
-using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlus.Themes
@@ -341,9 +340,9 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			// todo: fix ramping RPC issues and re-enable ramping
 
-			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
+			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeIncrement();
+				control.VolumeLevelIncrement(2);
 
 			/*IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
 			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
@@ -359,9 +358,9 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			// todo: fix ramping RPC issues and re-enable ramping
 
-			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
+			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeDecrement();
+				control.VolumeLevelDecrement(2);
 			
 			/*
 			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
