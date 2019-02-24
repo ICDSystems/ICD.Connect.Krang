@@ -172,7 +172,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			IEnumerable<IKrangAtHomeSourceBase> sources =
 				Room == null
 					? Enumerable.Empty<IKrangAtHomeSourceBase>()
-					: Room.Originators.GetInstancesRecursive<IKrangAtHomeSourceBase>();
+					: Room.Originators.GetInstancesRecursive<IKrangAtHomeSourceBase>().OrderBy(s => s.Order);
 
 			foreach (IKrangAtHomeSourceBase source in sources)
 			{
