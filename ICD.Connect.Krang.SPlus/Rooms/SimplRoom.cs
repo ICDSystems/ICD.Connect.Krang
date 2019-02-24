@@ -27,6 +27,7 @@ using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.PathFinding;
 using ICD.Connect.Routing.RoutingGraphs;
+using ICD.Connect.Settings.Originators;
 using ICD.Connect.Settings.Originators.Simpl;
 using ICD.Connect.Settings;
 
@@ -461,14 +462,15 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// <param name="id"></param>
 		/// <returns></returns>
 		[CanBeNull]
-		public IKrangAtHomeSource GetSourceId(int id)
+		public IKrangAtHomeSourceBase GetSourceId(int id)
 		{
 			if (m_SubscribedRoutingGraph == null)
 				return null;
 
-			ISource source;
-			m_SubscribedRoutingGraph.Sources.TryGetChild(id, out source);
-			return source as IKrangAtHomeSource;
+			IOriginator source;
+
+			Core.Originators.TryGetChild(id, out source);
+			return source as IKrangAtHomeSourceBase;
 		}
 
 		/// <summary>
