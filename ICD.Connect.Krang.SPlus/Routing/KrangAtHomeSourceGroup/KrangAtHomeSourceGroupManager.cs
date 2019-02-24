@@ -722,21 +722,84 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		{
 			yield return new ConsoleCommand("PrintSourceGroups", "Prints all the source groups and their sources", () => PrintSourceGroups());
 			yield return
-				new ConsoleCommand("PrintSourceRoomStatus", "Prints all the source assignments for rooms",
-				                   () => PrintSourceRoomStatus());
+				new ConsoleCommand("PrintGroupsForSource", "Prints the groups for each source", () => PrintGroupsForSource());
+			yield return
+				new ConsoleCommand("PrintSourceStatus", "Prints all the source assignments for rooms",
+				                   () => PrintSourceStatus());
+			yield return new ConsoleCommand("PrintRoomSources", "Prints each room's Used/Assigned sources", () => PrintRoomSources());
+
 		}
 
-		private string PrintSourceGroups()
+		private void PrintSourceGroups()
 		{
-			TableBuilder table = new TableBuilder("Id", "Name", "Visibility", "Sources");
-			
+			TableBuilder table = new TableBuilder("SourceGroup","SourceCount");
 			m_SourceGroupsSection.Enter();
 			try
 			{
-				foreach (var group in m_SourceGroups)
+				foreach (IKrangAtHomeSourceGroup group in m_SourceGroups)
 				{
-					table.AddRow(group.Id, group.Name, group.SourceVisibility,
-					             string.Join(", ", group.GetSources().Select(s => s.Id.ToString()).ToArray(group.Count)));
+					table.AddRow(group.ToString(), group.Count.ToString());
+				}
+			}
+			finally
+			{
+				m_SourceGroupsSection.Leave();
+			}
+			IcdConsole.PrintLine(table.ToString());
+		}
+
+		private void PrintGroupsForSource()
+		{
+			m_GroupsForSourceSection.Enter();
+			TableBuilder table = new TableBuilder("Source", "Groups");
+			try
+			{
+				foreach (KeyValuePair<IKrangAtHomeSource, IcdHashSet<IKrangAtHomeSourceGroup>> kvp in m_GroupsForSource)
+				{
+					table.AddHeader(kvp.Key.ToString(), "");
+					foreach (IKrangAtHomeSourceGroup sourceGroup in kvp.Value)
+						table.AddRow("", sourceGroup);
+				}
+			}
+			finally
+			{
+				m_GroupsForSourceSection.Leave();
+			}
+			IcdConsole.PrintLine(table.ToString());
+		}
+
+		private void PrintSourceStatus()
+		{
+			TableBuilder table = new TableBuilder("Room","Status");
+			m_SourcesRoomSection.Enter();
+			try
+			{
+				foreach (KeyValuePair<IKrangAtHomeSource, Dictionary<IKrangAtHomeRoom, eSourceRoomStatus>> sourcePair in m_SourcesRoomStatus)
+				{
+					table.AddHeader("Source", sourcePair.Key.ToString());
+					foreach (KeyValuePair<IKrangAtHomeRoom, eSourceRoomStatus> roomPair in sourcePair.Value)
+						table.AddRow(roomPair.Key.ToString(), roomPair.Value.ToString());
+				}
+			}
+			finally
+			{
+				m_SourcesRoomSection.Leave();
+			}
+			IcdConsole.PrintLine(table.ToString());
+		}
+
+		private void PrintRoomSources()
+		{
+			TableBuilder table = new TableBuilder("Group","Assigned Source");
+			m_SourcesRoomSection.Enter();
+
+			try
+			{
+				foreach (KeyValuePair<IKrangAtHomeRoom, Dictionary<IKrangAtHomeSourceGroup, IKrangAtHomeSource>> roomPair in m_RoomActiveSourceGroup)
+				{
+					table.AddHeader("Room", roomPair.Key.ToString());
+					foreach (var sourceGroupPair in roomPair.Value)
+						table.AddRow(sourceGroupPair.Key.ToString(), sourceGroupPair.Value.ToString());
 				}
 			}
 			finally
@@ -744,18 +807,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 				m_SourcesRoomSection.Leave();
 			}
 
-			return table.ToString();
-		}
+			IcdConsole.PrintLine(table.ToString());
 
-		private string PrintSourceRoomStatus()
-		{
-			TableBuilder table = new TableBuilder("Source","Room","Status");
-
-
-
-
-
-			return table.ToString();
 		}
 
 		#endregion
