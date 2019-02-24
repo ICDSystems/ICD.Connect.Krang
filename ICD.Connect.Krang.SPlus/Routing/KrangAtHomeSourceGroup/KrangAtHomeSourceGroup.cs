@@ -30,7 +30,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		/// <summary>
 		/// The number of sources in the group
 		/// </summary>
-		public int Count { get { return m_Sources.Count; } }
+		public int Count { get { return m_Sources.Sum(kvp => kvp.Value.Count); } }
 
 		public IEnumerable<IKrangAtHomeSource> GetSources()
 		{
