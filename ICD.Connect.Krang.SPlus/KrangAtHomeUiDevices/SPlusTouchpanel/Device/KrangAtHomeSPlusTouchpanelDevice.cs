@@ -118,11 +118,11 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 		/// Sets the source info via the delegate
 		/// </summary>
 		/// <param name="source"></param>
-		/// <param name="sourceIndex"></param>
-		/// <param name="sourceTypeRouted"></param>
-		internal void SetSourceInfo(IKrangAtHomeSource source, int sourceIndex, eSourceTypeRouted sourceTypeRouted)
+		/// <param name="sourceAudioIndex"></param>
+		/// <param name="sourceVideoIndex"></param>
+		internal void SetSourceInfo(IKrangAtHomeSource source, int sourceAudioIndex, int sourceVideoIndex)
 		{
-			OnSourceSelectedUpdate.Raise(this, new SourceSelectedEventArgs(source, sourceIndex, sourceTypeRouted));
+			OnSourceSelectedUpdate.Raise(this, new SourceSelectedEventArgs(source, sourceAudioIndex, sourceVideoIndex));
 		}
 
 		/// <summary>

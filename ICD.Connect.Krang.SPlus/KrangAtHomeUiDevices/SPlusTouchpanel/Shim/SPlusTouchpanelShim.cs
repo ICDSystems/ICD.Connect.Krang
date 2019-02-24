@@ -21,8 +21,8 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 	public delegate void RoomInfoCallback(int id, ICDPlatformString name, ushort index);
 
 	public delegate void SourceInfoCallback(
-		int id, ICDPlatformString name, ushort crosspointId, ushort crosspointType, ushort sourceListIndex,
-		ushort sourceIndex);
+		int id, ICDPlatformString name, ushort crosspointId, ushort crosspointType, ushort sourceAudioIndex,
+		ushort sourceVideoIndex);
 
 	public delegate void RoomListCallback(ushort index, int roomId, ICDPlatformString roomName);
 
@@ -164,13 +164,13 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 		/// Sets the source info via the delegate
 		/// </summary>
 		/// <param name="sourceInfo"></param>
-		/// <param name="sourceList"></param>
-		/// <param name="sourceIndex"></param>
-		private void SetSPlusSourceInfo(SourceInfo sourceInfo, ushort sourceList, int sourceIndex)
+		/// <param name="sourceAudioIndex"></param>
+		/// <param name="sourceVideoIndex"></param>
+		private void SetSPlusSourceInfo(SourceInfo sourceInfo, int sourceAudioIndex, int sourceVideoIndex)
 		{
 			SourceInfoCallback callback = UpdateSourceInfo;
 			if (callback != null)
-				callback(sourceInfo.Id, SPlusSafeString(sourceInfo.Name), sourceInfo.CrosspointId, sourceInfo.CrosspointType, sourceList, (ushort)(sourceIndex + INDEX_OFFSET_SPLUS));
+				callback(sourceInfo.Id, SPlusSafeString(sourceInfo.Name), sourceInfo.CrosspointId, sourceInfo.CrosspointType, (ushort)(sourceAudioIndex + INDEX_OFFSET_SPLUS), (ushort)(sourceVideoIndex + INDEX_OFFSET_SPLUS));
 		}
 
 		/// <summary>
@@ -307,7 +307,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 
 		private void OriginatorOnSourceSelectedUpdate(object sender, SourceSelectedEventArgs args)
 		{
-			SetSPlusSourceInfo(args.SourceInfo, (ushort)args.SourceTypeRouted, (ushort)args.Index);
+			SetSPlusSourceInfo(args.SourceInfo, (ushort)args.AudioIndex, (ushort)args.VideoIndex);
 		}
 
 		private void OriginatorOnVolumeLevelFeedbackUpdate(object sender, VolumeLevelFeedbackEventArgs args)
