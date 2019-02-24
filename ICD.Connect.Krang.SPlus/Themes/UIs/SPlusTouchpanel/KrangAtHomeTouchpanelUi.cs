@@ -195,6 +195,68 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 			m_SourceListAudioBiDictionary = sourceListAudioBiDictionary;
 			m_SourceListVideoBiDictionary = sourceListVideoBiDictionary;
+
+			RaiseSourceInfo();
+		}
+
+		private void RaiseSourceInfo()
+		{
+			IKrangAtHomeSource source = Room == null ? null : Room.GetSource();
+			IEnumerable<IKrangAtHomeSourceBase> sourcesBase = Room == null ? null : Room.GetSourcesBase();
+
+			int index;
+			if (source == null)
+			{
+				UiDevice.SetSourceInfo(null, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
+				return;
+			}
+
+			// Video vs Audio
+			if (true) //Todo: Add Audio/Video Switch here
+			{
+				// Try to get the specific source first
+				if (m_SourceListVideoBiDictionary.TryGetKey(source, out index))
+				{
+					UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, index);
+					return;
+				}
+				// Try to find a match in source groups
+				if (sourcesBase != null)
+				{
+					if (sourcesBase.Any(sourceBase => m_SourceListVideoBiDictionary.TryGetKey(sourceBase, out index)))
+					{
+						UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, index);
+						return;
+					}
+				}
+				//return not found
+				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
+			}
+			else
+			// ReSharper disable CSharpWarnings::CS0162
+			// ReSharper disable HeuristicUnreachableCode
+			{
+				// Try to get the specific source first
+
+				if (m_SourceListAudioBiDictionary.TryGetKey(source, out index))
+				{
+					UiDevice.SetSourceInfo(source, index, INDEX_NOT_FOUND);
+					return;
+				}
+				// Try to find a match in source groups
+				if (sourcesBase != null)
+				{
+					if (sourcesBase.Any(sourceBase => m_SourceListAudioBiDictionary.TryGetKey(sourceBase, out index)))
+					{
+						UiDevice.SetSourceInfo(source, index, INDEX_NOT_FOUND);
+						return;
+					}
+				}
+				//return not found
+				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
+			}
+			// ReSharper restore HeuristicUnreachableCode
+			// ReSharper restore CSharpWarnings::CS0162
 		}
 
 		#endregion
@@ -208,15 +270,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// <param name="eventArgs"></param>
 		protected override void RoomOnActiveSourcesChange(object sender, EventArgs eventArgs)
 		{
-			IKrangAtHomeSource source = Room == null ? null : Room.GetSource();
-
-			int index;
-			if (source == null)
-				index = -1;
-			else if (!m_SourceListVideoBiDictionary.TryGetKey(source, out index))
-				index = -1;
-
-			UiDevice.SetSourceInfo(source, index, eSourceTypeRouted.Video);
+			RaiseSourceInfo();	
 		}
 
 		#endregion
