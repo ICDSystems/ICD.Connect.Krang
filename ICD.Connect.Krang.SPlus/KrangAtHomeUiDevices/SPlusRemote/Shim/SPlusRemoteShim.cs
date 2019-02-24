@@ -38,6 +38,9 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Shim
 		{
 			base.Subscribe(originator);
 
+			if (originator == null)
+				return;
+
 			originator.OnRoomChanged += OriginatorOnRoomChanged;
 			originator.OnSourceChanged += OriginatorOnSourceChanged;
 		}
@@ -49,6 +52,9 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Shim
 		protected override void Unsubscribe(IKrangAtHomeSPlusRemoteDeviceShimmable originator)
 		{
 			base.Unsubscribe(originator);
+
+			if (originator == null)
+				return;
 
 			originator.OnRoomChanged -= OriginatorOnRoomChanged;
 			originator.OnSourceChanged -= OriginatorOnSourceChanged;
