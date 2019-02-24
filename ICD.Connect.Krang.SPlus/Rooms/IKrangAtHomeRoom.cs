@@ -18,9 +18,11 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 		IKrangAtHomeSource GetSource();
 
+		IEnumerable<IKrangAtHomeSourceBase> GetSourcesBase();
+
 		void SetSource(IKrangAtHomeSourceBase source, eSourceTypeRouted routed);
 
-		IKrangAtHomeSource GetSourceId(int id);
+		IKrangAtHomeSourceBase GetSourceId(int id);
 
 		IVolumeDeviceControl ActiveVolumeControl { get; }
 

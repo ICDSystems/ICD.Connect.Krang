@@ -90,7 +90,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 				return;
 			}
 
-			IKrangAtHomeSource source = GetSourceId(sourceId);
+			IKrangAtHomeSourceBase source = GetSourceId(sourceId);
 
 			if (source == null)
 				return;
@@ -117,7 +117,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			Room.SetSource(sourceBase, type);
 		}
 
-		protected IKrangAtHomeSource GetSourceId(int id)
+		protected IKrangAtHomeSourceBase GetSourceId(int id)
 		{
 			if (Room == null)
 				return null;
