@@ -108,7 +108,7 @@ namespace ICD.Connect.Krang.SPlus.IcdConsoleServer
 			if (!m_TcpServer.ClientConnected(client))
 				return;
 
-			m_TcpServer.Send(client, m_NewlineRegex.Replace(message, "\r\n"));
+			m_TcpServer.Send(client, m_NewlineRegex.Replace(message, "\r\n") + "\r\n");
 		}
 
 		#endregion
