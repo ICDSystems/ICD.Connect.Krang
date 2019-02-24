@@ -192,7 +192,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			}
 			finally
 			{
-				m_SourceGroupsSection.Leave();
+				m_GroupsForSourceSection.Leave();
 			}
 
 			return sourceGroups.ToList(sourceGroups.Count);
