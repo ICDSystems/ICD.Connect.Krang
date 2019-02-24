@@ -453,7 +453,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 				m_SourcesRoomSection.Leave();
 			}
 
-			IEnumerable<IKrangAtHomeRoom> oldRoomsNoLongerActive = oldRoomsInUse.Except(roomsList);
+			List<IKrangAtHomeRoom> oldRoomsNoLongerActive = oldRoomsInUse.Except(roomsList).ToList();
 
 			foreach (IKrangAtHomeRoom room in oldRoomsNoLongerActive)
 			{

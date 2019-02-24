@@ -83,7 +83,9 @@ namespace ICD.Connect.Krang.SPlus.Routing
 			foreach (var source in sourcesWithoutDestination)
 			{
 				IcdHashSet<IRoom> removedRooms;
-				m_KrangAtHomeCache.SourceClearCachedRooms(source, out removedRooms);
+				if (m_KrangAtHomeCache.SourceClearCachedRooms(source, out removedRooms))
+					if (removedRooms.Count > 0)
+						changedSources.Add(source);
 			}
 
 			foreach (var kvp in destinationsForSources)
