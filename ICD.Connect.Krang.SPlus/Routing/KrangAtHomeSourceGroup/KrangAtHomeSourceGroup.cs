@@ -187,10 +187,10 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		private void PrintSources()
 		{
 			TableBuilder table = new TableBuilder("Priority", "Sources");
-			foreach (KeyValuePair<int, List<IKrangAtHomeSource>> l in m_Sources)
+			foreach (KeyValuePair<int, List<IKrangAtHomeSource>> priorityPair in m_Sources)
 			{
-				foreach (IKrangAtHomeSource s in l.Value)
-					table.AddRow(l.Key.ToString(),s);
+				foreach (IKrangAtHomeSource source in priorityPair.Value)
+					table.AddRow(priorityPair.Key.ToString(),source);
 			}
 
 			IcdConsole.PrintLine(table.ToString());
