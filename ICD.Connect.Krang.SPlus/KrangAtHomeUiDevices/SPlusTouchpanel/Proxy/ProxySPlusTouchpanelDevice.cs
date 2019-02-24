@@ -11,7 +11,7 @@ using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 {
-	public sealed class ProxySPlusTouchpanelDevice : AbstractProxySPlusUiDevice, IKrangAtHomeSPlusTouchpanelDeviceShimmable
+	public sealed class ProxySPlusTouchpanelDevice : AbstractProxySPlusUiDevice<ProxySPlusTouchpanelDeviceSettings>, IKrangAtHomeSPlusTouchpanelDeviceShimmable
 	{
 		#region Events
 		public event EventHandler<RoomListEventArgs> OnRoomListUpdate;

@@ -1,9 +1,10 @@
+using ICD.Connect.Devices.Proxies.Devices;
 using ICD.Connect.Devices.Simpl;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy
 {
-	public abstract class AbstractProxySPlusUiDevice : AbstractSimplProxyDevice<ProxySPlusTouchpanelDeviceSettings>
+	public abstract class AbstractProxySPlusUiDevice<TSettings> : AbstractSimplProxyDevice<TSettings>
+		where TSettings : IProxyDeviceSettings
 	{
 		public void SetRoomId(int id)
 		{

@@ -9,7 +9,7 @@ using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Proxy
 {
-	public sealed class ProxySPlusRemoteDevice : AbstractProxySPlusUiDevice, IKrangAtHomeSPlusRemoteDeviceShimmable
+	public sealed class ProxySPlusRemoteDevice : AbstractProxySPlusUiDevice<ProxySPlusRemoteDeviceSettings>, IKrangAtHomeSPlusRemoteDeviceShimmable
 	{
 		public event EventHandler<RoomChangedApiEventArgs> OnRoomChanged;
 
