@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Device;
+﻿using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Device;
 using ICD.Connect.Krang.SPlus.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote

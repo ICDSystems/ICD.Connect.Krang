@@ -105,6 +105,8 @@
     <Compile Include="Routing\SourceRoomsUsedUpdatedEventArgs.cs" />
     <Compile Include="SPlusKrangBootstrap.cs" />
     <Compile Include="SPlusKrangEventRelay.cs" />
+    <Compile Include="RoomGroups\SPlusRoomGroup.cs" />
+    <Compile Include="RoomGroups\SPlusRoomGroupSettings.cs" />
     <Compile Include="SPlusRoomInfo\Device\ISPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfoSettings.cs" />
@@ -129,6 +131,13 @@
     <Compile Include="Themes\IKrangAtHomeUserInterface.cs" />
     <Compile Include="Themes\AbstractKrangAtHomeUserInterfaceFactory.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Device\IKrangAtHomeUiDevice.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Pages\AudioVideoEquipmentPage.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\ControlCrosspointState.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Joins.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\RoomGroupState.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\KrangAtHomeMultiRoomRoutingUiFactory.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\KrangAtHomeMultiRoomRoutingUi.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\RoomState.cs" />
     <Compile Include="Themes\UIs\SPlusTouchpanel\KrangAtHomeTouchpanelUi.cs" />
     <Compile Include="Themes\UIs\SPlusRemote\KrangAtHomeRemoteUi.cs" />
     <Compile Include="Themes\UIs\SPlusRemote\KrangAtHomeRemoteUiFactory.cs" />
@@ -169,6 +178,10 @@
     <ProjectReference Include="..\..\ICD.Connect.Partitioning\ICD.Connect.Partitioning\ICD.Connect.Partitioning_SimplSharp.csproj">
       <Project>{42FB8CF0-6AE6-4C70-AFDD-DF95F07E077F}</Project>
       <Name>ICD.Connect.Partitioning_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Crosspoints\ICD.Connect.Protocol.Crosspoints_SimplSharp.csproj">
+      <Project>{19A44AAE-18CD-479E-B380-D469E8EF6E3F}</Project>
+      <Name>ICD.Connect.Protocol.Crosspoints_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Network\ICD.Connect.Protocol.Network_SimplSharp.csproj">
       <Project>{5ED52F05-EA6C-4FC5-8AA0-9B9727F6AECD}</Project>

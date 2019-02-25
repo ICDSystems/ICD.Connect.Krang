@@ -7,6 +7,7 @@ using ICD.Connect.Audio.VolumePoints;
 using ICD.Connect.Conferencing.ConferencePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Panels.Devices;
+using ICD.Connect.Partitioning.RoomGroups;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Themes;
@@ -32,6 +33,7 @@ namespace ICD.Connect.Krang.Core
 			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", instance.Originators.GetChildren<IRoom>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("VolumePoints", instance.Originators.GetChildren<IVolumePoint>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("ConferencePoints", instance.Originators.GetChildren<IConferencePoint>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("RoomGroups", instance.Originators.GetChildren<IRoomGroup>(), p => (uint) p.Id);
 
 			if (instance.RoutingGraph != null)
 				yield return instance.RoutingGraph;
@@ -57,6 +59,7 @@ namespace ICD.Connect.Krang.Core
 			addRow("Room Count", instance.Originators.GetChildren<IRoom>().Count());
 			addRow("VolumePoint Count", instance.Originators.GetChildren<IVolumePoint>().Count());
 			addRow("ConferencePoint Count", instance.Originators.GetChildren<IConferencePoint>().Count());
+			addRow("RoomGroup Count", instance.Originators.GetChildren<IRoomGroup>().Count());
 		}
 
 		/// <summary>

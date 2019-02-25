@@ -23,6 +23,8 @@ namespace ICD.Connect.Krang.SPlus.Routing
 		public event EventHandler<SourceInUseUpdatedEventArgs> OnSourceInUseUpdated;
 		public event EventHandler<SourceRoomsUsedUpdatedEventArgs> OnSourceRoomsUsedUpdated;
 
+		public KrangAtHomeRoutingCache KrangAtHomeRoutingCache { get { return m_KrangAtHomeCache; } }
+
 		public KrangAtHomeRouting(IRoutingGraph routingGraph)
 		{
 			m_KrangAtHomeCache = new KrangAtHomeRoutingCache();

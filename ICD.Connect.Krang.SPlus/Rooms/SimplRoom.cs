@@ -534,7 +534,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		/// </summary>
 		private void UpdateCachedActiveSources()
 		{
-			Log(eSeverity.Informational, "{0} updating active source cache", this);
+			//Log(eSeverity.Informational, "{0} updating active source cache", this);
 
 			IcdHashSet<ISource> active = GetActiveRoomSources().ToIcdHashSet();
 
@@ -545,7 +545,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			m_CachedActiveSources.Clear();
 			m_CachedActiveSources.AddRange(active);
 
-			Log(eSeverity.Informational, "{0} active sources changed", this);
+			//Log(eSeverity.Informational, "{0} active sources changed", this);
 			OnActiveSourcesChange.Raise(this);
 		}
 

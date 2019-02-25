@@ -10,6 +10,7 @@ using ICD.Connect.Conferencing.ConferencePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning.PartitionManagers;
+using ICD.Connect.Partitioning.RoomGroups;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.RoutingGraphs;
@@ -43,6 +44,9 @@ namespace ICD.Connect.Krang.Core
 		private const string VOLUME_POINT_ELEMENT = "VolumePoint";
 		private const string CONFERENCE_POINTS_ELEMENT = "ConferencePoints";
 		private const string CONFERENCE_POINT_ELEMENT = "ConferencePoint";
+
+		private const string ROOM_GROUPS_ELEMENT = "RoomGroups";
+		private const string ROOM_GROUP_ELEMENT = "RoomGroup";
 
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
@@ -113,6 +117,8 @@ namespace ICD.Connect.Krang.Core
 			GetSettings<IVolumePointSettings>().ToXml(writer, VOLUME_POINTS_ELEMENT, VOLUME_POINT_ELEMENT);
 			GetSettings<IConferencePointSettings>().ToXml(writer, CONFERENCE_POINTS_ELEMENT, CONFERENCE_POINT_ELEMENT);
 
+			GetSettings<IRoomGroupSettings>().ToXml(writer, ROOM_GROUPS_ELEMENT, ROOM_GROUP_ELEMENT);
+
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
 			if (routingGraphSettings != null)
 				routingGraphSettings.ToXml(writer, ROUTING_ELEMENT);
@@ -140,6 +146,7 @@ namespace ICD.Connect.Krang.Core
 			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
 			IEnumerable<ISettings> volumePoints = PluginFactory.GetSettingsFromXml(xml, VOLUME_POINTS_ELEMENT);
 			IEnumerable<ISettings> conferencePoints = PluginFactory.GetSettingsFromXml(xml, CONFERENCE_POINTS_ELEMENT);
+			IEnumerable<ISettings> roomGroups = PluginFactory.GetSettingsFromXml(xml, ROOM_GROUPS_ELEMENT);
 
 			IEnumerable<ISettings> concat =
 				themes.Concat(panels)
@@ -147,7 +154,8 @@ namespace ICD.Connect.Krang.Core
 					  .Concat(devices)
 					  .Concat(rooms)
 					  .Concat(volumePoints)
-					  .Concat(conferencePoints);
+					  .Concat(conferencePoints)
+					  .Concat(roomGroups);
 
 			AddSettingsSkipDuplicateIds(concat);
 
