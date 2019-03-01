@@ -20,6 +20,7 @@ using ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup;
 using ICD.Connect.Krang.SPlus.Themes;
 using ICD.Connect.Krang.SPlus.VolumePoints;
 using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.Endpoints;
@@ -67,6 +68,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		private readonly SafeCriticalSection m_CrosspointsSection;
 
 		private readonly IcdHashSet<ISource> m_CachedActiveSources;
+		private DateTime m_CachedActiveSourcesUpdateTime;
 
 		private IRoutingGraph m_SubscribedRoutingGraph;
 
@@ -343,6 +345,9 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 				SetActiveInputDestinationDevice(path.DestinationEndpoint, eConnectionType.Audio | eConnectionType.Video);
 			}
 
+			// Update Cached Source to this source
+			UpdateCachedActiveSourceFake(source);
+
 			Log(eSeverity.Informational, "Routing {0}", source);
 
 			m_SubscribedRoutingGraph.RoutePaths(paths, Id);
@@ -358,6 +363,9 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			GetRoomDestinations().ForEach(Unroute);
 			SourceGroupManager.ClearRoomAssignedSources(this);
+
+			// Update Cached Source to this source
+			UpdateCachedActiveSourceFake(null);
 		}
 
 		/// <summary>
@@ -529,6 +537,12 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 				Originators.GetInstancesRecursive<IKrangAtHomeDestination>().Where(d => d.ConnectionType.HasFlags(connectionType));
 		}
 
+		private void UpdateCachedActiveSourcesIfExpired()
+		{
+			if (m_CachedActiveSourcesUpdateTime.AddSeconds(30) < DateTime.UtcNow)
+				UpdateCachedActiveSources();
+		}
+
 		/// <summary>
 		/// Looks up the current actively routed sources and caches them.
 		/// </summary>
@@ -541,6 +555,29 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			bool change = active.NonIntersection(m_CachedActiveSources).Any();
 			if (!change)
 				return;
+
+			m_CachedActiveSources.Clear();
+			m_CachedActiveSources.AddRange(active);
+
+			//Log(eSeverity.Informational, "{0} active sources changed", this);
+			OnActiveSourcesChange.Raise(this);
+		}
+
+		/// <summary>
+		/// Updates the source with fake feedback :(
+		/// </summary>
+		/// <param name="source"></param>
+		private void UpdateCachedActiveSourceFake(ISource source)
+		{
+			IcdHashSet<ISource> active = new IcdHashSet<ISource>();
+			if (source != null)
+				active.Add(source);
+
+			bool change = active.NonIntersection(m_CachedActiveSources).Any();
+			if (!change)
+				return;
+
+			m_CachedActiveSourcesUpdateTime = DateTime.UtcNow;
 
 			m_CachedActiveSources.Clear();
 			m_CachedActiveSources.AddRange(active);
@@ -564,7 +601,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			if (routingGraph == null)
 				return;
 
-			routingGraph.OnRouteChanged += RoutingGraphOnRouteChanged;
+			routingGraph.RoutingCache.OnSourceDestinationRouteChanged += RoutingCacheOnSourceDestinationRouteChanged;
+			routingGraph.RoutingCache.OnDestinationEndpointActiveChanged += RoutingCacheOnDestinationEndpointActiveChanged;
 		}
 
 		/// <summary>
@@ -576,17 +614,20 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			if (routingGraph == null)
 				return;
 
-			routingGraph.OnRouteChanged -= RoutingGraphOnRouteChanged;
+			routingGraph.RoutingCache.OnSourceDestinationRouteChanged -= RoutingCacheOnSourceDestinationRouteChanged;
+			routingGraph.RoutingCache.OnDestinationEndpointActiveChanged -= RoutingCacheOnDestinationEndpointActiveChanged;
 		}
 
-		/// <summary>
-		/// Called when the routing changes.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="eventArgs"></param>
-		private void RoutingGraphOnRouteChanged(object sender, EventArgs eventArgs)
+		private void RoutingCacheOnDestinationEndpointActiveChanged(object sender, CacheStateChangedEventArgs args)
 		{
-			UpdateCachedActiveSources();
+			// Filter by destinations in this room
+			if (args.Endpoints.AnyAndAll(e => GetRoomDestinations().AnyAndAll(d => d.Contains(e))))
+				UpdateCachedActiveSourcesIfExpired();
+		}
+
+		private void RoutingCacheOnSourceDestinationRouteChanged(object sender, SourceDestinationRouteChangedEventArgs args)
+		{
+			UpdateCachedActiveSourcesIfExpired();
 		}
 
 		#endregion
