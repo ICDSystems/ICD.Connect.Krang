@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-
-namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy
+﻿namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy
 {
 	public static class SPlusUiDeviceApi
 	{
