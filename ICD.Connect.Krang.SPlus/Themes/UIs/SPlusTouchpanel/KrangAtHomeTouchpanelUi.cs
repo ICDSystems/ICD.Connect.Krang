@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
@@ -212,7 +213,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			}
 
 			// Video vs Audio
-			if (true) //Todo: Add Audio/Video Switch here
+			//Todo: Add Better Determination of Audio vs Video
+			if (EnumUtils.HasFlag(source.SourceVisibility, eSourceVisibility.Video))
 			{
 				// Try to get the specific source first
 				if (m_SourceListVideoBiDictionary.TryGetKey(source, out index))
@@ -233,8 +235,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
 			}
 			else
-			// ReSharper disable CSharpWarnings::CS0162
-			// ReSharper disable HeuristicUnreachableCode
 			{
 				// Try to get the specific source first
 
@@ -255,8 +255,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				//return not found
 				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
 			}
-			// ReSharper restore HeuristicUnreachableCode
-			// ReSharper restore CSharpWarnings::CS0162
 		}
 
 		#endregion
