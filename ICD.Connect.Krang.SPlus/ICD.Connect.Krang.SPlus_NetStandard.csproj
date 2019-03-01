@@ -32,6 +32,7 @@
     <None Remove="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Crosspoints\ICD.Connect.Protocol.Crosspoints_NetStandard.csproj" />
     <ProjectReference Include="..\..\ICD.Connect.Settings\ICD.Connect.Settings\ICD.Connect.Settings_NetStandard.csproj" />
     <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_NetStandard.csproj" />
   </ItemGroup>
