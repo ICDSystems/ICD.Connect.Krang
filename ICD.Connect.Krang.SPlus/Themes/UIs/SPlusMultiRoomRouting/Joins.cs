@@ -4,6 +4,7 @@
 	{
 		public const ushort DIGITAL_CONTROL_SOURCE = 4;
 		public const ushort DIGITAL_OFF = 5;
+		public const ushort ANALOG_ROOM_GROUP_DIRECT = 1;
 
 		#region Room Group
 

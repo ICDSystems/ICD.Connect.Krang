@@ -304,6 +304,13 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 				crosspointState.ClearSelectedRooms();
 			}
 
+			// Room Group Select via Analog Direct
+			if (sig.SmartObject == 0 && sig.Type == eSigType.Analog && sig.Number == Joins.ANALOG_ROOM_GROUP_DIRECT)
+			{
+				int index = sig.GetUShortValue();
+				SetRoomGroup(crosspointState, index);
+			}
+
 			// Select source
 			if (sig.SmartObject == Joins.SMARTOBJECT_SOURCES && sig.Type == eSigType.Digital)
 			{
