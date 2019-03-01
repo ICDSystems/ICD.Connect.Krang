@@ -24,8 +24,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 
 		public void Dispose()
 		{
-			m_AudioPage.Dispose();
-			m_VideoPage.Dispose();
+			if (m_AudioPage != null)
+				m_AudioPage.Dispose();
+			if (m_VideoPage != null)
+				m_VideoPage.Dispose();
 		}
 
 		/// <summary>
