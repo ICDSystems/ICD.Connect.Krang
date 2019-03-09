@@ -18,7 +18,8 @@ namespace ICD.Connect.Krang.SPlus.OriginatorInfo.Devices
 
 		public RoomInfo(IKrangAtHomeRoom room) : base(room)
 		{
-			Crosspoints = room.GetCrosspoints().ToArray();
+			if (room != null)
+				Crosspoints = room.GetCrosspoints().ToArray();
 		}
 
 		public RoomInfo()

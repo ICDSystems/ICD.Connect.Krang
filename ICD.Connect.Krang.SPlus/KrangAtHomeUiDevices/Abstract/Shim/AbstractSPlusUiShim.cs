@@ -156,7 +156,9 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Shim
 			if (callback == null)
 				return;
 
-			Dictionary<eCrosspointType, ushort> crosspointsDictionary = crosspoints.ToDictionary();
+			Dictionary<eCrosspointType, ushort> crosspointsDictionary = crosspoints != null
+				                                                            ? crosspoints.ToDictionary()
+				                                                            : new Dictionary<eCrosspointType, ushort>();
 
 			List<KeyValuePair<eCrosspointType, ushort>> shimCrosspoints = null;
 

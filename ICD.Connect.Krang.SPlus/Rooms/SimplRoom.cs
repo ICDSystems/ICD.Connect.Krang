@@ -366,6 +366,9 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			// Update Cached Source to this source
 			UpdateCachedActiveSourceFake(null);
+
+			// Clear Active Volume Control
+			ActiveVolumeControl = null;
 		}
 
 		/// <summary>

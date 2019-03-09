@@ -36,6 +36,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			ushort buttonJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_SELECT);
 			data.AddSig(Joins.SMARTOBJECT_ROOMS, buttonJoin, true);
 
+			SetSelectedSource(null, data);
+
 			m_Page.Equipment.SendInputData(data);
 		}
 
@@ -50,6 +52,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			ushort buttonJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_SELECT);
 			data.AddSig(Joins.SMARTOBJECT_ROOMS, buttonJoin, false);
 
+			SetSelectedSource(null, data);
+
 			m_Page.Equipment.SendInputData(data);
 		}
 
@@ -61,47 +65,73 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			CrosspointData data = new CrosspointData();
 			data.AddControlId(m_ControlCrosspointId);
 
+			ClearSelectedRooms(data);
+
+			m_Page.Equipment.SendInputData(data);
+		}
+
+		public void ClearSelectedRooms(CrosspointData data)
+		{
+			if (m_SelectedRooms.Count == 0)
+				return;
+
 			foreach (int index in m_SelectedRooms)
 			{
 				ushort buttonJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_SELECT);
 				data.AddSig(Joins.SMARTOBJECT_ROOMS, buttonJoin, false);
 			}
 
-			m_Page.Equipment.SendInputData(data);
-
 			m_SelectedRooms.Clear();
 		}
 
-		public int? SelectedSource
+		public void SetSelectedSource(int? index, CrosspointData data)
 		{
-			get
+			int? old = m_SelectedSource;
+			m_SelectedSource = index;
+
+			if (old != null)
 			{
-				return m_SelectedSource;
+				ushort buttonJoin = Joins.GetDigitalJoinOffset(old.Value, Joins.DIGITAL_SOURCES_OFFSET,
+															   Joins.DIGITAL_SOURCES_SELECT);
+				data.AddSig(Joins.SMARTOBJECT_SOURCES, buttonJoin, false);
 			}
-			set
+
+			if (m_SelectedSource != null)
 			{
-				int? old = m_SelectedSource;
-				m_SelectedSource = value;
+				ushort buttonJoin = Joins.GetDigitalJoinOffset(m_SelectedSource.Value, Joins.DIGITAL_SOURCES_OFFSET,
+															   Joins.DIGITAL_SOURCES_SELECT);
+				data.AddSig(Joins.SMARTOBJECT_SOURCES, buttonJoin, false);
 
-				CrosspointData data = new CrosspointData();
-				data.AddControlId(m_ControlCrosspointId);
-
-				if (old != null)
+				var source = m_Page.GetSource(m_SelectedSource.Value);
+				if (source != null)
 				{
-					ushort buttonJoin = Joins.GetDigitalJoinOffset(old.Value, Joins.DIGITAL_SOURCES_OFFSET,
-																   Joins.DIGITAL_SOURCES_SELECT);
-					data.AddSig(Joins.SMARTOBJECT_SOURCES, buttonJoin, false);
+					data.AddSig(0, Joins.ANALOG_SOURCE_SELECTED_CROSSPOINT_ID, source.CrosspointId);
+					data.AddSig(0, Joins.ANALOG_SOURCE_SELECTED_CROSSPOINT_TYPE, source.CrosspointType);
+					data.AddSig(0, Joins.SERIAL_SOURCE_SELECTED_NAME, source.Name);
 				}
-
-				if (m_SelectedSource != null)
+				else
 				{
-					ushort buttonJoin = Joins.GetDigitalJoinOffset(m_SelectedSource.Value, Joins.DIGITAL_SOURCES_OFFSET,
-																   Joins.DIGITAL_SOURCES_SELECT);
-					data.AddSig(Joins.SMARTOBJECT_SOURCES, buttonJoin, false);
+					data.AddSig(0, Joins.ANALOG_SOURCE_SELECTED_CROSSPOINT_ID, 0);
+					data.AddSig(0, Joins.ANALOG_SOURCE_SELECTED_CROSSPOINT_TYPE, 0);
+					data.AddSig(0, Joins.SERIAL_SOURCE_SELECTED_NAME, null);
 				}
-
-				m_Page.Equipment.SendInputData(data);
 			}
+			else
+			{
+				data.AddSig(0, Joins.ANALOG_SOURCE_SELECTED_CROSSPOINT_ID, 0);
+				data.AddSig(0, Joins.ANALOG_SOURCE_SELECTED_CROSSPOINT_TYPE, 0);
+				data.AddSig(0, Joins.SERIAL_SOURCE_SELECTED_NAME, null);
+			}
+		}
+
+		public void SetSelectedSource(int? index)
+		{
+			CrosspointData data = new CrosspointData();
+			data.AddControlId(m_ControlCrosspointId);
+			
+			SetSelectedSource(index, data);
+
+			m_Page.Equipment.SendInputData(data);
 		}
 
 		public ControlCrosspointState(AudioVideoEquipmentPage audioVideoEquipmentPage, int id)

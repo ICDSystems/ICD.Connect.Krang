@@ -2,17 +2,24 @@
 {
 	public static class Joins
 	{
+		#region Crosspoint Standard Joins
 		public const ushort DIGITAL_CONTROL_SOURCE = 4;
 		public const ushort DIGITAL_OFF = 5;
+		public const ushort DIGITAL_ROOMS_AVAILABLE = 5;
 		public const ushort ANALOG_ROOM_GROUP_DIRECT = 1;
+		public const ushort ANALOG_SOURCE_SELECTED_CROSSPOINT_ID = 5;
+		public const ushort ANALOG_SOURCE_SELECTED_CROSSPOINT_TYPE = 6;
+		public const ushort SERIAL_SOURCE_SELECTED_NAME = 5;
 
-		#region Room Group
+		#endregion
+
+		#region Room Group Dynamic Button List SO
 
 		public const ushort SMARTOBJECT_ROOM_GROUP = 102;
 
 		#endregion
 
-		#region Rooms
+		#region Rooms SRL SO
 
 		public const ushort SMARTOBJECT_ROOMS = 100;
 
@@ -31,7 +38,7 @@
 
 		#endregion
 
-		#region Sources
+		#region Sources SRL SO
 
 		public const ushort SMARTOBJECT_SOURCES = 101;
 

@@ -5,6 +5,7 @@ using ICD.Connect.Audio.Controls.Mute;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Audio.EventArguments;
 using ICD.Connect.Krang.SPlus.Rooms;
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 {
@@ -12,6 +13,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 	{
 		public event EventHandler<BoolEventArgs> OnMuteStateChanged;
 		public event EventHandler<FloatEventArgs> OnVolumePositionChanged;
+		public event EventHandler OnActiveSourceChanged;
 
 		private readonly IKrangAtHomeRoom m_Room;
 
@@ -100,6 +102,15 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			}
 		}
 
+		public string Source
+		{
+			get
+			{
+				IKrangAtHomeSource source = m_Room.GetSource();
+				return source != null ? source.Name : null;
+			}
+		}
+
 		public IKrangAtHomeRoom Room { get { return m_Room; } }
 
 		private void Unsubscribe(IVolumeDeviceControl volumeControl)
@@ -139,6 +150,12 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 		private void Subscribe(IKrangAtHomeRoom room)
 		{
 			room.OnActiveVolumeControlChanged += RoomOnActiveVolumeControlChanged;
+			room.OnActiveSourcesChange += RoomOnActiveSourcesChange;
+		}
+
+		private void RoomOnActiveSourcesChange(object sender, EventArgs eventArgs)
+		{
+			OnActiveSourceChanged.Raise(this);
 		}
 
 		private void RoomOnActiveVolumeControlChanged(object sender, GenericEventArgs<IVolumeDeviceControl> genericEventArgs)

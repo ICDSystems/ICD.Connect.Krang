@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.EventArguments;
+using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.SPlus.RoomGroups;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
@@ -25,11 +26,14 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 		private readonly SafeCriticalSection m_SessionsSection;
 
-		private readonly EquipmentCrosspoint m_Equipment;
+		private readonly NonCachingEquipmentCrosspoint m_Equipment;
 		private readonly KrangAtHomeTheme m_Theme;
 		private readonly eConnectionType m_ConnectionType;
 
-		public EquipmentCrosspoint Equipment { get { return m_Equipment; } }
+		private readonly SigCache m_SigCache;
+		private readonly SafeCriticalSection m_SigCacheSection;
+
+		public NonCachingEquipmentCrosspoint Equipment { get { return m_Equipment; } }
 		public KrangAtHomeTheme Theme { get { return m_Theme; } }
 
 		/// <summary>
@@ -38,7 +42,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 		/// <param name="theme"></param>
 		/// <param name="equipment"></param>
 		/// <param name="connectionType"></param>
-		public AudioVideoEquipmentPage(KrangAtHomeTheme theme, EquipmentCrosspoint equipment, eConnectionType connectionType)
+		public AudioVideoEquipmentPage(KrangAtHomeTheme theme, NonCachingEquipmentCrosspoint equipment, eConnectionType connectionType)
 		{
 			if (equipment == null)
 				throw new ArgumentNullException("equipment");
@@ -47,23 +51,21 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 			m_RoomGroupStates = new Dictionary<int, RoomGroupState>();
 			m_SessionsSection = new SafeCriticalSection();
 
-			m_ConnectionType = connectionType;
+			m_SigCache = new SigCache();
+			m_SigCacheSection = new SafeCriticalSection();
 
-			m_IndexToRoomGroup =
-				new IcdOrderedDictionary<int, SPlusRoomGroup>(theme.Core
-				                                                   .Originators
-				                                                   .GetChildren<SPlusRoomGroup>()
-				                                                   .ToDictionary(g => g.Index,
-				                                                                 g => g));
+			m_ConnectionType = connectionType;
 
 			switch (connectionType)
 			{
 				case eConnectionType.Audio:
 					m_Sources = theme.GetAudioSources().ToList();
+					m_IndexToRoomGroup = new IcdOrderedDictionary<int, SPlusRoomGroup>(theme.GetAudioRoomGroups());
 					break;
 
 				case eConnectionType.Video:
 					m_Sources = theme.GetVideoSources().ToList();
+					m_IndexToRoomGroup = new IcdOrderedDictionary<int, SPlusRoomGroup>(theme.GetVideoRoomGroups());
 					break;
 
 				default:
@@ -75,6 +77,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 			m_Equipment = equipment;
 			Subscribe(m_Equipment);
+
+			SetInitialSigCacheValues();
 		}
 
 		public void Dispose()
@@ -84,33 +88,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 		}
 
 		#region Joins
-
-		/// <summary>
-		/// Send the common page information to the controls.
-		/// </summary>
-		private void UpdateAll()
-		{
-			CrosspointData data = new CrosspointData();
-			data.AddControlIds(Equipment.ControlCrosspoints);
-
-			Update(data);
-
-			Equipment.SendInputData(data);
-		}
-
-		/// <summary>
-		/// Send the common page information to the control with the given id.
-		/// </summary>
-		/// <param name="id"></param>
-		private void Update(int id)
-		{
-			CrosspointData data = new CrosspointData();
-			data.AddControlId(id);
-
-			Update(data);
-
-			Equipment.SendInputData(data);
-		}
 
 		private void Update(CrosspointData data)
 		{
@@ -158,6 +135,11 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 		#endregion
 
+		internal IKrangAtHomeSource GetSource(int index)
+		{
+			return m_Sources[index];
+		}
+
 		#region Private Methods
 
 		private ControlCrosspointState LazyLoadCrosspointState(int id)
@@ -171,10 +153,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 				{
 					crosspointState = new ControlCrosspointState(this, id);
 					m_Sessions.Add(id, crosspointState);
-
-					SetRoomGroup(crosspointState, 1);
-
-					Update(id);
 				}
 
 				return crosspointState;
@@ -187,12 +165,17 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 		private void SetRoomGroup(ControlCrosspointState crosspointState, int index)
 		{
+			CrosspointData data = new CrosspointData();
+			data.AddControlId(crosspointState.ControlCrosspointId);
+
 			m_SessionsSection.Enter();
 
 			try
 			{
 				foreach (RoomGroupState state in m_RoomGroupStates.Values)
-					state.RemoveControlId(crosspointState.ControlCrosspointId);
+					state.RemoveControlId(crosspointState.ControlCrosspointId, data);
+
+				crosspointState.ClearSelectedRooms(data);
 
 				RoomGroupState roomGroupState;
 				if (!m_RoomGroupStates.TryGetValue(index, out roomGroupState))
@@ -201,12 +184,14 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 					m_RoomGroupStates.Add(index, roomGroupState);
 				}
 
-				roomGroupState.AddControlId(crosspointState.ControlCrosspointId);
+				roomGroupState.AddControlId(crosspointState.ControlCrosspointId, data);
 			}
 			finally
 			{
 				m_SessionsSection.Leave();
 			}
+
+			Equipment.SendInputData(data);
 		}
 
 		private IEnumerable<IKrangAtHomeSource> GetSources()
@@ -243,29 +228,42 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 		private void KrangAtHomeRoutingOnSourceRoomsUsedUpdated(object sender, SourceRoomsUsedUpdatedEventArgs eventArgs)
 		{
-			UpdateAll();
+			IKrangAtHomeSource source = eventArgs.Source as IKrangAtHomeSource;
+			if (source == null)
+				return;
+
+			CrosspointData data = new CrosspointData();
+			int index = m_Sources.IndexOf(source);
+
+			string roomsFeedback;
+			if (eventArgs.RoomsInUse != null)
+				roomsFeedback = string.Join(", ",eventArgs.RoomsInUse.Select(r => r.Name).ToArray());
+			else
+				roomsFeedback = null;
+
+			ushort roomsFeedbackJoin = Joins.GetSerialJoinOffset(index, Joins.SERIAL_SOURCES_OFFSET, Joins.SERIAL_SOURCES_ROOMS);
+
+			data.AddSig(Joins.SMARTOBJECT_SOURCES, roomsFeedbackJoin, roomsFeedback);
+
+			SendInputData(data);
 		}
 
 		#endregion
 
 		#region Equipment Callbacks
 
-		private void Subscribe(EquipmentCrosspoint equipment)
+		private void Subscribe(NonCachingEquipmentCrosspoint equipment)
 		{
-			equipment.OnControlCrosspointCountChanged += EquipmentOnControlCrosspointCountChanged;
 			equipment.OnSendOutputData += EquipmentOnSendOutputData;
+			equipment.OnControlCrosspointConnected += EquipmentOnControlCrosspointConnected;
+			equipment.GetInitialSigs = GetInitialSigs;
 		}
 
-		private void Unsubscribe(EquipmentCrosspoint equipment)
+		private void Unsubscribe(NonCachingEquipmentCrosspoint equipment)
 		{
-			equipment.OnControlCrosspointCountChanged -= EquipmentOnControlCrosspointCountChanged;
 			equipment.OnSendOutputData -= EquipmentOnSendOutputData;
-		}
-
-		private void EquipmentOnControlCrosspointCountChanged(object sender, IntEventArgs eventArgs)
-		{
-			foreach (int id in m_Equipment.ControlCrosspoints)
-				LazyLoadCrosspointState(id);
+			equipment.OnControlCrosspointConnected -= EquipmentOnControlCrosspointConnected;
+			equipment.GetInitialSigs = null;
 		}
 
 		private void EquipmentOnSendOutputData(ICrosspoint sender, CrosspointData data)
@@ -275,19 +273,30 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 					HandleSigFromControl(id, item);
 		}
 
+		private void EquipmentOnControlCrosspointConnected(object sender, IntEventArgs args)
+		{
+			LazyLoadCrosspointState(args.Data);
+		}
+
+		private IEnumerable<SigInfo> GetInitialSigs(int controlId)
+		{
+			return GetSigCache();
+		}
+
 		private void HandleSigFromControl(int id, SigInfo sig)
 		{
 			ControlCrosspointState crosspointState = LazyLoadCrosspointState(id);
-			RoomGroupState roomGroupState = m_RoomGroupStates.Values.First(s => s.ContainsControlId(id));
+			RoomGroupState roomGroupState;
+			m_RoomGroupStates.Values.TryFirst(s => s.ContainsControlId(id), out roomGroupState);
 
 			// Control source
-			if (sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_CONTROL_SOURCE)
+			if (sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_CONTROL_SOURCE && sig.GetBoolValue())
 			{
 				// Do nothing
 			}
 
 			// Off
-			if (sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_OFF)
+			if (roomGroupState != null && sig.SmartObject == 0 && sig.Type == eSigType.Digital && sig.Number == Joins.DIGITAL_OFF && sig.GetBoolValue())
 			{
 				// Unroute selected rooms
 				foreach (int roomIndex in crosspointState.GetSelectedRooms())
@@ -296,10 +305,12 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 					eSourceTypeRouted type = m_ConnectionType == eConnectionType.Audio
 												 ? eSourceTypeRouted.Audio
-												 : eSourceTypeRouted.Video;
+												 : eSourceTypeRouted.AudioVideo;
 
 					room.SetSource(null, type);
 				}
+
+				// Update Selected Source
 
 				crosspointState.ClearSelectedRooms();
 			}
@@ -312,13 +323,15 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 			}
 
 			// Select source
-			if (sig.SmartObject == Joins.SMARTOBJECT_SOURCES && sig.Type == eSigType.Digital)
+			if (roomGroupState != null && sig.SmartObject == Joins.SMARTOBJECT_SOURCES && sig.Type == eSigType.Digital && sig.GetBoolValue())
 			{
 				int index;
 				ushort join = Joins.GetDigitalJoinFromOffset((ushort)sig.Number, Joins.DIGITAL_SOURCES_OFFSET, out index);
 
 				if (join == Joins.DIGITAL_SOURCES_SELECT)
 				{
+					crosspointState.SetSelectedSource(index);
+
 					IKrangAtHomeSource source = m_Sources[index];
 
                     foreach (int roomIndex in crosspointState.GetSelectedRooms())
@@ -327,7 +340,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 	                    eSourceTypeRouted type = m_ConnectionType == eConnectionType.Audio
 		                                             ? eSourceTypeRouted.Audio
-		                                             : eSourceTypeRouted.Video;
+		                                             : eSourceTypeRouted.AudioVideo;
 
 						room.SetSource(source, type);
                     }
@@ -336,10 +349,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 				}
 			}
 
-			if (sig.SmartObject == Joins.SMARTOBJECT_ROOMS && sig.Type == eSigType.Digital)
+			if (roomGroupState != null && sig.SmartObject == Joins.SMARTOBJECT_ROOMS && sig.Type == eSigType.Digital && sig.GetBoolValue())
 			{
 				int index;
-				ushort join = Joins.GetDigitalJoinFromOffset((ushort)sig.Number, Joins.DIGITAL_SOURCES_OFFSET, out index);
+				ushort join = Joins.GetDigitalJoinFromOffset((ushort)sig.Number, Joins.DIGITAL_ROOMS_OFFSET, out index);
 
 				// Select room
 				if (join == Joins.DIGITAL_ROOMS_SELECT)
@@ -375,5 +388,36 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 		}
 
 		#endregion
+
+		public IEnumerable<SigInfo> GetSigCache()
+		{
+			m_SigCacheSection.Enter();
+			try
+			{
+				return m_SigCache.ToList(m_SigCache.Count);
+			}
+			finally
+			{
+				m_SigCacheSection.Leave();
+			}
+		}
+
+		private void SetInitialSigCacheValues()
+		{
+			var data = new CrosspointData();
+
+			Update(data);
+
+			m_SigCacheSection.Execute(() => m_SigCache.AddHighRemoveLow(data.GetSigs()));
+		}
+
+		private void SendInputData(CrosspointData data)
+		{
+			data.AddControlIds(Equipment.ControlCrosspoints);
+
+			m_SigCacheSection.Execute(() => m_SigCache.AddHighRemoveLow(data.GetSigs()));
+
+			Equipment.SendInputData(data);
+		}
 	}
 }
