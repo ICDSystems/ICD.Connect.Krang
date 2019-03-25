@@ -176,6 +176,38 @@ namespace ICD.Connect.Krang.Remote
 
 		#region IRouteSwitcherDevice Methods
 
+		protected override void InitializeInputPorts()
+		{
+			foreach (ConnectorInfo input in GetInputs())
+			{
+				inputPorts.Add(input, new InputPort
+				{
+					ConnectionType = input.ConnectionType,
+					InputId = string.Format("Remote Input {0}", input.Address),
+					InputIdFeedbackSupported = true
+				});
+			}
+		}
+
+		protected override void InitializeOutputPorts()
+		{
+			foreach (ConnectorInfo output in GetOutputs())
+			{
+				bool supportsVideo = output.ConnectionType.HasFlag(eConnectionType.Video);
+				bool supportsAudio = output.ConnectionType.HasFlag(eConnectionType.Audio);
+				outputPorts.Add(output, new OutputPort
+				{
+					ConnectionType = output.ConnectionType,
+					OutputId = string.Format("Remote Output {0}", output.Address),
+					OutputIdFeedbackSupport = true,
+					VideoOutputSource = supportsVideo ? GetActiveSourceIdName(output, eConnectionType.Video) : null,
+					VideoOutputSourceFeedbackSupport = supportsVideo,
+					AudioOutputSource = supportsAudio ? GetActiveSourceIdName(output, eConnectionType.Audio) : null,
+					AudioOutputSourceFeedbackSupport = supportsAudio
+				});
+			}
+		}
+
 		/// <summary>
 		/// Performs the given route operation.
 		/// </summary>
@@ -216,78 +248,6 @@ namespace ICD.Connect.Krang.Remote
 			return m_Cache.SetInputForOutput(output, null, type);
 		}
 
-		public override IEnumerable<string> GetSwitcherVideoInputIds()
-		{
-			return GetInputs().Where(i => i.ConnectionType.HasFlag(eConnectionType.Video))
-			                  .Select(i => string.Format("Remote Video Input {0}", i.Address));
-		}
-
-		/// <summary>
-		/// Gets the Input Name of the switcher (ie Content, Display In)
-		/// </summary>
-		/// <returns></returns>
-		public override IEnumerable<string> GetSwitcherVideoInputNames()
-		{
-			return GetSwitcherVideoInputIds();
-		}
-
-		/// <summary>
-		/// Gets the Input Sync Type of the switcher's inputs (ie HDMI when HDMI Sync is detected, empty when not detected)
-		/// </summary>
-		/// <returns></returns>
-		public override IEnumerable<string> GetSwitcherVideoInputSyncType()
-		{
-			foreach (var input in GetInputs().Where(i => i.ConnectionType.HasFlag(eConnectionType.Video)))
-			{
-				bool syncState = GetSignalDetectedState(input.Address, eConnectionType.Video);
-				if (!syncState)
-				{
-					yield return string.Empty;
-					continue;
-				}
-
-				yield return "Remote Video Input Sync";
-			}
-		}
-
-		/// <summary>
-		/// Gets the Input Resolution for the switcher's inputs (ie 1920x1080, or empty for no sync)
-		/// </summary>
-		/// <returns></returns>
-		public override IEnumerable<string> GetSwitcherVideoInputResolutions()
-		{
-			foreach (var input in GetInputs().Where(i => i.ConnectionType.HasFlag(eConnectionType.Video)))
-			{
-				bool syncState = GetSignalDetectedState(input.Address, eConnectionType.Video);
-				if (!syncState)
-				{
-					yield return string.Empty;
-					continue;
-				}
-
-				yield return "Unknown";
-			}
-		}
-
-		/// <summary>
-		/// Gets the Output Ids of the switcher's outputs (ie HDMI1, VGA2)
-		/// </summary>
-		/// <returns></returns>
-		public override IEnumerable<string> GetSwitcherVideoOutputIds()
-		{
-			return GetOutputs().Where(i => i.ConnectionType.HasFlag(eConnectionType.Video))
-							   .Select(i => string.Format("Remote Video Input {0}", i.Address));
-		}
-
-		/// <summary>
-		/// Gets the Output Name of the switcher's outputs (ie Content, Display In)
-		/// </summary>
-		/// <returns></returns>
-		public override IEnumerable<string> GetSwitcherVideoOutputNames()
-		{
-			return GetSwitcherVideoOutputIds();
-		}
-
 		/// <summary>
 		/// Gets the input routed to the given output matching the given type.
 		/// </summary>
@@ -312,6 +272,18 @@ namespace ICD.Connect.Krang.Remote
 		public override IEnumerable<ConnectorInfo> GetOutputs(int input, eConnectionType type)
 		{
 			return m_Cache.GetOutputsForInput(input, type);
+		}
+
+		private string GetActiveSourceIdName(ConnectorInfo info, eConnectionType type)
+		{
+			if (!EnumUtils.HasSingleFlag(type))
+				throw new InvalidOperationException("Cannot get active source for multiple type flags");
+
+			var activeInput = m_Cache.GetInputConnectorInfoForOutput(info.Address, type);
+			return activeInput != null
+					   ? string.Format("{0} {1}", inputPorts[activeInput.Value].InputId ?? string.Empty,
+									   inputPorts[activeInput.Value].InputName ?? string.Empty)
+					   : null;
 		}
 
 		#endregion
@@ -350,6 +322,13 @@ namespace ICD.Connect.Krang.Remote
 		private void CacheOnRouteChange(object sender, RouteChangeEventArgs args)
 		{
 			OnRouteChange.Raise(this, new RouteChangeEventArgs(args));
+			KeyValuePair<ConnectorInfo, OutputPort> outputPort = outputPorts.FirstOrDefault(kvp => kvp.Key.Address == args.Output);
+			if (outputPort.Value == null)
+				return;
+			if (args.Type.HasFlag(eConnectionType.Video))
+				outputPort.Value.VideoOutputSource = GetActiveSourceIdName(outputPort.Key, eConnectionType.Video);
+			if (args.Type.HasFlag(eConnectionType.Audio))
+				outputPort.Value.AudioOutputSource = GetActiveSourceIdName(outputPort.Key, eConnectionType.Audio);
 		}
 
 		private void CacheOnActiveTransmissionStateChanged(object sender, TransmissionStateEventArgs args)
