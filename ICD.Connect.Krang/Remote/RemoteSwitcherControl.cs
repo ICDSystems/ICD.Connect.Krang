@@ -276,16 +276,6 @@ namespace ICD.Connect.Krang.Remote
 			return m_Cache.GetOutputsForInput(input, type);
 		}
 
-		private string GetActiveSourceIdName(ConnectorInfo info, eConnectionType type)
-		{
-			ConnectorInfo? activeInput = GetInput(info.Address, type);
-			if (activeInput == null)
-				return null;
-
-			InputPort port = GetInputPort(activeInput.Value.Address);
-			return string.Format("{0} {1}", port.InputId, port.InputName);
-		}
-
 		#endregion
 
 		#region Cache Callbacks
