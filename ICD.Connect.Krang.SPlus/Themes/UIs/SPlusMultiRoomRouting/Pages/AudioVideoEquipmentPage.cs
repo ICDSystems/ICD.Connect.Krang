@@ -36,15 +36,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 		public NonCachingEquipmentCrosspoint Equipment { get { return m_Equipment; } }
 		public KrangAtHomeTheme Theme { get { return m_Theme; } }
 
-		/// <summary>
-		/// Constructor.
-		/// </summary>
-		/// <param name="theme"></param>
-		/// <param name="equipment"></param>
-		/// <param name="connectionType"></param>
-		public AudioVideoEquipmentPage(KrangAtHomeTheme theme, NonCachingEquipmentCrosspoint equipment, eConnectionType connectionType)
+
+		public AudioVideoEquipmentPage(KrangAtHomeTheme theme, KrangAtHomeMultiRoomRouting multiRoomRouting)
 		{
-			if (equipment == null)
+			if (multiRoomRouting == null)
 				throw new ArgumentNullException("equipment");
 
 			m_Sessions = new Dictionary<int, ControlCrosspointState>();
@@ -54,28 +49,16 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 			m_SigCache = new SigCache();
 			m_SigCacheSection = new SafeCriticalSection();
 
-			m_ConnectionType = connectionType;
+			m_ConnectionType = multiRoomRouting.ConnectionType;
 
-			switch (connectionType)
-			{
-				case eConnectionType.Audio:
-					m_Sources = theme.GetAudioSources().ToList();
-					m_IndexToRoomGroup = new IcdOrderedDictionary<int, SPlusRoomGroup>(theme.GetAudioRoomGroups());
-					break;
+			m_Sources = new List<IKrangAtHomeSource>(multiRoomRouting.Sources);
 
-				case eConnectionType.Video:
-					m_Sources = theme.GetVideoSources().ToList();
-					m_IndexToRoomGroup = new IcdOrderedDictionary<int, SPlusRoomGroup>(theme.GetVideoRoomGroups());
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException("connectionType");
-			}
+			m_IndexToRoomGroup = new IcdOrderedDictionary<int, SPlusRoomGroup>(multiRoomRouting.RoomGroups);
 
 			m_Theme = theme;
 			Subscribe(m_Theme);
 
-			m_Equipment = equipment;
+			m_Equipment = multiRoomRouting.EquipmentCrosspoint;
 			Subscribe(m_Equipment);
 
 			SetInitialSigCacheValues();

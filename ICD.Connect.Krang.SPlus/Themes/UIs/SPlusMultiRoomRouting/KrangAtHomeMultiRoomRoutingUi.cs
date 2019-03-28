@@ -1,13 +1,12 @@
-﻿using ICD.Connect.Krang.SPlus.Rooms;
+﻿using System.Collections.Generic;
+using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages;
-using ICD.Connect.Routing.Connections;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 {
 	public sealed class KrangAtHomeMultiRoomRoutingUi : IKrangAtHomeUserInterface
 	{
-		private readonly AudioVideoEquipmentPage m_AudioPage;
-		private readonly AudioVideoEquipmentPage m_VideoPage;
+		private readonly Dictionary<int, AudioVideoEquipmentPage> m_Pages;
 
 		/// <summary>
 		/// Constructor.
@@ -15,19 +14,19 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		/// <param name="theme"></param>
 		public KrangAtHomeMultiRoomRoutingUi(KrangAtHomeTheme theme)
 		{
-			if (theme.AudioEquipment != null)
-				m_AudioPage = new AudioVideoEquipmentPage(theme, theme.AudioEquipment, eConnectionType.Audio);
+			m_Pages = new Dictionary<int, AudioVideoEquipmentPage>();
 
-			if (theme.VideoEquipment != null)
-				m_VideoPage = new AudioVideoEquipmentPage(theme, theme.VideoEquipment, eConnectionType.Video);
+			foreach (KeyValuePair<int, KrangAtHomeMultiRoomRouting> kvp in theme.MulitRoomRoutings)
+			{
+				var page = new AudioVideoEquipmentPage(theme, kvp.Value);
+				m_Pages.Add(kvp.Key, page);
+			}
 		}
 
 		public void Dispose()
 		{
-			if (m_AudioPage != null)
-				m_AudioPage.Dispose();
-			if (m_VideoPage != null)
-				m_VideoPage.Dispose();
+			foreach(KeyValuePair<int, AudioVideoEquipmentPage> kvp in m_Pages)
+				kvp.Value.Dispose();
 		}
 
 		/// <summary>

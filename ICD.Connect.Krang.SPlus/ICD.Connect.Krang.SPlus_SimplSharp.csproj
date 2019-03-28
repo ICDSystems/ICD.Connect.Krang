@@ -131,7 +131,9 @@
     <Compile Include="Themes\IKrangAtHomeUserInterface.cs" />
     <Compile Include="Themes\AbstractKrangAtHomeUserInterfaceFactory.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Device\IKrangAtHomeUiDevice.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\KrangAtHomeMultiRoomRouting.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Pages\AudioVideoEquipmentPage.cs" />
+    <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Settings\KrangAtHomeMultiRoomRoutingSettings.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\ControlCrosspointState.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\Joins.cs" />
     <Compile Include="Themes\UIs\SPlusMultiRoomRouting\States\RoomGroupState.cs" />

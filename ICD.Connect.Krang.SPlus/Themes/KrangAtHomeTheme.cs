@@ -1,25 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Nodes;
-using ICD.Connect.Krang.SPlus.RoomGroups;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
-using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting;
+using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Settings;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel;
-using ICD.Connect.Routing.Endpoints;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Protocol.Crosspoints;
 using ICD.Connect.Protocol.Crosspoints.CrosspointManagers;
-using ICD.Connect.Protocol.Crosspoints.Crosspoints;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
@@ -32,15 +28,10 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		private readonly IcdHashSet<IKrangAtHomeUserInterfaceFactory> m_UiFactories;
 		private readonly SafeCriticalSection m_UiFactoriesSection;
 
-		private readonly IcdHashSet<IKrangAtHomeSource> m_AudioSources;
-		private readonly IcdHashSet<IKrangAtHomeSource> m_VideoSources;
-
-		// Room Groups - key = index, value = group originator id
-		private readonly Dictionary<int, SPlusRoomGroup> m_AudioRoomGroups;
-		private readonly Dictionary<int, SPlusRoomGroup> m_VideoRoomGroups;
-
 		private Xp3 m_CachedXp3;
 		private ICore m_CachedCore;
+
+		private readonly Dictionary<int, KrangAtHomeMultiRoomRouting> m_MulitRoomRoutings;
 
 		#region Properties
 
@@ -52,9 +43,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		public int SystemId { get; set; }
 
-		public NonCachingEquipmentCrosspoint AudioEquipment { get; set; }
-
-		public NonCachingEquipmentCrosspoint VideoEquipment { get; set; }
+		public Dictionary<int, KrangAtHomeMultiRoomRouting> MulitRoomRoutings { get { return m_MulitRoomRoutings; } }
 
 		public Xp3 Xp3
 		{
@@ -91,11 +80,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 			m_UiFactoriesSection = new SafeCriticalSection();
 
-			m_AudioSources = new IcdHashSet<IKrangAtHomeSource>();
-			m_VideoSources = new IcdHashSet<IKrangAtHomeSource>();
-
-			m_AudioRoomGroups = new Dictionary<int, SPlusRoomGroup>();
-			m_VideoRoomGroups = new Dictionary<int, SPlusRoomGroup>();
+			m_MulitRoomRoutings = new Dictionary<int, KrangAtHomeMultiRoomRouting>();
 
 			Core.Originators.OnChildrenChanged += OriginatorsOnChildrenChanged;
 		}
@@ -109,26 +94,6 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			Core.Originators.OnChildrenChanged -= OriginatorsOnChildrenChanged;
 
 			base.DisposeFinal(disposing);
-		}
-
-		public IEnumerable<IKrangAtHomeSource> GetAudioSources()
-		{
-			return m_AudioSources.OrderBy(s => (s as ISourceDestinationBase).Order);
-		}
-
-		public IEnumerable<IKrangAtHomeSource> GetVideoSources()
-		{
-			return m_VideoSources.OrderBy(s => (s as ISourceDestinationBase).Order);
-		}
-
-		public IEnumerable<KeyValuePair<int, SPlusRoomGroup>> GetAudioRoomGroups()
-		{
-			return m_AudioRoomGroups;
-		}
-
-		public IEnumerable<KeyValuePair<int, SPlusRoomGroup>> GetVideoRoomGroups()
-		{
-			return m_VideoRoomGroups;
 		}
 
 		private void OriginatorsOnChildrenChanged(object sender, EventArgs e)
@@ -207,21 +172,10 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			base.CopySettingsFinal(settings);
 
 			settings.SystemId = SystemId;
-			settings.AudioEquipmentId = AudioEquipment == null ? (int?)null : AudioEquipment.Id;
-			settings.VideoEquipmentId = VideoEquipment == null ? (int?)null : VideoEquipment.Id;
 
-			settings.AudioSourceIds.Clear();
-			settings.AudioSourceIds.AddRange(m_AudioSources.Select(s => s.Id));
-
-			settings.VideoSourceIds.Clear();
-			settings.VideoSourceIds.AddRange(m_VideoSources.Select(s => s.Id));
-
-
-			settings.AudioRoomGroupIds.Clear();
-			settings.AudioRoomGroupIds.AddRange(m_AudioRoomGroups.Select(kvp => new KeyValuePair<int, int>(kvp.Key, kvp.Value.Id)));
-
-			settings.VideoRoomGroupIds.Clear();
-			settings.VideoRoomGroupIds.AddRange(m_VideoRoomGroups.Select(kvp => new KeyValuePair<int, int>(kvp.Key, kvp.Value.Id)));
+			settings.MultiRoomRoutings.Clear();
+			foreach (var kvp in MulitRoomRoutings)
+				settings.MultiRoomRoutings.Add(kvp.Key, kvp.Value.CopySettings());
 		}
 
 		/// <summary>
@@ -238,122 +192,70 @@ namespace ICD.Connect.Krang.SPlus.Themes
 				factory.LoadOriginators<IKrangAtHomeSourceGroup>();
 				factory.LoadOriginators<IRoutingGraph>();
 				factory.LoadOriginators<IKrangAtHomeRoom>();
-				}
+			}
 			catch (Exception e)
 			{
 				Log(eSeverity.Critical, e, "Exception loading KrangAtHomeTheme - Originator Preload");
 			}
 
-			try{
-				m_AudioSources.Clear();
-				m_AudioSources.AddRange(settings.AudioSourceIds.Select(id => factory.GetOriginatorById<IKrangAtHomeSource>(id)));
+			IRoutingGraph routingGraph = ServiceProvider.GetService<IRoutingGraph>();
 
-				m_AudioRoomGroups.Clear();
-				m_AudioRoomGroups.AddRange(settings.AudioRoomGroupIds.Select(kvp => new KeyValuePair<int, SPlusRoomGroup>(kvp.Key,factory.GetOriginatorById<SPlusRoomGroup>(kvp.Value))));
+			KrangAtHomeRouting = new KrangAtHomeRouting(routingGraph);
 
-			}
-			catch (Exception e)
-			{
-				Log(eSeverity.Critical, e, "Exception loading KrangAtHomeTheme - Multi-Room Audio");
-			}
+			KrangAtHomeSourceGroupManager = new KrangAtHomeSourceGroupManager(KrangAtHomeRouting);
 
 			try
 			{
-				m_VideoSources.Clear();
-				foreach (int s in settings.VideoSourceIds)
-				{
-					try
-					{
-						var source = factory.GetOriginatorById<IKrangAtHomeSource>(s);
-						if (source != null)
-							m_VideoSources.Add(source);
-						else
-						{
-							Log(eSeverity.Error, "Source at {0} was null for some reason?", s);
-						}
-					}
-					catch
-					{
-						Log(eSeverity.Critical, "Error adding source {0}", s);
-					}
-				}
-				m_VideoSources.AddRange(settings.VideoSourceIds.Select(id => factory.GetOriginatorById<IKrangAtHomeSource>(id)));
-
-				m_VideoRoomGroups.Clear();
-					m_VideoRoomGroups.AddRange(settings.VideoRoomGroupIds.Select(kvp => new KeyValuePair<int, SPlusRoomGroup>(kvp.Key, factory.GetOriginatorById<SPlusRoomGroup>(kvp.Value))));
-
+				IEnumerable<ISource> sources = factory.GetOriginators<ISource>();
+				KrangAtHomeRouting.AddSources(sources);
 			}
-			catch (Exception e)
+			catch
 			{
-				Log(eSeverity.Critical, e, "Exception loading KrangAtHomeTheme - Multi-Room Video");
-				throw e;
+
 			}
-
-				IRoutingGraph routingGraph = ServiceProvider.GetService<IRoutingGraph>();
-
-				KrangAtHomeRouting = new KrangAtHomeRouting(routingGraph);
-
-				KrangAtHomeSourceGroupManager = new KrangAtHomeSourceGroupManager(KrangAtHomeRouting);
-
-				try
-				{
-					IEnumerable<ISource> sources = factory.GetOriginators<ISource>();
-					KrangAtHomeRouting.AddSources(sources);
-				}
-				catch
-				{
-				
-				}
-			
-
-				try
-				{
-					IEnumerable<IKrangAtHomeSourceGroup> sourceGroups = factory.GetOriginators<IKrangAtHomeSourceGroup>();
-
-					if (sourceGroups != null)
-						KrangAtHomeSourceGroupManager.AddSourceGroup(sourceGroups);
-				}
-				catch
-				{
-				}
-
 
 
 			try
 			{
-// Setup the equipment crosspoints
-				SystemId = settings.SystemId ?? 0;
-			
-				if (settings.AudioEquipmentId.HasValue)
-				{
-					AudioEquipment = new NonCachingEquipmentCrosspoint(settings.AudioEquipmentId.Value, "AudioEquipment");
-					EquipmentCrosspointManager.RegisterCrosspoint(AudioEquipment);
-				}
+				IEnumerable<IKrangAtHomeSourceGroup> sourceGroups = factory.GetOriginators<IKrangAtHomeSourceGroup>();
 
-				if (settings.VideoEquipmentId.HasValue)
-				{
-					VideoEquipment = new NonCachingEquipmentCrosspoint(settings.VideoEquipmentId.Value, "VideoEquipment");
-					EquipmentCrosspointManager.RegisterCrosspoint(VideoEquipment);
-				}
+				if (sourceGroups != null)
+					KrangAtHomeSourceGroupManager.AddSourceGroup(sourceGroups);
 			}
-			catch (Exception e)
+			catch
 			{
-				Log(eSeverity.Critical, e, "Exception loading KrangAtHomeTheme - Multi-Room Crosspoints");
 			}
 
-				try
-				{
-					IEnumerable<IKrangAtHomeRoom> rooms = factory.GetOriginators<IKrangAtHomeRoom>();
+			// Apply Multi-Room Routing Settings
+			if (settings.SystemId.HasValue && settings.SystemId.Value != 0)
+			{
+				SystemId = settings.SystemId.Value;
+				settings.MultiRoomRoutings.ForEach(kvp => ApplyMultiRoomRouting(kvp.Value, factory));
+			}
 
-					if (rooms != null)
-						ApplyThemeToRooms(rooms);
-				}
-				catch (Exception)
-				{
-				}
-			
+
+			try
+			{
+				IEnumerable<IKrangAtHomeRoom> rooms = factory.GetOriginators<IKrangAtHomeRoom>();
+
+				if (rooms != null)
+					ApplyThemeToRooms(rooms);
+			}
+			catch
+			{
+			}
+
 
 			base.ApplySettingsFinal(settings, factory);
+		}
+
+		private void ApplyMultiRoomRouting(KrangAtHomeMultiRoomRoutingSettings settings, IDeviceFactory factory)
+		{
+			KrangAtHomeMultiRoomRouting multiRoomRouting = new KrangAtHomeMultiRoomRouting();
+
+			multiRoomRouting.ApplySettings(this, settings, factory);
+
+			MulitRoomRoutings.Add(multiRoomRouting.EquipmentId, multiRoomRouting);
 		}
 
 		/// <summary>
@@ -363,26 +265,21 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			base.ClearSettingsFinal();
 
-			if (AudioEquipment != null)
-			{
-				EquipmentCrosspointManager.UnregisterCrosspoint(AudioEquipment);
-				AudioEquipment.Dispose();
-				AudioEquipment = null;
-			}
+			foreach (KrangAtHomeMultiRoomRouting m in MulitRoomRoutings.Values)
+				m.ClearSettings();
 
-			if (VideoEquipment != null)
+			MulitRoomRoutings.Clear();
+
+			if (m_CachedXp3 != null && SystemId != 0)
 			{
-				EquipmentCrosspointManager.UnregisterCrosspoint(VideoEquipment);
-				VideoEquipment.Dispose();
-				VideoEquipment = null;
+				CrosspointSystem system = m_CachedXp3.GetSystem(SystemId);
+				if (system != null)
+					system.Dispose();
 			}
 
 			SystemId = 0;
 
 			KrangAtHomeRouting = null;
-
-			m_AudioSources.Clear();
-			m_VideoSources.Clear();
 		}
 
 		#endregion
