@@ -62,6 +62,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			output.OnMuteStateChanged += OutputOnMuteStateChanged;
 			output.OnVolumePositionChanged += OutputOnVolumePositionChanged;
 			output.OnActiveSourceChanged += OutputOnActiveSourceChanged;
+			output.OnVolumeAvaliabilityChanged += OutputOnVolumeAvaliabilityChanged;
 		}
 
 		#region Controls
@@ -141,12 +142,18 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 				// Mute
 				bool muted = roomState.Muted;
 				ushort mutedJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_MUTE);
-				data.AddSig(Joins.SMARTOBJECT_ROOMS, mutedJoin, clear ? false : muted);
+				data.AddSig(Joins.SMARTOBJECT_ROOMS, mutedJoin, !clear && muted);
 
 				// Volume
 				ushort volume = (ushort)(roomState.VolumePostition * ushort.MaxValue);
 				ushort volumeJoin = Joins.GetAnalogJoinOffset(index, Joins.ANALOG_ROOMS_OFFSET, Joins.ANALOG_ROOMS_VOLUME);
 				data.AddSig(Joins.SMARTOBJECT_ROOMS, volumeJoin, clear ? (ushort)0 : volume);
+
+				// Volume Avaliability
+				bool volumeAvaliable = roomState.VolumeAvaliable;
+				ushort volumeAvaliableJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_ENABLE_VOLUME);
+				data.AddSig(Joins.SMARTOBJECT_ROOMS, volumeAvaliableJoin, !clear && volumeAvaliable);
+
 			}
 		}
 
@@ -176,6 +183,18 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			data.AddSig(Joins.SMARTOBJECT_ROOMS, mutedJoin, muted);
 
 			SendInputData(data);
+		}
+
+		private void UpdateRoomVolumeAvaliableState(RoomState state)
+		{
+			CrosspointData data = new CrosspointData();
+
+			ushort index = (ushort)m_RoomStates.IndexOf(state);
+
+			// Volume Avaliability
+			bool volumeAvaliable = state.VolumeAvaliable;
+			ushort volumeAvaliableJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_ENABLE_VOLUME);
+			data.AddSig(Joins.SMARTOBJECT_ROOMS, volumeAvaliableJoin, volumeAvaliable);
 		}
 
 		private void UpdateRoomSourceState(RoomState state)
@@ -214,6 +233,13 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			RoomState state = sender as RoomState;
 
 			UpdateRoomSourceState(state);
+		}
+
+		private void OutputOnVolumeAvaliabilityChanged(object sender, BoolEventArgs boolEventArgs)
+		{
+			RoomState state = sender as RoomState;
+
+			UpdateRoomVolumeAvaliableState(state);
 		}
 
 		#endregion

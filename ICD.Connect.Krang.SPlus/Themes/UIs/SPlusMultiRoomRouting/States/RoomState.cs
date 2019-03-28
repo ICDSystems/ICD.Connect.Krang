@@ -13,15 +13,15 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 	{
 		public event EventHandler<BoolEventArgs> OnMuteStateChanged;
 		public event EventHandler<FloatEventArgs> OnVolumePositionChanged;
+		public event EventHandler<BoolEventArgs> OnVolumeAvaliabilityChanged;
 		public event EventHandler OnActiveSourceChanged;
 
 		private readonly IKrangAtHomeRoom m_Room;
 
 		private IVolumeDeviceControl m_VolumeControl;
-		private IVolumePositionDeviceControl m_PositionControl;
-		private IVolumeMuteFeedbackDeviceControl m_MuteControl;
 		private float m_VolumePostition;
 		private bool m_Muted;
+		private bool m_VolumeAvaliable;
 
 		public RoomState(IKrangAtHomeRoom room)
 		{
@@ -66,6 +66,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 
 			VolumePostition = positionControl == null ? 0.0f : positionControl.VolumePosition;
 			Muted = muteFeedbackControl != null && muteFeedbackControl.VolumeIsMuted;
+			VolumeAvaliable = m_VolumeControl != null;
 		}
 
 		public float VolumePostition
@@ -99,6 +100,20 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 				m_Muted = value;
 
 				OnMuteStateChanged.Raise(this, new BoolEventArgs(m_Muted));
+			}
+		}
+
+		public bool VolumeAvaliable
+		{
+			get { return m_VolumeAvaliable; }
+			set
+			{
+				if (value == m_VolumeAvaliable)
+					return;
+
+				m_VolumeAvaliable = value;
+
+				OnVolumeAvaliabilityChanged.Raise(this, new BoolEventArgs(m_VolumeAvaliable));
 			}
 		}
 

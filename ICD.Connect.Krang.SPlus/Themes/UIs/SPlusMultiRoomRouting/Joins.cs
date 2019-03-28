@@ -28,6 +28,7 @@
 		public const ushort DIGITAL_ROOMS_VOLUME_UP = 2;
 		public const ushort DIGITAL_ROOMS_VOLUME_DOWN = 3;
 		public const ushort DIGITAL_ROOMS_MUTE = 4;
+		public const ushort DIGITAL_ROOMS_ENABLE_VOLUME = 2;
 
 		public const ushort ANALOG_ROOMS_OFFSET = 1;
 		public const ushort ANALOG_ROOMS_VOLUME = 1;
