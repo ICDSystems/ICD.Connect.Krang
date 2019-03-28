@@ -33,16 +33,16 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 
 		public void VolumeUp()
 		{
-			IVolumeRampDeviceControl control = m_VolumeControl as IVolumeRampDeviceControl;
+			IVolumeLevelDeviceControl control = m_VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeIncrement();
+				control.VolumeLevelIncrement(2);
 		}
 
 		public void VolumeDown()
 		{
-			IVolumeRampDeviceControl control = m_VolumeControl as IVolumeRampDeviceControl;
+			IVolumeLevelDeviceControl control = m_VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeDecrement();
+				control.VolumeLevelDecrement(2);
 		}
 
 		public void ToggleMute()
