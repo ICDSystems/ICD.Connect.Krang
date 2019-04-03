@@ -4,7 +4,7 @@ using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 namespace ICD.Connect.Krang.SPlus.OriginatorInfo.Devices
 {
 	[Serializable]
-	public sealed class SourceInfo : AbstractOriginatorInfo
+	public sealed class SourceInfo : SourceBaseInfo
 	{
 		public ushort CrosspointId { get; set; }
 

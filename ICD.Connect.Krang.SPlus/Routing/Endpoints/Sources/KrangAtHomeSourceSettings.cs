@@ -12,6 +12,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 		private const string CROSSPOINT_ID_ELEMENT = "CrosspointId";
 		private const string CROSSPOINT_TYPE_ELEMENT = "CrosspointType";
 		private const string SOURCE_VISIBILITY_ELEMENT = "SourceVisibility";
+		private const string SOURCE_ICON_ELEMENT = "SourceIcon";
 
 		#region Properties
 
@@ -19,6 +20,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 		public ushort CrosspointId { get; set; }
 
 		public ushort CrosspointType { get; set; }
+
+		public eKrangAtHomeSourceIcon? SourceIcon { get; set; }
 
 		[PublicAPI]
 		public eSourceVisibility SourceVisibility { get; set; }
@@ -36,6 +39,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			writer.WriteElementString(CROSSPOINT_ID_ELEMENT, IcdXmlConvert.ToString(CrosspointId));
 			writer.WriteElementString(CROSSPOINT_TYPE_ELEMENT, IcdXmlConvert.ToString(CrosspointType));
 			writer.WriteElementString(SOURCE_VISIBILITY_ELEMENT, SourceVisibility.ToString());
+			writer.WriteElementString(SOURCE_ICON_ELEMENT, IcdXmlConvert.ToString(SourceIcon));
 		}
 
 		/// <summary>
@@ -51,6 +55,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			SourceVisibility =
 				XmlUtils.TryReadChildElementContentAsEnum<eSourceVisibility>(xml, SOURCE_VISIBILITY_ELEMENT, true) ??
 				eSourceVisibility.None;
+			SourceIcon = XmlUtils.TryReadChildElementContentAsEnum<eKrangAtHomeSourceIcon>(xml, SOURCE_ICON_ELEMENT, true);
 		}
 	}
 }

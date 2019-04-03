@@ -20,6 +20,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 
 		public eSourceVisibility SourceVisibility { get; set; }
 
+		public eKrangAtHomeSourceIcon? SourceIcon { get; set; }
+
 		public int Order { get; private set; }
 
 		public KrangAtHomeSourceGroup()
@@ -120,6 +122,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 
 			SourceVisibility = settings.SourceVisibility;
 
+			SourceIcon = settings.SourceIcon;
+
 			Order = settings.Order;
 
 			settings.Sources.ForEach(kvp => AddSource(kvp, factory));
@@ -135,6 +139,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 
 			settings.SourceVisibility = SourceVisibility;
 
+			settings.SourceIcon = SourceIcon;
+
 			settings.Order = Order;
 
 			settings.Sources = SourcesToDictionary();
@@ -148,6 +154,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 			base.ClearSettingsFinal();
 
 			SourceVisibility = eSourceVisibility.None;
+			SourceIcon = null;
 			Order = int.MaxValue;
 			m_Sources.Clear();
 		}
@@ -176,6 +183,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.KrangAtHomeSourceGroup
 		{
 			base.BuildConsoleStatus(addRow);
 
+			addRow("Source Visibility", SourceVisibility);
+			addRow("Source Icon", SourceIcon);
 			addRow("SourceCount", Count);
 		}
 

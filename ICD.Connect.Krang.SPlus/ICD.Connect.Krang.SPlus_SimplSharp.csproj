@@ -89,7 +89,9 @@
     <Compile Include="Routing\Endpoints\Destinations\IKrangAtHomeDestination.cs" />
     <Compile Include="Routing\Endpoints\Destinations\KrangAtHomeDestination.cs" />
     <Compile Include="Routing\Endpoints\Destinations\KrangAtHomeDestinationSettings.cs" />
+    <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSourceIcon.cs" />
     <Compile Include="Routing\Endpoints\Sources\IKrangAtHomeSource.cs" />
+    <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSourceIconExtensions.cs" />
     <Compile Include="Routing\IKrangAtHomeSourceBase.cs" />
     <Compile Include="Routing\Endpoints\Sources\KrangAtHomeSource.cs" />
     <Compile Include="Routing\KrangAtHomeRouting.cs" />

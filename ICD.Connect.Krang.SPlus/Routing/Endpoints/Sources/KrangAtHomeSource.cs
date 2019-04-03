@@ -1,5 +1,6 @@
 ﻿using System;
 using ICD.Common.Properties;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Settings.Originators.Simpl;
 using ICD.Connect.Settings;
@@ -27,6 +28,8 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 		[PublicAPI("S+")]
 		public eSourceVisibility SourceVisibility { get; set; }
 
+		public eKrangAtHomeSourceIcon? SourceIcon { get; set; }
+
 		#endregion
 
 		#region Methods
@@ -50,6 +53,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			CrosspointId = 0;
 			CrosspointType = 0;
 			SourceVisibility = eSourceVisibility.None;
+			SourceIcon = null;
 		}
 
 		/// <summary>
@@ -63,6 +67,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			settings.CrosspointId = CrosspointId;
 			settings.CrosspointType = CrosspointType;
 			settings.SourceVisibility = SourceVisibility;
+			settings.SourceIcon = SourceIcon;
 		}
 
 		/// <summary>
@@ -77,6 +82,24 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			CrosspointId = settings.CrosspointId;
 			CrosspointType = settings.CrosspointType;
 			SourceVisibility = settings.SourceVisibility;
+			SourceIcon = settings.SourceIcon;
+		}
+
+		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			base.BuildConsoleStatus(addRow);
+
+			addRow("Source Visibility", SourceVisibility);
+			addRow("Source Icon", SourceIcon);
+
 		}
 
 		#endregion
