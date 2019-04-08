@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Core namespace renamed
 
+## [11.1.2] - 2019-03-27
+### Changed
+ - Remove ids from room settings when a settings instance is removed from the core settings 
+
 ## [11.1.1] - 2019-02-13
 ### Changed
  - NVRAM no longer bails if USER directory is not empty due to EDID, AvF, etc generation
