@@ -14,9 +14,11 @@ namespace ICD.Connect.Krang.SPlus.OriginatorInfo.Devices
 		public SourceBaseInfo(IKrangAtHomeSourceBase source)
 			: base(source)
 		{
+			if (source == null)
+				return;
+
 			SourceVisiblity = source.SourceVisibility;
 			SourceIcon = source.SourceIcon;
-			
 		}
 
 		public SourceBaseInfo()
