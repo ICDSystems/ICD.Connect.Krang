@@ -31,11 +31,30 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// </summary>
 		private BiDictionary<int, IKrangAtHomeRoom> m_RoomListBiDictionary;
 
+		/// <summary>
+		/// List of audio sources and indexes
+		/// </summary>
 		private BiDictionary<int, IKrangAtHomeSourceBase> m_SourceListAudioBiDictionary;
 
+		/// <summary>
+		/// List of video sources and indexes
+		/// </summary>
 		private BiDictionary<int, IKrangAtHomeSourceBase> m_SourceListVideoBiDictionary;
 
+		/// <summary>
+		/// The current source type
+		/// Used to clear feedback icons
+		/// </summary>
+		private eSourceTypeRouted m_SourceFeedbackType;
+
+		/// <summary>
+		/// The current source index
+		/// Used to clear feedback icons
+		/// </summary>
+		private int m_SourceFeedbackIndex;
+
 		#endregion
+
 
 		/// <summary>
 		/// Constructor.
@@ -45,6 +64,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			m_RoomListBiDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
 			m_SourceListAudioBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
 			m_SourceListVideoBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
+			m_SourceFeedbackType = eSourceTypeRouted.None;
+			m_SourceFeedbackIndex = INDEX_NOT_FOUND;
 
 			Subscribe(UiDevice);
 		}
@@ -88,6 +109,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		#region Source Select
 
+		/// <summary>
+		/// Set the video source based on the index of the source list on the UI Device
+		/// </summary>
+		/// <param name="sourceIndex"></param>
 		private void SetVideoSourceIndex(int sourceIndex)
 		{
 			// sourceIndex of -1 is used for "Off" - pass it along w/o lookup
@@ -105,6 +130,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			SetSource(source, eSourceTypeRouted.AudioVideo);
 		}
 
+		/// <summary>
+		/// Set the audio source based on the index of the source list on the UI Device
+		/// </summary>
+		/// <param name="sourceIndex"></param>
 		private void SetAudioSourceIndex(int sourceIndex)
 		{
 			// sourceIndex of -1 is used for "Off" - pass it along w/o lookup
@@ -126,6 +155,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		#region Private Methods
 
+		/// <summary>
+		/// Updates the UI device with the current room info (including source lists)
+		/// </summary>
 		protected override void RaiseRoomInfo()
 		{
 			if (Room == null)
@@ -143,6 +175,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			RaiseSourceList();
 		}
 
+		/// <summary>
+		/// Updates the UI Device with the current room list, and updates the current room/source/etc
+		/// </summary>
 		private void RaiseRoomList()
 		{
 			BiDictionary<int, IKrangAtHomeRoom> roomListDictionary = new BiDictionary<int, IKrangAtHomeRoom>();
@@ -161,6 +196,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			RaiseRoomInfo();
 		}
 
+		/// <summary>
+		/// Updates the UI Device with the current audio and video source lists
+		/// </summary>
 		private void RaiseSourceList()
 		{
 			BiDictionary<int, IKrangAtHomeSourceBase> sourceListAudioBiDictionary = new BiDictionary<int, IKrangAtHomeSourceBase>();
@@ -191,70 +229,194 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 				}
 
 			}
-			UiDevice.SetAudioSourceList(ConvertToSourceInfo(sourceListAudioBiDictionary));
-			UiDevice.SetVideoSourceList(ConvertToSourceInfo(sourceListVideoBiDictionary));
-
 			m_SourceListAudioBiDictionary = sourceListAudioBiDictionary;
 			m_SourceListVideoBiDictionary = sourceListVideoBiDictionary;
 
-			RaiseSourceInfo();
+			int index, audioSourceIndex, videoSourceIndex;
+			eSourceTypeRouted type;
+
+			IKrangAtHomeSource activeSource = GetActiveSourceIndex(out index, out type);
+
+			if (type.HasFlag(eSourceTypeRouted.Video))
+			{
+				audioSourceIndex = INDEX_NOT_FOUND;
+				videoSourceIndex = index;
+			}
+			else
+			{
+				audioSourceIndex = index;
+				videoSourceIndex = INDEX_NOT_FOUND;
+			}
+
+			UiDevice.SetAudioSourceList(ConvertToSourceInfo(sourceListAudioBiDictionary,audioSourceIndex));
+			UiDevice.SetVideoSourceList(ConvertToSourceInfo(sourceListVideoBiDictionary,videoSourceIndex));
+
+			RaiseSourceInfo(activeSource, index, type);
 		}
 
+		/// <summary>
+		/// Sends the current Source Info to the UI Device
+		/// </summary>
 		private void RaiseSourceInfo()
 		{
+			int index;
+			eSourceTypeRouted type;
+
+			IKrangAtHomeSource source = GetActiveSourceIndex(out index, out type);
+
+			RaiseSourceInfo(source, index, type);
+		}
+
+		/// <summary>
+		/// Sends the specified Source Info to the UI Device
+		/// Also updates the list to un-select the previous source and select the new source
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="index"></param>
+		/// <param name="type"></param>
+		private void RaiseSourceInfo(IKrangAtHomeSource source, int index, eSourceTypeRouted type)
+		{
+			// Need to update the selected icon state also
+			if (type != m_SourceFeedbackType || index != m_SourceFeedbackIndex)
+			{
+				ClearSourceIconFeedback();
+				SetSourceIconFeedback(index, type);
+			}
+
+			if (type.HasFlag(eSourceTypeRouted.Video))
+				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, index);
+			else
+				UiDevice.SetSourceInfo(source, index, INDEX_NOT_FOUND);
+		}
+
+		/// <summary>
+		/// Sets the source icon feedback for the specified source on the specified list
+		/// </summary>
+		/// <param name="index"></param>
+		/// <param name="type"></param>
+		private void SetSourceIconFeedback(int index, eSourceTypeRouted type)
+		{
+			if (index == INDEX_NOT_FOUND || type == eSourceTypeRouted.None)
+			{
+				m_SourceFeedbackIndex = INDEX_NOT_FOUND;
+				m_SourceFeedbackType = eSourceTypeRouted.None;
+				return;
+			}
+
+			if (type.HasFlag(eSourceTypeRouted.Video))
+			{
+				IKrangAtHomeSourceBase sourceBase;
+				if (m_SourceListVideoBiDictionary.TryGetValue(index, out sourceBase))
+				{
+					UiDevice.SetVideoSourceListItem(new SourceBaseListInfo(sourceBase, index, true));
+				}
+			}
+			else
+			{
+				IKrangAtHomeSourceBase sourceBase;
+				if (m_SourceListAudioBiDictionary.TryGetValue(index, out sourceBase))
+				{
+					UiDevice.SetAudioSourceListItem(new SourceBaseListInfo(sourceBase, index, true));
+				}
+			}
+
+			m_SourceFeedbackIndex = index;
+			m_SourceFeedbackType = type;
+		}
+
+		/// <summary>
+		/// Clears source icon feedback from the lists, and sets the items back as not selected
+		/// </summary>
+		private void ClearSourceIconFeedback()
+		{
+			if (m_SourceFeedbackIndex == INDEX_NOT_FOUND || m_SourceFeedbackType == eSourceTypeRouted.None)
+				return;
+
+			
+			if (m_SourceFeedbackType.HasFlag(eSourceTypeRouted.Video))
+			{
+				IKrangAtHomeSourceBase sourceBase;
+				if (m_SourceListVideoBiDictionary.TryGetValue(m_SourceFeedbackIndex, out sourceBase))
+				{
+					UiDevice.SetVideoSourceListItem(new SourceBaseListInfo(sourceBase, m_SourceFeedbackIndex, false));
+				}
+			}
+			else
+			{
+				IKrangAtHomeSourceBase sourceBase;
+				if (m_SourceListAudioBiDictionary.TryGetValue(m_SourceFeedbackIndex, out sourceBase))
+				{
+					UiDevice.SetAudioSourceListItem(new SourceBaseListInfo(sourceBase, m_SourceFeedbackIndex, false));
+				}
+			}
+
+			m_SourceFeedbackIndex = INDEX_NOT_FOUND;
+			m_SourceFeedbackType = eSourceTypeRouted.None;
+		}
+
+		/// <summary>
+		/// Gets the index and type of the active source from the source lists
+		/// </summary>
+		/// <param name="index">index of the source.  INDEX_NOT_FOUND if not in the list</param>
+		/// <param name="type">which list the source is in.  None if not found</param>
+		/// <returns></returns>
+		private IKrangAtHomeSource GetActiveSourceIndex(out int index, out eSourceTypeRouted type)
+		{
+			index = INDEX_NOT_FOUND;
+			type = eSourceTypeRouted.None;
+
 			IKrangAtHomeSource source = Room == null ? null : Room.GetSource();
 			IEnumerable<IKrangAtHomeSourceBase> sourcesBase = Room == null ? null : Room.GetSourcesBase();
 
-			int index;
 			if (source == null)
 			{
-				UiDevice.SetSourceInfo(null, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
-				return;
+				return null;
 			}
 
 			// Video vs Audio
 			//Todo: Add Better Determination of Audio vs Video
 			if (EnumUtils.HasFlag(source.SourceVisibility, eSourceVisibility.Video))
 			{
+				type = eSourceTypeRouted.Video;
 				// Try to get the specific source first
 				if (m_SourceListVideoBiDictionary.TryGetKey(source, out index))
 				{
-					UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, index);
-					return;
+					return source;
 				}
 				// Try to find a match in source groups
 				if (sourcesBase != null)
 				{
-					if (sourcesBase.Any(sourceBase => m_SourceListVideoBiDictionary.TryGetKey(sourceBase, out index)))
+					int videoIndex = INDEX_NOT_FOUND;
+					if (sourcesBase.Any(sourceBase => m_SourceListVideoBiDictionary.TryGetKey(sourceBase, out videoIndex)))
 					{
-						UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, index);
-						return;
+						index = videoIndex;
+						return source;
 					}
 				}
-				//return not found
-				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
 			}
 			else
 			{
+				type = eSourceTypeRouted.Audio;
 				// Try to get the specific source first
 
 				if (m_SourceListAudioBiDictionary.TryGetKey(source, out index))
 				{
-					UiDevice.SetSourceInfo(source, index, INDEX_NOT_FOUND);
-					return;
+					return source;
 				}
 				// Try to find a match in source groups
 				if (sourcesBase != null)
 				{
-					if (sourcesBase.Any(sourceBase => m_SourceListAudioBiDictionary.TryGetKey(sourceBase, out index)))
+					int audioIndex = INDEX_NOT_FOUND;
+					if (sourcesBase.Any(sourceBase => m_SourceListAudioBiDictionary.TryGetKey(sourceBase, out audioIndex)))
 					{
-						UiDevice.SetSourceInfo(source, index, INDEX_NOT_FOUND);
-						return;
+						index = audioIndex;
+						return source;
 					}
 				}
-				//return not found
-				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, INDEX_NOT_FOUND);
 			}
+
+			index = INDEX_NOT_FOUND;
+			return source;
 		}
 
 		#endregion
@@ -445,12 +607,12 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			return returnList;
 		}
 
-		private static List<SourceBaseInfo> ConvertToSourceInfo(IEnumerable<KeyValuePair<int, IKrangAtHomeSourceBase>> list)
+		private static List<SourceBaseListInfo> ConvertToSourceInfo(IEnumerable<KeyValuePair<int, IKrangAtHomeSourceBase>> list, int activeSourceIndex)
 		{
-			List<SourceBaseInfo> returnList = new List<SourceBaseInfo>();
+			List<SourceBaseListInfo> returnList = new List<SourceBaseListInfo>();
 			foreach (var kvp in list)
 			{
-				returnList.Insert(kvp.Key, new SourceBaseInfo(kvp.Value));
+				returnList.Insert(kvp.Key, new SourceBaseListInfo(kvp.Value, kvp.Key, kvp.Key == activeSourceIndex));
 			}
 
 			return returnList;

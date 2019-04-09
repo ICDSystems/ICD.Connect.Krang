@@ -76,11 +76,15 @@
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Proxy\SPlusRemoteApi.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Shim\SPlusRemoteShim.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Proxy\AbstractProxySPlusUiDevice.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\AbstractSourceBaseListItemEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\AudioSourceBaseListItemEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\VideoSourceBaseListItemEventArgs.cs" />
     <Compile Include="KrangPlugin.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="OriginatorInfo\Devices\AbstractOriginatorInfo.cs" />
     <Compile Include="OriginatorInfo\Devices\RoomInfo.cs" />
     <Compile Include="OriginatorInfo\Devices\SourceBaseInfo.cs" />
+    <Compile Include="OriginatorInfo\Devices\SourceBaseListInfo.cs" />
     <Compile Include="OriginatorInfo\Devices\SourceInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rooms\IKrangAtHomeRoom.cs" />

@@ -25,6 +25,12 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, SPlusTouchpanelDeviceApi.HELP_SOURCE_INFO_EVENT)]
 		event EventHandler<SourceSelectedEventArgs> OnSourceSelectedUpdate;
 
+		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST_ITEM, SPlusTouchpanelDeviceApi.HELP_AUDIO_SOURCE_LIST_ITEM)]
+		event EventHandler<AudioSourceBaseListItemEventArgs> OnAudioSourceListItemUpdate;
+
+		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST_ITEM, SPlusTouchpanelDeviceApi.HELP_VIDEO_SOURCE_LIST_ITEM)]
+		event EventHandler<VideoSourceBaseListItemEventArgs> OnVideoSourceListItemUpdate;
+
 		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_LEVEL_FEEDBACK,
 			SPlusTouchpanelDeviceApi.HELP_VOLUME_LEVEL_FEEDBACK_EVENT)]
 		event EventHandler<VolumeLevelFeedbackEventArgs> OnVolumeLevelFeedbackUpdate;

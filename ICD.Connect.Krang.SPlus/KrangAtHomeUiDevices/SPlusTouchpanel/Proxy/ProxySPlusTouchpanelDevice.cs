@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
-using ICD.Connect.Devices.Simpl;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs;
@@ -19,6 +18,8 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 		public event EventHandler<AudioSourceBaseListEventArgs> OnAudioSourceListUpdate;
 		public event EventHandler<VideoSourceBaseListEventArgs> OnVideoSourceListUpdate;
 		public event EventHandler<SourceSelectedEventArgs> OnSourceSelectedUpdate;
+		public event EventHandler<AudioSourceBaseListItemEventArgs> OnAudioSourceListItemUpdate;
+		public event EventHandler<VideoSourceBaseListItemEventArgs> OnVideoSourceListItemUpdate;
 		public event EventHandler<VolumeLevelFeedbackEventArgs> OnVolumeLevelFeedbackUpdate;
 		public event EventHandler<VolumeMuteFeedbackEventArgs> OnVolumeMuteFeedbackUpdate;
 		public event EventHandler<VolumeAvailableControlEventArgs> OnVolumeAvailableControlUpdate;
@@ -59,12 +60,12 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 			OnRoomSelectedUpdate.Raise(this, new RoomSelectedEventArgs(roomSelected));
 		}
 
-		private void RaiseAudioSourceListUpdate(List<SourceBaseInfo> sourceList)
+		private void RaiseAudioSourceListUpdate(List<SourceBaseListInfo> sourceList)
 		{
 			OnAudioSourceListUpdate.Raise(this, new AudioSourceBaseListEventArgs(sourceList));
 		}
 
-		private void RaiseVideoSourceListUpdate(List<SourceBaseInfo> sourceList)
+		private void RaiseVideoSourceListUpdate(List<SourceBaseListInfo> sourceList)
 		{
 			OnVideoSourceListUpdate.Raise(this, new VideoSourceBaseListEventArgs(sourceList));
 		}
@@ -72,6 +73,16 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 		private void RaiseSourceSelectedUpdate(SourceSelected sourceSelected)
 		{
 			OnSourceSelectedUpdate.Raise(this, new SourceSelectedEventArgs(sourceSelected));
+		}
+
+		private void RaiseAudioSourceListItemUpdate(SourceBaseListInfo sourceListItem)
+		{
+			OnAudioSourceListItemUpdate.Raise(this, new AudioSourceBaseListItemEventArgs(sourceListItem));
+		}
+
+		private void RaiseVideoSourceListItemUpdate(SourceBaseListInfo sourceListItem)
+		{
+			OnVideoSourceListItemUpdate.Raise(this, new VideoSourceBaseListItemEventArgs(sourceListItem));
 		}
 
 		private void RaiseVolumeLevelFeedbackUpdate(float volumeLevel)
@@ -108,6 +119,8 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED)
+							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST_ITEM)
+							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST_ITEM)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_LEVEL_FEEDBACK)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_MUTE_FEEDBACK)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_VOLUME_AVAILABLE_CONTROL)
@@ -134,13 +147,19 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 					RaiseRoomSelectedUpdate(result.GetValue<RoomSelected>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST:
-					RaiseAudioSourceListUpdate(result.GetValue<List<SourceBaseInfo>>());
+					RaiseAudioSourceListUpdate(result.GetValue<List<SourceBaseListInfo>>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST:
-					RaiseVideoSourceListUpdate(result.GetValue<List<SourceBaseInfo>>());
+					RaiseVideoSourceListUpdate(result.GetValue<List<SourceBaseListInfo>>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED:
 					RaiseSourceSelectedUpdate(result.GetValue<SourceSelected>());
+					break;
+				case SPlusTouchpanelDeviceApi.EVENT_AUDIO_SOURCE_LIST_ITEM:
+					RaiseAudioSourceListItemUpdate(result.GetValue<SourceBaseListInfo>());
+					break;
+				case SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST_ITEM:
+					RaiseVideoSourceListItemUpdate(result.GetValue<SourceBaseListInfo>());
 					break;
 				case SPlusTouchpanelDeviceApi.EVENT_VOLUME_LEVEL_FEEDBACK:
 					RaiseVolumeLevelFeedbackUpdate(result.GetValue<float>());

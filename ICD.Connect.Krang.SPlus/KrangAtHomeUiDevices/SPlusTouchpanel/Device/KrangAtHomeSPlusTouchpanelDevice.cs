@@ -49,6 +49,10 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 
 		public event EventHandler<SourceSelectedEventArgs> OnSourceSelectedUpdate;
 
+		public event EventHandler<AudioSourceBaseListItemEventArgs> OnAudioSourceListItemUpdate;
+
+		public event EventHandler<VideoSourceBaseListItemEventArgs> OnVideoSourceListItemUpdate;
+
 		public event EventHandler<VolumeLevelFeedbackEventArgs> OnVolumeLevelFeedbackUpdate;
 
 		public event EventHandler<VolumeMuteFeedbackEventArgs> OnVolumeMuteFeedbackUpdate;
@@ -125,11 +129,31 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 			OnSourceSelectedUpdate.Raise(this, new SourceSelectedEventArgs(source, sourceAudioIndex, sourceVideoIndex));
 		}
 
+
+		/// <summary>
+		/// Updates a single item on the audio list (for icon in use update, for example)
+		/// </summary>
+		/// <param name="sourceListItem"></param>
+		internal void SetAudioSourceListItem(SourceBaseListInfo sourceListItem)
+		{
+			OnAudioSourceListItemUpdate.Raise(this, new AudioSourceBaseListItemEventArgs(sourceListItem));
+		}
+
+		
+		/// <summary>
+		/// Updates a single item on the video list (for icon in use update, for example)
+		/// </summary>
+		/// <param name="sourceListItem"></param>
+		internal void SetVideoSourceListItem(SourceBaseListInfo sourceListItem)
+		{
+			OnVideoSourceListItemUpdate.Raise(this, new VideoSourceBaseListItemEventArgs(sourceListItem));
+		}
+
 		/// <summary>
 		/// Updates the audio source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetAudioSourceList(List<SourceBaseInfo> sourceList)
+		internal void SetAudioSourceList(List<SourceBaseListInfo> sourceList)
 		{
 			OnAudioSourceListUpdate.Raise(this, new AudioSourceBaseListEventArgs(sourceList));
 		}
@@ -138,7 +162,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 		/// Updates the video source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		internal void SetVideoSourceList(List<SourceBaseInfo> sourceList)
+		internal void SetVideoSourceList(List<SourceBaseListInfo> sourceList)
 		{
 			OnVideoSourceListUpdate.Raise(this, new VideoSourceBaseListEventArgs(sourceList));
 		}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
@@ -6,7 +7,7 @@ using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Shim;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
-
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 #if SIMPLSHARP
 using ICDPlatformString = Crestron.SimplSharp.SimplSharpString;
 #else
@@ -26,8 +27,12 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 
 	public delegate void RoomListCallback(ushort index, int roomId, ICDPlatformString roomName);
 
+	[Obsolete("Use the icon callback instead")]
 	public delegate void SourceListCallback(
 		ushort index, int sourceId, ICDPlatformString sourceName);
+
+	public delegate void SourceIconListCallback(
+		ushort index, int sourceId, ICDPlatformString sourceName, ICDPlatformString sourceIcon);
 
 	public delegate void VolumeFeedbackCallback(ushort data);
 
@@ -63,13 +68,21 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 		public ListSizeCallback UpdateRoomListCount { get; set; }
 
 		[PublicAPI("S+")]
+		[Obsolete("Use the icon callback instead")]
 		public SourceListCallback UpdateAudioSourceListItem { get; set; }
+
+		[PublicAPI("S+")]
+		public SourceIconListCallback UpdateAudioSourceIconListItem { get; set; }
 
 		[PublicAPI("S+")]
 		public ListSizeCallback UpdateAudioSourceListCount { get; set; }
 
 		[PublicAPI("S+")]
+		[Obsolete("Use the icon callback instead")]
 		public SourceListCallback UpdateVideoSourceListItem { get; set; }
+
+		[PublicAPI("S+")]
+		public SourceIconListCallback UpdateVideoSourceIconListItem { get; set; }
 
 		[PublicAPI("S+")]
 		public ListSizeCallback UpdateVideoSourceListCount { get; set; }
@@ -177,36 +190,62 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusAudioSourceList(IList<SourceBaseInfo> sourceList)
+		private void SetSPlusAudioSourceList(IList<SourceBaseListInfo> sourceList)
 		{
-			SourceListCallback listCallback = UpdateAudioSourceListItem;
-			if (listCallback != null)
-				for(int i = 0; i < sourceList.Count; i++)
-				{
-					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, SPlusSafeString(sourceList[i].Name));
-				}
+			foreach (SourceBaseListInfo item in sourceList)
+				SetSPlusAudioSourceListItem(item);
 
 			ListSizeCallback countCallback = UpdateAudioSourceListCount;
 			if (countCallback != null)
 				countCallback((ushort)sourceList.Count);
 		}
 
+		private void SetSPlusAudioSourceListItem(SourceBaseListInfo sourceListItem)
+		{
+			// Fallback to old callback for the time being
+			var callback = UpdateAudioSourceIconListItem;
+			// ReSharper disable once CSharpWarnings::CS0618
+			var oldCallback = UpdateAudioSourceListItem;
+
+			if (callback == null && oldCallback == null)
+				return;
+			if (callback != null)
+				callback((ushort)(sourceListItem.Index + INDEX_OFFSET_SPLUS), sourceListItem.Id, SPlusSafeString(sourceListItem.Name),
+				         SPlusSafeString(sourceListItem.SourceIcon.GetStringForIcon(sourceListItem.IsActive)));
+			else
+				oldCallback((ushort)(sourceListItem.Index + INDEX_OFFSET_SPLUS), sourceListItem.Id,
+				            SPlusSafeString(sourceListItem.Name));
+		}
+
 		/// <summary>
 		/// Updates the source list with the given KVP's.  Key is the index, value is the room;
 		/// </summary>
 		/// <param name="sourceList"></param>
-		private void SetSPlusVideoSourceList(IList<SourceBaseInfo> sourceList)
+		private void SetSPlusVideoSourceList(IList<SourceBaseListInfo> sourceList)
 		{
-			SourceListCallback listCallback = UpdateVideoSourceListItem;
-			if (listCallback != null)
-				for(int i = 0; i < sourceList.Count; i++)
-				{
-					listCallback((ushort)(i + INDEX_OFFSET_SPLUS), sourceList[i].Id, SPlusSafeString(sourceList[i].Name));
-				}
+			foreach (SourceBaseListInfo item in sourceList)
+				SetSPlusVideoSourceListItem(item);
 
 			ListSizeCallback countCallback = UpdateVideoSourceListCount;
 			if (countCallback != null)
 				countCallback((ushort)sourceList.Count);
+		}
+
+		private void SetSPlusVideoSourceListItem(SourceBaseListInfo sourceListItem)
+		{
+			// Fallback to old callback for the time being
+			var callback = UpdateVideoSourceIconListItem;
+			// ReSharper disable once CSharpWarnings::CS0618
+			var oldCallback = UpdateVideoSourceListItem;
+
+			if (callback == null && oldCallback == null)
+				return;
+			if (callback != null)
+				callback((ushort)(sourceListItem.Index + INDEX_OFFSET_SPLUS), sourceListItem.Id, SPlusSafeString(sourceListItem.Name),
+						 SPlusSafeString(sourceListItem.SourceIcon.GetStringForIcon(sourceListItem.IsActive)));
+			else
+				oldCallback((ushort)(sourceListItem.Index + INDEX_OFFSET_SPLUS), sourceListItem.Id,
+							SPlusSafeString(sourceListItem.Name));
 		}
 
 		private void SetSPlusVolumeLevelFeedback(float volume)
@@ -257,7 +296,9 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 			Originator.OnRoomSelectedUpdate += OriginatorOnRoomSelectedUpdate;
 			Originator.OnRoomListUpdate += OriginatorOnRoomListUpdate;
 			Originator.OnAudioSourceListUpdate += OriginatorOnAudioSourceListUpdate;
+			Originator.OnAudioSourceListItemUpdate += OriginatorOnAudioSourceListItemUpdate;
 			Originator.OnVideoSourceListUpdate += OriginatorOnVideoSourceListUpdate;
+			Originator.OnVideoSourceListItemUpdate += OriginatorOnVideoSourceListItemUpdate;
 			Originator.OnSourceSelectedUpdate += OriginatorOnSourceSelectedUpdate;
 			Originator.OnVolumeLevelFeedbackUpdate += OriginatorOnVolumeLevelFeedbackUpdate;
 			Originator.OnVolumeMuteFeedbackUpdate += OriginatorOnVolumeMuteFeedbackUpdate;
@@ -278,7 +319,9 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 			Originator.OnRoomSelectedUpdate -= OriginatorOnRoomSelectedUpdate;
 			Originator.OnRoomListUpdate -= OriginatorOnRoomListUpdate;
 			Originator.OnAudioSourceListUpdate -= OriginatorOnAudioSourceListUpdate;
+			Originator.OnAudioSourceListItemUpdate -= OriginatorOnAudioSourceListItemUpdate;
 			Originator.OnVideoSourceListUpdate -= OriginatorOnVideoSourceListUpdate;
+			Originator.OnVideoSourceListItemUpdate -= OriginatorOnVideoSourceListItemUpdate;
 			Originator.OnSourceSelectedUpdate -= OriginatorOnSourceSelectedUpdate;
 			Originator.OnVolumeLevelFeedbackUpdate -= OriginatorOnVolumeLevelFeedbackUpdate;
 			Originator.OnVolumeMuteFeedbackUpdate -= OriginatorOnVolumeMuteFeedbackUpdate;
@@ -300,9 +343,19 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 			SetSPlusVideoSourceList(args.Data);
 		}
 
+		private void OriginatorOnVideoSourceListItemUpdate(object sender, VideoSourceBaseListItemEventArgs args)
+		{
+			SetSPlusVideoSourceListItem(args.Data);
+		}
+
 		private void OriginatorOnAudioSourceListUpdate(object sender, AudioSourceBaseListEventArgs args)
 		{
 			SetSPlusAudioSourceList(args.Data);
+		}
+
+		private void OriginatorOnAudioSourceListItemUpdate(object sender, AudioSourceBaseListItemEventArgs args)
+		{
+			SetSPlusAudioSourceListItem(args.Data);
 		}
 
 		private void OriginatorOnSourceSelectedUpdate(object sender, SourceSelectedEventArgs args)

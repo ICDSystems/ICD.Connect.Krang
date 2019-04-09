@@ -6,6 +6,8 @@
 		public const string EVENT_ROOM_SELECTED = "OnRoomSelectedUpdate";
 		public const string EVENT_AUDIO_SOURCE_LIST = "OnAudioSourceListUpdate";
 		public const string EVENT_VIDEO_SOURCE_LIST = "OnVideoSourceListUpdate";
+		public const string EVENT_AUDIO_SOURCE_LIST_ITEM = "OnAudioSourceListItemUpdate";
+		public const string EVENT_VIDEO_SOURCE_LIST_ITEM = "OnVideoSourceListItemUpdate";
 		public const string EVENT_SOURCE_SELECTED = "OnSourceSelectedUpdate";
 		public const string EVENT_VOLUME_LEVEL_FEEDBACK = "OnVolumeLevelFeedbackUpdate";
 		public const string EVENT_VOLUME_MUTE_FEEDBACK = "OnVolumeMuteFeedbackUpdate";
@@ -25,6 +27,8 @@
 		public const string HELP_ROOM_SELECTED_EVENT = "Raised when the selected room info needs to be updated";
 		public const string HELP_AUDIO_SOURCE_LIST_EVENT = "Raised when the audio source list needs to be updated";
 		public const string HELP_VIDEO_SOURCE_LIST_EVENT = "Raised when the video source list needs to be updated";
+		public const string HELP_AUDIO_SOURCE_LIST_ITEM = "Raised when a single item in the source list needs to be updated";
+		public const string HELP_VIDEO_SOURCE_LIST_ITEM = "Raised when a single item in the source list needs to be updated";
 		public const string HELP_SOURCE_INFO_EVENT = "Raised when the selected source info needs to be updated";
 		public const string HELP_VOLUME_LEVEL_FEEDBACK_EVENT = "Raised when the volume level feedback needs to be updated";
 		public const string HELP_VOLUME_MUTE_FEEDBACK_EVENT = "Raised when the volume mute feedback needs to be updated";
