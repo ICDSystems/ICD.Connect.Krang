@@ -94,7 +94,6 @@
     <Reference Include="system.data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleCommandServer.cs" />
     <Compile Include="KrangControlSystem.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Program.cs" />
