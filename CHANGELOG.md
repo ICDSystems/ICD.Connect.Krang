@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [11.2.0] - 2019-04-12
+### Changed
+ - Release builds set default logging severity to Notice
+
 ## [11.1.2] - 2019-03-27
 ### Changed
  - Remove ids from room settings when a settings instance is removed from the core settings 
