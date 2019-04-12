@@ -148,7 +148,7 @@ namespace ICD.Connect.Krang.Core
 #if DEBUG
 					eSeverity.Debug
 #else
- 					eSeverity.Warning
+ 					eSeverity.Notice
 #endif
 			};
 			logger.AddLogger(new IcdErrorLogger());
