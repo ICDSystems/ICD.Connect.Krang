@@ -194,8 +194,8 @@ namespace ICD.Connect.Krang.Core
 		private bool ValidateLicense()
 		{
 #if LICENSING
-			m_LicenseManager.LoadLicense(FileOperations.LicensePath);
-			return m_LicenseManager.IsValid();
+			LicenseManager.LoadLicense(FileOperations.LicensePath);
+			return LicenseManager.IsValid();
 #else
 			return true;
 #endif
