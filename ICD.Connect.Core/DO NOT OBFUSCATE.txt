@@ -1,0 +1,31 @@
+This only applies to SimplSharp.
+
+When we obfuscate the Core library there is a good chance SimplSharpPro.exe will fail to start.
+
+I have not been able to nail down the exact cause of the problem, but I'm guessing Crestron is doing
+something fragile to find the program entry point:
+
+	CP3>progload -p:01
+	Looking for *.lpz/*.cpz in the current program directory for App 1.
+	Unzipping new program now for App 1
+	Registering Simpl Sharp PRO program with entry point ICD.Connect.Core_SimplSharp
+	Program Start successfully sent for App 1
+
+	**Restarting Program:1**
+	Info: CustomAppManager.exe # 2018-08-09 14:53:40  #  App1 Main
+	Ok: SimplSharpPro.exe [App 1] # 2018-08-09 14:53:45  # SimplSharpPro Version: 2.09.006
+	Info: SimplSharpPro.exe [App 1] # 2018-08-09 14:53:48  # Successfully registered the application with the TLDM
+	Program Boot Directory:01: \SIMPL\app01
+	Loading Application:01
+	Program(s) Started
+	**Program Stopped:1**
+	
+	Error: nk.exe # 2018-08-09 14:53:54  # WDG: ICD.Connect.Core_SimplSharp shutting down unexpectedly. Do Not Start=1
+	Info: CustomAppManager.exe # 2018-08-09 14:53:54  # Shutting Down SimplSharpProManager:1
+	Info: TLDM.exe # 2018-08-09 14:53:54  #  Event rcvd is 8
+	Error: CustomAppManager.exe # 2018-08-09 14:53:54  # SimplSharpPro exited ungracefully for app 1.
+	Info: TLDM.exe # 2018-08-09 14:53:54  # HandleAppUnregistration - Cleaning up application id 1
+	Error: TLDM.exe # 2018-08-09 14:53:54  # CTLDMLogicApplication::ThreadCallbackRoutine: Error Code from Read 0x6
+	Notice: TLDM.exe # 2018-08-09 14:53:54  # **Program 1 Stopped**
+	Error: nk.exe # 2018-08-09 14:53:54  # WDG: LogicEngine shutting down unexpectedly. Do Not Start=0
+	

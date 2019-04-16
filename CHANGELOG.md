@@ -41,6 +41,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
  - NVRAM is automatically migrated to USER directory
 
+## [9.0.1] - 2019-04-16
+### Changed
+ - No longer obfuscating the Core project for SimplSharp to solve for Releases failing to start
+ - Release builds set default logging severity to Notice
+
 ## [9.0.0] - 2018-09-14
 ### Changed
  - Originators are constrained to class type
