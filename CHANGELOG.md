@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+ - No longer obfuscating the Core project for SimplSharp to solve for Releases failing to start
+
 ## [9.0.0] - 2018-09-14
 ### Changed
  - Originators are constrained to class type
