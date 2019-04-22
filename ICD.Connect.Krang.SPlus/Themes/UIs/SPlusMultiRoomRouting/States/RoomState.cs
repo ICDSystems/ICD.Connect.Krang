@@ -106,7 +106,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 		public bool VolumeAvaliable
 		{
 			get { return m_VolumeAvaliable; }
-			set
+			private set
 			{
 				if (value == m_VolumeAvaliable)
 					return;
