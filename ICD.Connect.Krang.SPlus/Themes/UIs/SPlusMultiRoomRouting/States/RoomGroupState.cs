@@ -195,6 +195,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			bool volumeAvaliable = state.VolumeAvaliable;
 			ushort volumeAvaliableJoin = Joins.GetDigitalJoinOffset(index, Joins.DIGITAL_ROOMS_OFFSET, Joins.DIGITAL_ROOMS_ENABLE_VOLUME);
 			data.AddSig(Joins.SMARTOBJECT_ROOMS, volumeAvaliableJoin, volumeAvaliable);
+
+			SendInputData(data);
 		}
 
 		private void UpdateRoomSourceState(RoomState state)
