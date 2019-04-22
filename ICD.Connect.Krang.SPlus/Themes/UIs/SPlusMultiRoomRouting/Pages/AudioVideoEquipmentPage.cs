@@ -5,6 +5,8 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.SPlus.RoomGroups;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
@@ -17,7 +19,7 @@ using ICD.Connect.Routing.Connections;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 {
-	public sealed class AudioVideoEquipmentPage : IDisposable
+	public sealed class AudioVideoEquipmentPage : IDisposable, IConsoleNode
 	{
 		private readonly Dictionary<int, ControlCrosspointState> m_Sessions;
 		private readonly Dictionary<int, RoomGroupState> m_RoomGroupStates;
@@ -404,5 +406,48 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 			Equipment.SendInputData(data);
 		}
+
+
+		#region Console
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public string ConsoleName { get { return "MultiRoomRouting" + m_Equipment.Name; } }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public string ConsoleHelp { get { return "Multi Room Routing XP3 Interface"; } }
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			yield return m_Equipment;
+			yield return ConsoleNodeGroup.KeyNodeMap("RoomGroupStates",m_RoomGroupStates.Values,s => (uint)s.Index);
+		}
+
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			addRow("XP3 Id", m_Equipment.Id);
+			addRow("XP3 Name", m_Equipment.Name);
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			yield break;
+		}
+
+		#endregion
 	}
 }

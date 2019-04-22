@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
@@ -31,7 +32,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		private Xp3 m_CachedXp3;
 		private ICore m_CachedCore;
 
-		private readonly Dictionary<int, KrangAtHomeMultiRoomRouting> m_MulitRoomRoutings;
+		private readonly Dictionary<int, KrangAtHomeMultiRoomRouting> m_MultiRoomRoutings;
 
 		#region Properties
 
@@ -43,7 +44,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		public int SystemId { get; set; }
 
-		public Dictionary<int, KrangAtHomeMultiRoomRouting> MulitRoomRoutings { get { return m_MulitRoomRoutings; } }
+		public Dictionary<int, KrangAtHomeMultiRoomRouting> MultiRoomRoutings { get { return m_MultiRoomRoutings; } }
 
 		public Xp3 Xp3
 		{
@@ -80,7 +81,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 			m_UiFactoriesSection = new SafeCriticalSection();
 
-			m_MulitRoomRoutings = new Dictionary<int, KrangAtHomeMultiRoomRouting>();
+			m_MultiRoomRoutings = new Dictionary<int, KrangAtHomeMultiRoomRouting>();
 
 			Core.Originators.OnChildrenChanged += OriginatorsOnChildrenChanged;
 		}
@@ -174,7 +175,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			settings.SystemId = SystemId;
 
 			settings.MultiRoomRoutings.Clear();
-			foreach (var kvp in MulitRoomRoutings)
+			foreach (var kvp in MultiRoomRoutings)
 				settings.MultiRoomRoutings.Add(kvp.Key, kvp.Value.CopySettings());
 		}
 
@@ -255,7 +256,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 			multiRoomRouting.ApplySettings(this, settings, factory);
 
-			MulitRoomRoutings.Add(multiRoomRouting.EquipmentId, multiRoomRouting);
+			MultiRoomRoutings.Add(multiRoomRouting.EquipmentId, multiRoomRouting);
 		}
 
 		/// <summary>
@@ -265,10 +266,10 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			base.ClearSettingsFinal();
 
-			foreach (KrangAtHomeMultiRoomRouting m in MulitRoomRoutings.Values)
+			foreach (KrangAtHomeMultiRoomRouting m in MultiRoomRoutings.Values)
 				m.ClearSettings();
 
-			MulitRoomRoutings.Clear();
+			MultiRoomRoutings.Clear();
 
 			if (m_CachedXp3 != null && SystemId != 0)
 			{
@@ -301,6 +302,11 @@ namespace ICD.Connect.Krang.SPlus.Themes
 				yield return KrangAtHomeSourceGroupManager;
 			if (m_CachedXp3 != null)
 				yield return Xp3;
+			
+			KrangAtHomeMultiRoomRoutingUiFactory multiRoomFactory = m_UiFactories.OfType<KrangAtHomeMultiRoomRoutingUiFactory>().FirstOrDefault();
+			if (multiRoomFactory != null)
+				yield return multiRoomFactory.UserInterface;
+
 		}
 
 		private IEnumerable<IConsoleNodeBase> GetBaseConsoleNodes()

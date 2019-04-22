@@ -9,6 +9,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 
 		private KrangAtHomeMultiRoomRoutingUi m_UserInterface;
 
+		public KrangAtHomeMultiRoomRoutingUi UserInterface { get { return m_UserInterface; }}
+
 		public KrangAtHomeMultiRoomRoutingUiFactory(KrangAtHomeTheme krangAtHomeTheme)
 		{
 			m_Theme = krangAtHomeTheme;

@@ -1,19 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Krang.SPlus.RoomGroups;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages;
+using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Crosspoints;
 using ICD.Connect.Protocol.Sigs;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 {
-	public sealed class RoomGroupState
+	public sealed class RoomGroupState : IConsoleNode
 	{
 		private readonly IcdHashSet<int> m_ControlIds;
 		private readonly SafeCriticalSection m_ControlIdsSection;
@@ -26,6 +30,8 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 
 		private readonly SigCache m_SigCache;
 		private readonly SafeCriticalSection m_SigCacheSection;
+
+		public int Index{ get { return m_Index; }}
 
 		/// <summary>
 		/// Constructor.
@@ -292,5 +298,81 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			Update(data, false);
 			m_SigCacheSection.Execute(() => m_SigCache.AddRange(data.GetSigs()));
 		}
+
+		#region Console
+
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public string ConsoleName { get { return "MRR Room Group State " + Index; } }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public string ConsoleHelp { get { return "Tracks Room Groups"; } }
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			yield break;
+		}
+
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			addRow("Index", Index);
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			yield return new ConsoleCommand("PrintControlIds", "Prints Assigned ControlIds", () => PrintControlIds());
+			yield return new ConsoleCommand("PrintRooms", "Prints rooms in the group", () => PrintRoomIds());
+		}
+
+		private string PrintControlIds()
+		{
+			StringBuilder builder = new StringBuilder();
+
+			builder.AppendFormat("RoomGroup {0} ControlId's: ", Index);
+			
+			m_ControlIdsSection.Enter();
+			try
+			{
+				foreach (int c in m_ControlIds)
+					builder.AppendFormat("{0}; ", c);
+			}
+			finally
+			{
+				m_ControlIdsSection.Leave();
+			}
+
+			return builder.ToString();
+		}
+
+		private string PrintRoomIds()
+		{
+			StringBuilder builder = new StringBuilder();
+
+			builder.AppendFormat("RoomGroup {0} RoomId's: ", Index);
+
+			foreach (IRoom r in m_RoomGroup.GetRooms())
+			{
+				builder.AppendFormat("{0}-{1}; ", r.Id, r.Name);
+			}
+
+			return builder.ToString();
+		}
+
+		#endregion
 	}
 }
