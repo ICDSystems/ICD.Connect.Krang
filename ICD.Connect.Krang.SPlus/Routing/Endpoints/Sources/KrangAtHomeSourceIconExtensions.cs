@@ -99,7 +99,7 @@ namespace ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources
 			{eKrangAtHomeSourceIcon.LocationPlus, "locationPlus"},
 			{eKrangAtHomeSourceIcon.LockLocked, "locked"},
 			{eKrangAtHomeSourceIcon.LockUnlocked, "unlocked"},
-			{eKrangAtHomeSourceIcon.MediaServer, "mediaServeric"},
+			{eKrangAtHomeSourceIcon.MediaServer, "mediaServer"},
 			{eKrangAtHomeSourceIcon.MicMute, "micMute"},
 			{eKrangAtHomeSourceIcon.MicMuted, "micMuted"},
 			{eKrangAtHomeSourceIcon.Minus, "minus"},
