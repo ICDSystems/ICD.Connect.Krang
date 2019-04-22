@@ -263,11 +263,27 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 
 		private void SendInputData(CrosspointData data)
 		{
-			m_ControlIdsSection.Execute(() => data.AddControlIds(m_ControlIds));
-
 			m_SigCacheSection.Execute(() => m_SigCache.AddHighRemoveLow(data.GetSigs()));
 
-			m_Page.Equipment.SendInputData(data);
+
+			// If there are no controls for this RoomGroupState, don't send anything
+			bool hasControls = false;
+			m_ControlIdsSection.Enter();
+			try
+			{
+				if (m_ControlIds.Count > 0)
+				{
+					hasControls = true;
+					data.AddControlIds(m_ControlIds);
+				}
+			}
+			finally
+			{
+				m_ControlIdsSection.Leave();
+			}
+
+			if (hasControls)
+				m_Page.Equipment.SendInputData(data);
 		}
 
 		private void SetInitialSigCacheValues()
