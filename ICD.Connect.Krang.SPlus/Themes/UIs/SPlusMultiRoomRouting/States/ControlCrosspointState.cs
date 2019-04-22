@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ICD.Common.Utils.Collections;
+using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages;
 using ICD.Connect.Protocol.Crosspoints;
 
@@ -86,22 +87,10 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 
 		public void SetSelectedSource(int? index, CrosspointData data)
 		{
-			int? old = m_SelectedSource;
 			m_SelectedSource = index;
-
-			if (old != null)
-			{
-				ushort buttonJoin = Joins.GetDigitalJoinOffset(old.Value, Joins.DIGITAL_SOURCES_OFFSET,
-															   Joins.DIGITAL_SOURCES_SELECT);
-				data.AddSig(Joins.SMARTOBJECT_SOURCES, buttonJoin, false);
-			}
 
 			if (m_SelectedSource != null)
 			{
-				ushort buttonJoin = Joins.GetDigitalJoinOffset(m_SelectedSource.Value, Joins.DIGITAL_SOURCES_OFFSET,
-															   Joins.DIGITAL_SOURCES_SELECT);
-				data.AddSig(Joins.SMARTOBJECT_SOURCES, buttonJoin, false);
-
 				var source = m_Page.GetSource(m_SelectedSource.Value);
 				if (source != null)
 				{
