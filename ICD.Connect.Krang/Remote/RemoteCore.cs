@@ -164,10 +164,7 @@ namespace ICD.Connect.Krang.Remote
 			try
 			{
 				if (m_ProxyBuildCommand.ContainsKey(proxyOriginator))
-				{
-					IcdConsole.PrintLine(eConsoleColor.Green, "InitalizeProxy: Skipping proxy already initialized {0}", id);
 					return proxyOriginator;
-				}
 
 				// Build the root command
 				Func<ApiClassInfo, ApiClassInfo> buildCommand = local =>
