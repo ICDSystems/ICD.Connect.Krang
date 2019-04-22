@@ -96,9 +96,11 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 				ushort nameJoin = Joins.GetSerialJoinOffset(index, Joins.SERIAL_SOURCES_OFFSET, Joins.SERIAL_SOURCES_NAME);
 				ushort roomsFeedbackJoin = Joins.GetSerialJoinOffset(index, Joins.SERIAL_SOURCES_OFFSET, Joins.SERIAL_SOURCES_ROOMS);
+				ushort iconJoin = Joins.GetSerialJoinOffset(index, Joins.SERIAL_SOURCES_OFFSET, Joins.SERIAL_SOURCES_ICON);
 
 				data.AddSig(Joins.SMARTOBJECT_SOURCES, nameJoin, name);
 				data.AddSig(Joins.SMARTOBJECT_SOURCES, roomsFeedbackJoin, roomsFeedback);
+				data.AddSig(Joins.SMARTOBJECT_SOURCES, iconJoin, source.SourceIcon.GetStringForIcon(false));
 			}
 		}
 

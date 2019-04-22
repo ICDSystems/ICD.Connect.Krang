@@ -46,9 +46,10 @@
 		public const ushort DIGITAL_SOURCES_OFFSET = 1;
 		public const ushort DIGITAL_SOURCES_SELECT = 1;
 
-		public const ushort SERIAL_SOURCES_OFFSET = 2;
+		public const ushort SERIAL_SOURCES_OFFSET = 3;
 		public const ushort SERIAL_SOURCES_NAME = 1;
 		public const ushort SERIAL_SOURCES_ROOMS = 2;
+		public const ushort SERIAL_SOURCES_ICON = 3;
 
 		#endregion
 
