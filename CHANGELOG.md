@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+ - NVRAM to USER Migration improvements - only migrate needed directories, don't migrate if new config directory already exists
 
 ## [11.2.0] - 2019-04-12
 ### Changed
