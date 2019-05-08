@@ -288,6 +288,7 @@ namespace ICD.Connect.Krang.Core
 				return;
 
 			// Add partitioning's child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(partitioning.CellSettings);
 			AddSettingsRemoveOnDuplicateId(partitioning.PartitionSettings);
 		}
 
@@ -298,8 +299,10 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="eventArgs"></param>
 		private void SettingsOnItemRemoved(object sender, GenericEventArgs<ISettings> eventArgs)
 		{
+			// Remove from the core
 			RemoveDependentSettings(m_OriginatorSettings, eventArgs.Data);
 
+			// Remove from the routing graph
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
 			if (routingGraphSettings != null)
 			{
@@ -309,10 +312,23 @@ namespace ICD.Connect.Krang.Core
 				RemoveDependentSettings(routingGraphSettings.StaticRouteSettings, eventArgs.Data);
 			}
 
+			// Remove from the partition manager
 			PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
 			if (partitionManagerSettings != null)
 			{
 				RemoveDependentSettings(partitionManagerSettings.PartitionSettings, eventArgs.Data);
+			}
+
+			// Remove from the rooms
+			foreach (IRoomSettings roomSettings in m_OriginatorSettings.OfType<IRoomSettings>())
+			{
+				roomSettings.Devices.Remove(eventArgs.Data.Id);
+				roomSettings.Ports.Remove(eventArgs.Data.Id);
+				roomSettings.Panels.Remove(eventArgs.Data.Id);
+				roomSettings.Sources.Remove(eventArgs.Data.Id);
+				roomSettings.Destinations.Remove(eventArgs.Data.Id);
+				roomSettings.Partitions.Remove(eventArgs.Data.Id);
+				roomSettings.VolumePoints.Remove(eventArgs.Data.Id);
 			}
 		}
 

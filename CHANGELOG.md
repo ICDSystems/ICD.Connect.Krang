@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Core namespace renamed
 
+## [11.2.0] - 2019-04-12
+### Changed
+ - Release builds set default logging severity to Notice
+
+## [11.1.2] - 2019-03-27
+### Changed
+ - Remove ids from room settings when a settings instance is removed from the core settings 
+
 ## [11.1.1] - 2019-02-13
 ### Changed
  - NVRAM no longer bails if USER directory is not empty due to EDID, AvF, etc generation
@@ -47,6 +55,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.0.0] - 2018-10-30
 ### Added
  - NVRAM is automatically migrated to USER directory
+
+## [9.0.1] - 2019-04-16
+### Changed
+ - No longer obfuscating the Core project for SimplSharp to solve for Releases failing to start
+ - Release builds set default logging severity to Notice
 
 ## [9.0.0] - 2018-09-14
 ### Changed
