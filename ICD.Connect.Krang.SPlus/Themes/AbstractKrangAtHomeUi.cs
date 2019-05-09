@@ -342,7 +342,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelIncrement(2);
+				control.VolumeLevelIncrement(5);
 
 			/*IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
 			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
@@ -358,9 +358,10 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			// todo: fix ramping RPC issues and re-enable ramping
 
+			
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelDecrement(2);
+				control.VolumeLevelDecrement(5);
 			
 			/*
 			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
