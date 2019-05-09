@@ -91,6 +91,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 				string[] rooms = m_Theme.KrangAtHomeRouting
 										.KrangAtHomeRoutingCache
 										.GetRoomsForSource(source)
+										.Where(r => !r.Hide)
 										.Select(r => r.Name)
 										.ToArray();
 
@@ -225,7 +226,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 			string roomsFeedback;
 			if (eventArgs.RoomsInUse != null)
-				roomsFeedback = string.Join(", ",eventArgs.RoomsInUse.Select(r => r.Name).ToArray());
+				roomsFeedback = string.Join(", ",eventArgs.RoomsInUse.Where(r => !r.Hide).Select(r => r.Name).ToArray());
 			else
 				roomsFeedback = null;
 
