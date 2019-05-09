@@ -1,4 +1,5 @@
-﻿using ICD.Common.Utils;
+﻿using System;
+using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
@@ -9,14 +10,26 @@ using ICD.Connect.Protocol.Ports;
 
 namespace ICD.Connect.Krang.Remote.Direct.API
 {
+	public delegate void RemoteApiReplyCallback(RemoteApiCommandHandler sender, Message reply);
+
 	/// <summary>
 	/// The RemoteApiCommandHandler manages the communication between remote cores and the local API.
 	/// </summary>
-	public sealed class RemoteApiCommandHandler : AbstractMessageHandler<RemoteApiMessage, RemoteApiReply>
+	public sealed class RemoteApiCommandHandler : AbstractMessageHandler
 	{
+		/// <summary>
+		/// Raised when we receive an API reply from an endpoint.
+		/// </summary>
+		public event RemoteApiReplyCallback OnApiResult;
+
 		private readonly BiDictionary<HostSessionInfo, ApiRequestor> m_Requestors;
 		private readonly SafeCriticalSection m_RequestorsSection;
 		private readonly CoreDiscoveryBroadcastHandler m_CoreDiscovery;
+
+		/// <summary>
+		/// Gets the message type that this handler is expecting.
+		/// </summary>
+		public override Type MessageType { get { return typeof(ApiMessageData); } }
 
 		/// <summary>
 		/// Constructor.
@@ -36,6 +49,8 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// <param name="disposing"></param>
 		protected override void Dispose(bool disposing)
 		{
+			OnApiResult = null;
+
 			base.Dispose(disposing);
 
 			Unsubscribe(m_CoreDiscovery);
@@ -60,12 +75,28 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns>Returns an AbstractMessage as a reply, or null for no reply</returns>
-		public override RemoteApiReply HandleMessage(RemoteApiMessage message)
+		public override Message HandleMessage(Message message)
 		{
-			ApiRequestor requestor = LazyLoadRequestor(message.MessageFrom);
+			ApiMessageData data = message.Data as ApiMessageData;
+			if (data == null)
+				return null;
 
-			ApiHandler.HandleRequest(requestor, message.Command);
-			return new RemoteApiReply {Command = message.Command};
+			if (data.IsResponse)
+			{
+				RemoteApiReplyCallback handler = OnApiResult;
+				if (handler != null)
+					handler(this, message);
+
+				return null;
+			}
+
+			ApiRequestor requestor = LazyLoadRequestor(message.From);
+
+			ApiHandler.HandleRequest(requestor, data.Command);
+
+			// The results are added into the original command tree, so we can just send it back again
+			data.IsResponse = true;
+			return Message.FromData(data);
 		}
 
 		#endregion
@@ -167,13 +198,10 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		{
 			HostSessionInfo hostInfo = m_RequestorsSection.Execute(() => m_Requestors.GetKey(sender as ApiRequestor));
 
-			RemoteApiReply reply = new RemoteApiReply
-			{
-				MessageTo = hostInfo,
-				Command = eventArgs.Data
-			};
+			Message message = Message.FromData(eventArgs.Data);
+			message.To = hostInfo;
 
-			RaiseReply(reply);
+			RaiseReply(message);
 		}
 
 		#endregion

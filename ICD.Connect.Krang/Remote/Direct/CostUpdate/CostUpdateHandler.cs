@@ -8,7 +8,6 @@ using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Timers;
 using ICD.Connect.Krang.Devices;
 using ICD.Connect.Krang.Remote.Direct.RequestDevices;
-using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Routing.Connections;
@@ -23,7 +22,7 @@ using ICD.Connect.Settings.Originators;
 namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 {
 	// Based on RIP (https://tools.ietf.org/html/rfc2453#section-3.9.1)
-	public sealed class CostUpdateHandler : AbstractMessageHandler<CostUpdateMessage, IReply>
+	public sealed class CostUpdateHandler : AbstractMessageHandler
 	{
 		private const double MAX_COST = 16;
 
@@ -57,6 +56,11 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		private readonly ICore m_Core;
 
+		/// <summary>
+		/// Gets the message type that this handler is expecting.
+		/// </summary>
+		public override Type MessageType { get { return typeof(CostUpdateData); } }
+
 		public CostUpdateHandler()
 		{
 			m_SourceCosts = new Dictionary<int, Row>();
@@ -68,23 +72,27 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			m_RegularUpdateTimer = new SafeTimer(SendRegularUpdate, UPDATE_TIME, UPDATE_TIME);
 		}
 
-		public override IReply HandleMessage(CostUpdateMessage message)
+		public override Message HandleMessage(Message message)
 		{
+			CostUpdateData data = message.Data as CostUpdateData;
+			if (data == null)
+				return null;
+
 			InitializeCostTables();
 
 			// validate that message is from a direct neighbor
 			RemoteSwitcher switcher =
 				m_Core.Originators.GetChildren<RemoteSwitcher>()
-				      .FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.MessageFrom);
+				      .FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.From);
 			if (switcher == null)
 				return null;
 
 			List<int> missingSources;
 			List<int> missingDestinations;
 
-			bool triggerUpdate = HandleCostUpdates(message.SourceCosts, message.MessageFrom, m_SourceCosts, out missingSources);
+			bool triggerUpdate = HandleCostUpdates(data.SourceCosts, message.From, m_SourceCosts, out missingSources);
 			triggerUpdate =
-				HandleCostUpdates(message.DestinationCosts, message.MessageFrom, m_DestinationCosts, out missingDestinations) ||
+				HandleCostUpdates(data.DestinationCosts, message.From, m_DestinationCosts, out missingDestinations) ||
 				triggerUpdate;
 
 			// loop through device ids in the costs and move devices to the remote switcher with the lowest cost
@@ -95,13 +103,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				QueueTriggeredUpdate();
 
 			if (missingSources.Any() || missingDestinations.Any())
-			{
-				ServiceProvider.GetService<DirectMessageManager>().Send(message.MessageFrom, new RequestDevicesMessage
-				{
-					Sources = missingSources,
-					Destinations = missingDestinations
-				});
-			}
+				return Message.FromData(new RequestDevicesData {Sources = missingSources, Destinations = missingDestinations});
 
 			return null;
 		}
@@ -416,26 +418,26 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			return table.ToDictionary(s => s.Key, s => s.Value.RouteTo != host ? s.Value.Cost : MAX_COST);
 		}
 
-		private static CostUpdateMessage MakeCostUpdateMessage(Dictionary<int, Row> sources, Dictionary<int, Row> destinations, HostSessionInfo host)
+		private static CostUpdateData MakeCostUpdateData(Dictionary<int, Row> sources, Dictionary<int, Row> destinations, HostSessionInfo host)
 		{
-			CostUpdateMessage message = new CostUpdateMessage
+			return new CostUpdateData
 			{
 				SourceCosts = TableToCostMessage(sources, host),
 				DestinationCosts = TableToCostMessage(destinations, host)
 			};
-			return message;
 		}
 
 		private void SendRegularUpdate()
 		{
 			InitializeCostTables();
 
-			DirectMessageManager dmManager = ServiceProvider.GetService<DirectMessageManager>();
-
 			foreach (HostSessionInfo host in GetHosts())
 			{
-				CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts, m_DestinationCosts, host);
-				dmManager.Send(host, message);
+				CostUpdateData data = MakeCostUpdateData(m_SourceCosts, m_DestinationCosts, host);
+				Message message = Message.FromData(data);
+				message.To = host;
+
+				RaiseReply(message);
 			}
 			m_RegularUpdateTimer.Reset(UPDATE_TIME + new Random().Next(-5, 5));
 		}
@@ -444,8 +446,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		{
 			m_TriggeredUpdateAllowed = false;
 
-			DirectMessageManager dmManager = ServiceProvider.GetService<DirectMessageManager>();
-
 			m_CostsCriticalSection.Enter();
 
 			try
@@ -453,10 +453,14 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				//generate and send messages
 				foreach (HostSessionInfo host in GetHosts())
 				{
-					CostUpdateMessage message = MakeCostUpdateMessage(m_SourceCosts.Where(s => s.Value.RouteChanged).ToDictionary(),
-					                                                  m_DestinationCosts.Where(s => s.Value.RouteChanged)
-					                                                                    .ToDictionary(), host);
-					dmManager.Send(host, message);
+					CostUpdateData data =
+						MakeCostUpdateData(m_SourceCosts.Where(s => s.Value.RouteChanged).ToDictionary(),
+						                   m_DestinationCosts.Where(s => s.Value.RouteChanged)
+						                                     .ToDictionary(), host);
+					Message message = Message.FromData(data);
+					message.To = host;
+
+					RaiseReply(message);
 				}
 
 				// set route change flags to false

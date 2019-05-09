@@ -172,7 +172,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			base.BroadcasterOnBroadcasting(sender, e);
 
-			Broadcaster.SetBroadcastData(new CoreDiscoveryData(m_Core));
+			Broadcaster.SetBroadcastData(CoreDiscoveryData.ForCore(m_Core));
 		}
 
 		/// <summary>

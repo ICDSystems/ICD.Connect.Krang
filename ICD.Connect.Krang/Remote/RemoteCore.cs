@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
@@ -29,7 +28,7 @@ namespace ICD.Connect.Krang.Remote
 		private readonly SafeCriticalSection m_CriticalSection;
 
 		private readonly DirectMessageManager m_DirectMessageManager;
-		private readonly RemoteApiResultHandler m_ApiResultHandler;
+		private readonly RemoteApiCommandHandler m_ApiResultHandler;
 		private readonly ICore m_LocalCore;
 		private readonly HostSessionInfo m_RemoteHost;
 
@@ -47,7 +46,7 @@ namespace ICD.Connect.Krang.Remote
 			m_RemoteHost = remoteHost;
 
 			m_DirectMessageManager = ServiceProvider.GetService<DirectMessageManager>();
-			m_ApiResultHandler = m_DirectMessageManager.GetMessageHandler<RemoteApiReply>() as RemoteApiResultHandler;
+			m_ApiResultHandler = m_DirectMessageManager.GetMessageHandler<ApiMessageData>() as RemoteApiCommandHandler;
 		
 			Subscribe(m_ApiResultHandler);
 		}
@@ -113,16 +112,15 @@ namespace ICD.Connect.Krang.Remote
 			if (command == null)
 				throw new ArgumentNullException("command");
 
-			RemoteApiMessage message = new RemoteApiMessage { Command = command };
-			m_DirectMessageManager.Send<RemoteApiMessage, RemoteApiReply>(m_RemoteHost, message, HandleMessageReply,
-			                                                              HandleMessageTimeout, MESSAGE_TIMEOUT);
+			ApiMessageData data = new ApiMessageData { Command = command };
+			m_DirectMessageManager.Send(m_RemoteHost, Message.FromData(data), HandleMessageReply, HandleMessageTimeout, MESSAGE_TIMEOUT);
 		}
 
 		/// <summary>
 		/// Called when a message gets a reply.
 		/// </summary>
-		/// <param name="reply"></param>
-		private void HandleMessageReply(RemoteApiReply reply)
+		/// <param name="message"></param>
+		private void HandleMessageReply(Message message)
 		{
 			// Handled by the ApiResultHandler
 		}
@@ -131,7 +129,7 @@ namespace ICD.Connect.Krang.Remote
 		/// Called when a message times out.
 		/// </summary>
 		/// <param name="message"></param>
-		private void HandleMessageTimeout(RemoteApiMessage message)
+		private void HandleMessageTimeout(Message message)
 		{
 			//IcdConsole.PrintLine(eConsoleColor.Magenta, JsonUtils.Format(message));
 		}
@@ -179,18 +177,17 @@ namespace ICD.Connect.Krang.Remote
 
 				// Start handling the proxy callbacks
 				Subscribe(proxyOriginator);
-
-				IcdConsole.PrintLine(eConsoleColor.Blue, "InitializeProxy: Inatilizing proxy {0}", id);
-
-				// Initialize the proxy
-				proxyOriginator.Initialize();
-
-				return proxyOriginator;
 			}
 			finally
 			{
 				m_CriticalSection.Leave();
 			}
+
+			// Initialize the proxy
+			IcdConsole.PrintLine(eConsoleColor.Blue, "InitializeProxy: Inatilizing proxy {0}", id);
+			proxyOriginator.Initialize();
+
+			return proxyOriginator;
 		}
 
 		#endregion
@@ -201,7 +198,7 @@ namespace ICD.Connect.Krang.Remote
 		/// Subscribe to the result handler events.
 		/// </summary>
 		/// <param name="apiResultHandler"></param>
-		private void Subscribe(RemoteApiResultHandler apiResultHandler)
+		private void Subscribe(RemoteApiCommandHandler apiResultHandler)
 		{
 			apiResultHandler.OnApiResult += ApiResultHandlerOnApiResult;
 		}
@@ -210,7 +207,7 @@ namespace ICD.Connect.Krang.Remote
 		/// Unsubscribe from the result handler.
 		/// </summary>
 		/// <param name="apiResultHandler"></param>
-		private void Unsubscribe(RemoteApiResultHandler apiResultHandler)
+		private void Unsubscribe(RemoteApiCommandHandler apiResultHandler)
 		{
 			apiResultHandler.OnApiResult -= ApiResultHandlerOnApiResult;
 		}
@@ -220,19 +217,21 @@ namespace ICD.Connect.Krang.Remote
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="reply"></param>
-		private void ApiResultHandlerOnApiResult(RemoteApiResultHandler sender, RemoteApiReply reply)
+		private void ApiResultHandlerOnApiResult(RemoteApiCommandHandler sender, Message reply)
 		{
-			if (reply.MessageFrom != m_RemoteHost)
+			if (reply.From != m_RemoteHost)
 				return;
 
-			ParseResponse(reply);
+			ApiMessageData data = reply.Data as ApiMessageData;
+			if (data != null)
+				ParseResponse(data);
 		}
 
 		/// <summary>
 		/// Parses responses from the remote API.
 		/// </summary>
 		/// <param name="response"></param>
-		private void ParseResponse(RemoteApiReply response)
+		private void ParseResponse(ApiMessageData response)
 		{
 			if (response == null)
 				throw new ArgumentNullException("response");
@@ -422,7 +421,8 @@ namespace ICD.Connect.Krang.Remote
 				return;
 
 			// Build the full command from the API root to the proxy
-			ApiClassInfo command = m_ProxyBuildCommand[proxy](eventArgs.Data);
+			Func<ApiClassInfo, ApiClassInfo> buildCommand = m_CriticalSection.Execute(() => m_ProxyBuildCommand[proxy]);
+			ApiClassInfo command = buildCommand(eventArgs.Data);
 
 			SendCommand(command);
 		}
