@@ -2,7 +2,6 @@
 using ICD.Common.Utils.Services;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote.Direct.Disconnect;
-using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
@@ -75,7 +74,7 @@ namespace ICD.Connect.Krang.Devices
 				return;
 
 			DirectMessageManager dm = ServiceProvider.GetService<DirectMessageManager>();
-			dm.Send(HostInfo, new DisconnectMessage());
+			dm.Send(HostInfo, Message.FromData(new DisconnectData()));
 			base.DisposeFinal(disposing);
 		}
 	}

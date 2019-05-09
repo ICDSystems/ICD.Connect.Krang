@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Devices;
@@ -13,14 +14,23 @@ using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 {
-	public sealed class RequestDevicesHandler : AbstractMessageHandler<RequestDevicesMessage, IReply>
+	public sealed class RequestDevicesHandler : AbstractMessageHandler
 	{
-		public override IReply HandleMessage(RequestDevicesMessage message)
+		/// <summary>
+		/// Gets the message type that this handler is expecting.
+		/// </summary>
+		public override Type MessageType { get { return typeof(RequestDevicesData); } }
+
+		public override Message HandleMessage(Message message)
 		{
+			RequestDevicesData data = message.Data as RequestDevicesData;
+			if (data == null)
+				return null;
+
 			ICore core = ServiceProvider.GetService<ICore>();
-			List<ISource> sources = core.GetRoutingGraph().Sources.Where(s => message.Sources.Contains(s.Id)).ToList();
+			List<ISource> sources = core.GetRoutingGraph().Sources.Where(s => data.Sources.Contains(s.Id)).ToList();
 			List<IDestination> destinations =
-				core.GetRoutingGraph().Destinations.Where(d => message.Destinations.Contains(d.Id)).ToList();
+				core.GetRoutingGraph().Destinations.Where(d => data.Destinations.Contains(d.Id)).ToList();
 
 			// TODO - Does this work properly for switchers or throughput devices?
 			Dictionary<int, IEnumerable<ConnectorInfo>> sourceConnections = new Dictionary<int, IEnumerable<ConnectorInfo>>();
@@ -47,15 +57,15 @@ namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 					destinationConnections.Add(destination.Id, control.GetInputs());
 			}
 
-			ServiceProvider.GetService<DirectMessageManager>().Send(message.MessageFrom, new ShareDevicesMessage
+			ShareDevicesData response = new ShareDevicesData
 			{
 				Sources = sources,
 				Destinations = destinations,
 				SourceConnections = sourceConnections,
 				DestinationConnections = destinationConnections
-			});
+			};
 
-			return null;
+			return Message.FromData(response);
 		}
 	}
 }

@@ -192,17 +192,21 @@ namespace ICD.Connect.Krang.Devices
 
 				RoutingGraph.PendingRouteStarted(info);
 
-				dmManager.Send<RouteDevicesMessage, RouteDevicesReply>(Parent.HostInfo, new RouteDevicesMessage(info),
-				                                                       r => RouteFinished(info, r),
-				                                                       null, MESSAGE_TIMEOUT);
+				dmManager.Send(Parent.HostInfo, Message.FromData(info),
+				               r => RouteFinished(info, r),
+				               null, MESSAGE_TIMEOUT);
 			}
 
 			return m_Cache.SetInputForOutput(info.LocalOutput, info.LocalInput, info.ConnectionType);
 		}
 
-		private void RouteFinished(RouteOperation info, RouteDevicesReply response)
+		private void RouteFinished(RouteOperation info, Message response)
 		{
-			RoutingGraph.PendingRouteFinished(info, response.Result);
+			RouteDevicesData data = response.Data as RouteDevicesData;
+			if (data == null)
+				return;
+
+			RoutingGraph.PendingRouteFinished(info, data.Result);
 		}
 
 		/// <summary>

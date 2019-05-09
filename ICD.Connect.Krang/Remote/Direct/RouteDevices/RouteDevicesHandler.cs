@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Direct;
+using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
@@ -14,21 +14,26 @@ using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 {
-	public sealed class RouteDevicesHandler : AbstractMessageHandler<RouteDevicesMessage, RouteDevicesReply>
+	public sealed class RouteDevicesHandler : AbstractMessageHandler
 	{
 		private readonly ICore m_Core;
 
-		private readonly List<RouteDevicesMessage> m_PendingMessages;
+		private readonly Dictionary<Guid, Message> m_PendingMessages;
 		private readonly SafeCriticalSection m_PendingMessagesSection;
 
 		private IRoutingGraph m_SubscribedRoutingGraph;
+
+		/// <summary>
+		/// Gets the message type that this handler is expecting.
+		/// </summary>
+		public override Type MessageType { get { return typeof(RouteDevicesData); } }
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
 		public RouteDevicesHandler()
 		{
-			m_PendingMessages = new List<RouteDevicesMessage>();
+			m_PendingMessages = new Dictionary<Guid, Message>();
 			m_PendingMessagesSection = new SafeCriticalSection();
 
 			m_Core = ServiceProvider.GetService<ICore>();
@@ -70,22 +75,26 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			return output;
 		}
 
-		public override RouteDevicesReply HandleMessage(RouteDevicesMessage message)
+		public override Message HandleMessage(Message message)
 		{
-			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(message));
+			RouteOperation operation = message.Data as RouteOperation;
+			if (operation == null)
+				return null;
+
+			m_PendingMessagesSection.Execute(() => m_PendingMessages.Add(operation.Id, message));
 
 			IRoutingGraph graph = m_SubscribedRoutingGraph;
 			if (graph == null)
 				return null;
 
-			IPathFinder pathFinder = new DefaultPathFinder(m_SubscribedRoutingGraph, message.Operation.RoomId);
+			IPathFinder pathFinder = new DefaultPathFinder(m_SubscribedRoutingGraph, operation.RoomId);
 
 			IEnumerable<ConnectionPath> paths =
 				PathBuilder.FindPaths()
-				           .ForOperation(message.Operation)
+						   .ForOperation(operation)
 						   .With(pathFinder);
 
-			graph.RoutePaths(paths, message.Operation.RoomId);
+			graph.RoutePaths(paths, operation.RoomId);
 
 			return null;
 		}
@@ -110,28 +119,24 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 
 		private void RoutingGraphOnOnRouteFinished(object sender, RouteFinishedEventArgs args)
 		{
-			RouteDevicesMessage message;
+			Message message;
 
 			m_PendingMessagesSection.Enter();
 
 			try
 			{
-				message = m_PendingMessages.SingleOrDefault(m => m.Operation.Id == args.Route.Id);
-				if (message == null)
+				if (!m_PendingMessages.TryGetValue(args.Route.Id, out message))
 					return;
 
-				m_PendingMessages.Remove(message);
+				m_PendingMessages.Remove(args.Route.Id);
 			}
 			finally
 			{
 				m_PendingMessagesSection.Leave();
 			}
 
-			RouteDevicesReply reply = new RouteDevicesReply
-			{
-				Result = args.Success,
-				MessageTo = message.MessageTo
-			};
+			Message reply = Message.FromData(new RouteDevicesData {Result = args.Success});
+			reply.To = message.From;
 
 			RaiseReply(reply);
 		}

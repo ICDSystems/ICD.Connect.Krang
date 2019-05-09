@@ -54,8 +54,7 @@ namespace ICD.Connect.Krang.Remote
 				new RequestDevicesHandler(),
 				new DisconnectHandler(),
 				new RouteDevicesHandler(),
-				new RemoteApiCommandHandler(coreDiscovery),
-				new RemoteApiResultHandler()
+				new RemoteApiCommandHandler(coreDiscovery)
 			};
 
 			foreach (IMessageHandler handler in m_MessageHandlers)

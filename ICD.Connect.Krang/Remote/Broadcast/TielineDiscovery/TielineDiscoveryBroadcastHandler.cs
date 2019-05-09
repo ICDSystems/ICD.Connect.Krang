@@ -9,6 +9,7 @@ using ICD.Connect.Krang.Devices;
 using ICD.Connect.Krang.Remote.Direct.InitiateConnection;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
+using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
@@ -76,7 +77,11 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 				}
 			}
 
-			Broadcaster.SetBroadcastData(devices.Any() ? new TielineDiscoveryData(devices, deviceConnections) : null);
+			object data = devices.Any()
+				              ? new TielineDiscoveryData {DeviceIds = devices, Tielines = deviceConnections}
+				              : null;
+
+			Broadcaster.SetBroadcastData(data);
 		}
 
 		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs e)
@@ -127,7 +132,10 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 				                         "Sending response to Krang Discovery Broadcast. Device: {0}, Host: {1}", pair.Key,
 				                         e.Data.HostSession.ToString());
 
-				DirectMessageManager.Send(e.Data.HostSession, new InitiateConnectionMessage {DeviceId = pair.Key});
+				InitiateConnectionData messageData = new InitiateConnectionData {DeviceId = pair.Key};
+				Message message = Message.FromData(messageData);
+
+				DirectMessageManager.Send(e.Data.HostSession, message);
 			}
 		}
 
