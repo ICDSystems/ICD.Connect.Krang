@@ -338,31 +338,37 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 				}
 			}
 
-			if (roomGroupState != null && sig.SmartObject == Joins.SMARTOBJECT_ROOMS && sig.Type == eSigType.Digital && sig.GetBoolValue())
+			if (roomGroupState != null && sig.SmartObject == Joins.SMARTOBJECT_ROOMS && sig.Type == eSigType.Digital)
 			{
 				int index;
 				ushort join = Joins.GetDigitalJoinFromOffset((ushort)sig.Number, Joins.DIGITAL_ROOMS_OFFSET, out index);
 
 				// Select room
-				if (join == Joins.DIGITAL_ROOMS_SELECT)
+				if (join == Joins.DIGITAL_ROOMS_SELECT && sig.GetBoolValue())
 				{
 					crosspointState.ToggleSelectedRoom(index);
 				}
 
 				// Volume up
-				if (join == Joins.DIGITAL_ROOMS_VOLUME_UP)
+				if (join == Joins.DIGITAL_ROOMS_VOLUME_UP && sig.GetBoolValue())
 				{
 					roomGroupState.GetRoomStateAtIndex(index).VolumeUp();
 				}
 
 				// Volume down
-				if (join == Joins.DIGITAL_ROOMS_VOLUME_DOWN)
+				if (join == Joins.DIGITAL_ROOMS_VOLUME_DOWN && sig.GetBoolValue())
 				{
 					roomGroupState.GetRoomStateAtIndex(index).VolumeDown();
 				}
 
+				// Volume Release
+				if (!sig.GetBoolValue() && (join == Joins.DIGITAL_ROOMS_VOLUME_UP || join == Joins.DIGITAL_ROOMS_VOLUME_DOWN))
+				{
+					roomGroupState.GetRoomStateAtIndex(index).VolumeStop();
+				}
+
 				// Mute toggle
-				if (join == Joins.DIGITAL_ROOMS_MUTE)
+				if (join == Joins.DIGITAL_ROOMS_MUTE && sig.GetBoolValue())
 				{
 					roomGroupState.GetRoomStateAtIndex(index).ToggleMute();
 				}
