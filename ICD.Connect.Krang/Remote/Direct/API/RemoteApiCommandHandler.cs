@@ -20,7 +20,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// <summary>
 		/// Raised when we receive an API reply from an endpoint.
 		/// </summary>
-		public event RemoteApiReplyCallback OnApiResult;
+		public event RemoteApiReplyCallback OnAsyncApiResult;
 
 		private readonly BiDictionary<HostSessionInfo, ApiRequestor> m_Requestors;
 		private readonly SafeCriticalSection m_RequestorsSection;
@@ -49,7 +49,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// <param name="disposing"></param>
 		protected override void Dispose(bool disposing)
 		{
-			OnApiResult = null;
+			OnAsyncApiResult = null;
 
 			base.Dispose(disposing);
 
@@ -83,7 +83,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 
 			if (data.IsResponse)
 			{
-				RemoteApiReplyCallback handler = OnApiResult;
+				RemoteApiReplyCallback handler = OnAsyncApiResult;
 				if (handler != null)
 					handler(this, message);
 
@@ -198,7 +198,9 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		{
 			HostSessionInfo hostInfo = m_RequestorsSection.Execute(() => m_Requestors.GetKey(sender as ApiRequestor));
 
-			Message message = Message.FromData(eventArgs.Data);
+			ApiMessageData data = new ApiMessageData {Command = eventArgs.Data, IsResponse = true};
+
+			Message message = Message.FromData(data);
 			message.To = hostInfo;
 
 			RaiseReply(message);

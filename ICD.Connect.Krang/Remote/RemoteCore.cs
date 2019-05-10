@@ -119,10 +119,15 @@ namespace ICD.Connect.Krang.Remote
 		/// <summary>
 		/// Called when a message gets a reply.
 		/// </summary>
-		/// <param name="message"></param>
-		private void HandleMessageReply(Message message)
+		/// <param name="reply"></param>
+		private void HandleMessageReply(Message reply)
 		{
-			// Handled by the ApiResultHandler
+			if (reply.From != m_RemoteHost)
+				return;
+
+			ApiMessageData data = reply.Data as ApiMessageData;
+			if (data != null)
+				ParseResponse(data);
 		}
 
 		/// <summary>
@@ -200,7 +205,7 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="apiResultHandler"></param>
 		private void Subscribe(RemoteApiCommandHandler apiResultHandler)
 		{
-			apiResultHandler.OnApiResult += ApiResultHandlerOnApiResult;
+			apiResultHandler.OnAsyncApiResult += ApiResultHandlerOnAsyncApiResult;
 		}
 
 		/// <summary>
@@ -209,7 +214,7 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="apiResultHandler"></param>
 		private void Unsubscribe(RemoteApiCommandHandler apiResultHandler)
 		{
-			apiResultHandler.OnApiResult -= ApiResultHandlerOnApiResult;
+			apiResultHandler.OnAsyncApiResult -= ApiResultHandlerOnAsyncApiResult;
 		}
 
 		/// <summary>
@@ -217,14 +222,9 @@ namespace ICD.Connect.Krang.Remote
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="reply"></param>
-		private void ApiResultHandlerOnApiResult(RemoteApiCommandHandler sender, Message reply)
+		private void ApiResultHandlerOnAsyncApiResult(RemoteApiCommandHandler sender, Message reply)
 		{
-			if (reply.From != m_RemoteHost)
-				return;
-
-			ApiMessageData data = reply.Data as ApiMessageData;
-			if (data != null)
-				ParseResponse(data);
+			HandleMessageReply(reply);
 		}
 
 		/// <summary>
