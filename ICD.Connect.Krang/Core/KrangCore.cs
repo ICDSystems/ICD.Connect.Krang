@@ -173,7 +173,7 @@ namespace ICD.Connect.Krang.Core
 			}
 			catch (Exception e)
 			{
-				Logger.AddEntry(eSeverity.Error, e, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
+				Log(eSeverity.Error, e, "{0} failed to dispose {1} - {2}", this, originator, e.Message);
 			}
 		}
 
@@ -301,8 +301,8 @@ namespace ICD.Connect.Krang.Core
 				}
 				catch (Exception e)
 				{
-					Logger.AddEntry(eSeverity.Error, e, "{0} - Failed to instantiate {1} with id {2} - {3}", this,
-					                typeof(IOriginator).Name, id, e.Message);
+					Log(eSeverity.Error, e, "{0} - Failed to instantiate {1} with id {2} - {3}", this,
+					    typeof(IOriginator).Name, id, e.Message);
 				}
 			}
 		}
