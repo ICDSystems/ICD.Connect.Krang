@@ -1,7 +1,7 @@
 ﻿using System;
 using ICD.Common.Utils.Xml;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Cores
 {
 	public sealed class LocalizationSettings
 	{

@@ -1,7 +1,7 @@
 ﻿#if !SIMPLSHARP
 using System;
 using ICD.Connect.API;
-using ICD.Connect.Krang.Core;
+using ICD.Connect.Krang.Cores;
 using CommandLine;
 using ICD.Common.Properties;
 using ICD.Common.Utils;

@@ -23,7 +23,7 @@ using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Originators;
 using ICD.Connect.Themes;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Cores
 {
 	public sealed class KrangCore : AbstractCore<KrangCoreSettings>
 	{

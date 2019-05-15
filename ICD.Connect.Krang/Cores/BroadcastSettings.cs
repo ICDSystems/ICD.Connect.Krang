@@ -5,7 +5,7 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Cores
 {
 	public sealed class BroadcastSettings
 	{
