@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
@@ -292,10 +293,27 @@ namespace ICD.Connect.Krang.Cores
 			m_LocalizationSettings.Update(settings);
 
 			if (!string.IsNullOrEmpty(settings.Culture))
-				IcdCultureInfo.CurrentCulture = new IcdCultureInfo(settings.Culture);
+				IcdCultureInfo.CurrentCulture = TryLoadCulture(settings.Culture, IcdCultureInfo.CurrentCulture);
 
 			if (!string.IsNullOrEmpty(settings.UiCulture))
-				IcdCultureInfo.CurrentUICulture = new IcdCultureInfo(settings.UiCulture);
+				IcdCultureInfo.CurrentUICulture = TryLoadCulture(settings.UiCulture, IcdCultureInfo.CurrentUICulture);
+		}
+
+		private CultureInfo TryLoadCulture(string cultureName, CultureInfo current)
+		{
+			try
+			{
+				IcdCultureInfo output = new IcdCultureInfo(cultureName);
+				if (!output.IsNeutralCulture)
+					return output;
+
+				throw new ArgumentException("A neutral culture does not provide enough information to display the correct numeric format");
+			}
+			catch (Exception e)
+			{
+				Log(eSeverity.Error, "Failed to load Culture {0} - {1}", cultureName, e.Message);
+				return current;
+			}
 		}
 
 		private void ApplyBroadcastSettings(BroadcastSettings settings)
