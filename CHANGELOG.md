@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+ - Added telemetry aggregation service to services
+ - Added telemetry features to remote switcher device
+
 ## [11.2.1] - 2019-05-16
 ### Changed
  - NVRAM to USER Migration improvements - only migrate needed directories, don't migrate if new config directory already exists
