@@ -176,38 +176,32 @@ namespace ICD.Connect.Krang.Remote
 
 		#region IRouteSwitcherDevice Methods
 
-		public override IEnumerable<InputPort> GetInputPorts()
+		protected override InputPort CreateInputPort(ConnectorInfo input)
 		{
-			foreach (ConnectorInfo input in GetInputs())
+			return new InputPort
 			{
-				yield return new InputPort
-				{
-					Address = input.Address,
-					ConnectionType = input.ConnectionType,
-					InputId = string.Format("Remote Input {0}", input.Address),
-					InputIdFeedbackSupported = true
-				};
-			}
+				Address = input.Address,
+				ConnectionType = input.ConnectionType,
+				InputId = string.Format("Remote Input {0}", input.Address),
+				InputIdFeedbackSupported = true
+			};
 		}
 
-		public override IEnumerable<OutputPort> GetOutputPorts()
+		protected override OutputPort CreateOutputPort(ConnectorInfo output)
 		{
-			foreach (ConnectorInfo output in GetOutputs())
+			bool supportsVideo = output.ConnectionType.HasFlag(eConnectionType.Video);
+			bool supportsAudio = output.ConnectionType.HasFlag(eConnectionType.Audio);
+			return new OutputPort
 			{
-				bool supportsVideo = output.ConnectionType.HasFlag(eConnectionType.Video);
-				bool supportsAudio = output.ConnectionType.HasFlag(eConnectionType.Audio);
-				yield return new OutputPort
-				{
-					Address = output.Address,
-					ConnectionType = output.ConnectionType,
-					OutputId = string.Format("Remote Output {0}", output.Address),
-					OutputIdFeedbackSupport = true,
-					VideoOutputSource = supportsVideo ? GetActiveSourceIdName(output, eConnectionType.Video) : null,
-					VideoOutputSourceFeedbackSupport = supportsVideo,
-					AudioOutputSource = supportsAudio ? GetActiveSourceIdName(output, eConnectionType.Audio) : null,
-					AudioOutputSourceFeedbackSupport = supportsAudio
-				};
-			}
+				Address = output.Address,
+				ConnectionType = output.ConnectionType,
+				OutputId = string.Format("Remote Output {0}", output.Address),
+				OutputIdFeedbackSupport = true,
+				VideoOutputSource = supportsVideo ? GetActiveSourceIdName(output, eConnectionType.Video) : null,
+				VideoOutputSourceFeedbackSupport = supportsVideo,
+				AudioOutputSource = supportsAudio ? GetActiveSourceIdName(output, eConnectionType.Audio) : null,
+				AudioOutputSourceFeedbackSupport = supportsAudio
+			};
 		}
 
 		/// <summary>
