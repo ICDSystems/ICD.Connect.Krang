@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Core namespace renamed
 
+## [11.3.0] - 2019-05-17
+### Added
+ - Added telemetry aggregation service to services
+ - Added telemetry features to remote switcher device
+
+## [11.2.1] - 2019-05-16
+### Changed
+ - NVRAM to USER Migration improvements - only migrate needed directories, don't migrate if new config directory already exists
+ - Remove originators from room during krang clear, solves a lot of program shutdown issues
+
 ## [11.2.0] - 2019-04-12
 ### Changed
  - Release builds set default logging severity to Notice

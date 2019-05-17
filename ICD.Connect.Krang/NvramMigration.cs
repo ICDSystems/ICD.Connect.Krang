@@ -10,6 +10,7 @@ namespace ICD.Connect.Krang
 	public static class NvramMigration
 	{
 		private const string NVRAM_FILE = "NVRAM_DEPRECATED";
+		private const string NVRAM = "NVRAM";
 
 		/// <summary>
 		/// Migrates the contents of NVRAM to the USER directory.
@@ -17,17 +18,34 @@ namespace ICD.Connect.Krang
 		/// <param name="logger"></param>
 		public static void Migrate(ILoggerService logger)
 		{
-			string nvramPath = PathUtils.Join(PathUtils.RootPath, "NVRAM");
-			if (!IcdDirectory.Exists(nvramPath))
+			// Don't Migrate if program config directory already exists
+			if (IcdDirectory.Exists(PathUtils.ProgramConfigPath))
 				return;
 
-			string configPath = PathUtils.RootConfigPath;
-			if (configPath == nvramPath)
+
+			string nvramProgramConfigPath = PathUtils.Join(PathUtils.RootPath, NVRAM, PathUtils.ProgramConfigDirectory);
+			if (!IcdDirectory.Exists(nvramProgramConfigPath))
 				return;
 
-			bool migrated = MigrateDirectory(logger, nvramPath, configPath);
-			if (migrated)
-				CreateNvramDeprecatedFile();
+			string newProgramConfigPath = PathUtils.ProgramConfigPath;
+			if (newProgramConfigPath == nvramProgramConfigPath)
+				return;
+
+			// Migrate ProgramConfig
+			// If not migrated, don't bother migrating CommonConfig
+			if (!MigrateDirectory(logger, nvramProgramConfigPath, newProgramConfigPath))
+				return;
+
+
+			string nvramCommonConfigPath = PathUtils.Join(PathUtils.RootPath, NVRAM, PathUtils.CommonConfigDirectory);
+			if (IcdDirectory.Exists(nvramCommonConfigPath))
+			{
+				string newCommonConfigPath = PathUtils.CommonConfigPath;
+				if (nvramCommonConfigPath != newCommonConfigPath)
+					MigrateDirectory(logger, nvramCommonConfigPath, newCommonConfigPath);
+			}
+
+			CreateNvramDeprecatedFile();
 		}
 
 		/// <summary>
@@ -112,7 +130,7 @@ namespace ICD.Connect.Krang
 		/// </summary>
 		private static void CreateNvramDeprecatedFile()
 		{
-			string directory = IcdPath.Combine(PathUtils.RootPath, "NVRAM");
+			string directory = IcdPath.Combine(PathUtils.RootPath, NVRAM);
 			if (!IcdDirectory.Exists(directory))
 				return;
 
