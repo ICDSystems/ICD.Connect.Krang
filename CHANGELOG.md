@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [11.3.0] - 2019-05-17
 ### Added
  - Added telemetry aggregation service to services
  - Added telemetry features to remote switcher device
