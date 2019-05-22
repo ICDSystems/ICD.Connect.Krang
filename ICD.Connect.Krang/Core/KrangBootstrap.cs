@@ -16,6 +16,7 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
+using ICD.Connect.Telemetry.Service;
 
 namespace ICD.Connect.Krang.Core
 {
@@ -25,6 +26,7 @@ namespace ICD.Connect.Krang.Core
 		private readonly KrangCore m_Core;
 
 		private ILoggerService m_Logger;
+		private ITelemetryService m_Telemetry;
 		private DirectMessageManager m_DirectMessageManager;
 		private ActionSchedulerService m_ActionSchedulerService;
 
@@ -164,6 +166,9 @@ namespace ICD.Connect.Krang.Core
 
 			m_ActionSchedulerService = new ActionSchedulerService();
 			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
+
+			m_Telemetry = new TelemetryService();
+			ServiceProvider.TryAddService(m_Telemetry);
 		}
 
 		private void PrintProgramInfo()
