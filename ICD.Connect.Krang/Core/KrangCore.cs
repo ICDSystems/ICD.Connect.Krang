@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Attributes;
@@ -129,13 +130,13 @@ namespace ICD.Connect.Krang.Core
 		private void DisposeOriginators()
 		{
 			Dictionary<int, IOriginator> originators = Originators.ToDictionary(o => o.Id);
-
-			// Clear first, then dispose, because clear relies on the id which is set to 0 when disposed
-			Originators.Clear();
-
 			IcdHashSet<IOriginator> disposed = new IcdHashSet<IOriginator>();
 
-			// First try to dispose in reverse of load order
+			// First empty all of the rooms
+			foreach (IRoom room in originators.Values.OfType<IRoom>())
+				room.Originators.Clear();
+
+			// Try to dispose in reverse of load order
 			while (m_LoadedOriginators.Count > 0)
 			{
 				int id = m_LoadedOriginators.Pop();
@@ -151,6 +152,8 @@ namespace ICD.Connect.Krang.Core
 			// Now dispose the remainder
 			foreach (IOriginator originator in originators.Values.Where(o => !disposed.Contains(o)))
 				TryDisposeOriginator(originator);
+
+			Originators.Clear();
 		}
 
 		/// <summary>
@@ -159,13 +162,14 @@ namespace ICD.Connect.Krang.Core
 		/// <param name="originator"></param>
 		private void TryDisposeOriginator(IOriginator originator)
 		{
-			IDisposable disposable = originator as IDisposable;
-			if (disposable == null)
-				return;
+			if (originator == null)
+				throw new ArgumentNullException("originator");
 
 			try
 			{
-				disposable.Dispose();
+				IDisposable disposable = originator as IDisposable;
+				if (disposable != null)
+					disposable.Dispose();
 			}
 			catch (Exception e)
 			{
