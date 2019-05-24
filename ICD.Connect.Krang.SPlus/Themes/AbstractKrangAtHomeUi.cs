@@ -339,19 +339,21 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		private void PanelOnSetVolumeRampUp(object sender, EventArgs args)
 		{
 			// todo: fix ramping RPC issues and re-enable ramping
-
+			
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelIncrement(5);
-
-			/*IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
+				control.VolumeLevelIncrement(4);
+			
+			/*
+			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
 			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
 
 			if (controlLvl != null)
-				controlLvl.VolumePositionRampUp(0.05f);
+				controlLvl.VolumePositionRampUp(0.03f);
 			else if (control != null)
 				control.VolumeRampUp();
 			*/
+			
 		}
 
 		private void PanelOnSetVolumeRampDown(object sender, EventArgs args)
@@ -361,17 +363,18 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelDecrement(5);
+				control.VolumeLevelDecrement(4);
 			
 			/*
 			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
 			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
 
 			if (controlLvl != null)
-				controlLvl.VolumePositionRampDown(0.05f);
+				controlLvl.VolumePositionRampDown(0.03f);
 			else if (control != null)
 				control.VolumeRampDown();
 			*/
+			
 		}
 
 		private void PanelOnSetVolumeRampStop(object sender, EventArgs args)
@@ -384,6 +387,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			if (control != null)
 				control.VolumeRampStop();
 			*/
+			
 		}
 
 		private void PanelOnSetVolumeMute(object sender, BoolEventArgs args)
