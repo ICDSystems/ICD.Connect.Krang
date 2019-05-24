@@ -46,6 +46,7 @@ namespace ICD.Connect.Krang.SPlus.Routing
 				return;
 
 			routingCache.OnSourceDestinationRouteChanged += RoutingCacheOnSourceDestinationRouteChanged;
+			routingCache.OnDestinationEndpointActiveChanged += RoutingCacheOnDestinationEndpointActiveChanged;
 		}
 
 		private void Unsubscribe(RoutingCache routingCache)
@@ -53,10 +54,16 @@ namespace ICD.Connect.Krang.SPlus.Routing
 			if (routingCache == null)
 				return;
 
-			routingCache.OnSourceDestinationRouteChanged -= RoutingCacheOnSourceDestinationRouteChanged;
+			routingCache.OnSourceDestinationRouteChanged -= RoutingCacheOnSourceDestinationRouteChanged; 
+			routingCache.OnDestinationEndpointActiveChanged -= RoutingCacheOnDestinationEndpointActiveChanged;
 		}
 
 		private void RoutingCacheOnSourceDestinationRouteChanged(object sender, SourceDestinationRouteChangedEventArgs args)
+		{
+			UpdateSourceDestinationsCache(args.Type);
+		}
+
+		private void RoutingCacheOnDestinationEndpointActiveChanged(object sender, CacheStateChangedEventArgs args)
 		{
 			UpdateSourceDestinationsCache(args.Type);
 		}
@@ -82,7 +89,7 @@ namespace ICD.Connect.Krang.SPlus.Routing
 				IcdHashSet<IDestination> destinationsForSource = new IcdHashSet<IDestination>();
 				foreach (var type in EnumUtils.GetFlagsExceptNone(kvp.Value))
 				{
-					destinationsForSource.AddRange(m_RoutingCache.GetDestinationsForSource(kvp.Key, type));
+					destinationsForSource.AddRange(m_RoutingCache.GetDestinationsForSource(kvp.Key, type, false, true));
 				}
 				if (destinationsForSource.Count > 0)
 				{
