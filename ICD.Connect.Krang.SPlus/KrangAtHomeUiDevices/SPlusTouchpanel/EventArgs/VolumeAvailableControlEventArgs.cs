@@ -1,7 +1,6 @@
 ﻿using System;
-using ICD.Connect.API.EventArguments;
+using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 {
@@ -13,7 +12,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 		public eVolumeMuteAvailableControl MuteAvailableControl { get; set; }
 	}
 
-	public sealed class VolumeAvailableControlEventArgs : AbstractGenericApiEventArgs<VolumeAvailableControl>
+	public sealed class VolumeAvailableControlEventArgs : GenericEventArgs<VolumeAvailableControl>
 	{
 
 		public eVolumeLevelAvailableControl LevelAvailableControl { get { return Data.LevelAvailableControl; } }
@@ -21,13 +20,13 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 		public eVolumeMuteAvailableControl MuteAvailableControl { get { return Data.MuteAvailableControl; } }
 
 		public VolumeAvailableControlEventArgs(VolumeAvailableControl availableControl)
-			: base(SPlusTouchpanelDeviceApi.EVENT_VOLUME_AVAILABLE_CONTROL, availableControl)
+			: base(availableControl)
 		{
 			
 		}
 
 		public VolumeAvailableControlEventArgs(eVolumeLevelAvailableControl level, eVolumeMuteAvailableControl mute)
-			: base(SPlusTouchpanelDeviceApi.EVENT_VOLUME_AVAILABLE_CONTROL, new VolumeAvailableControl()
+			: base(new VolumeAvailableControl()
 			{
 				LevelAvailableControl = level,
 				MuteAvailableControl = mute

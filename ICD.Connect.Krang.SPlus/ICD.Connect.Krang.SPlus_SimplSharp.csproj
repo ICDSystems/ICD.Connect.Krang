@@ -64,20 +64,29 @@
     <Compile Include="IcdConsoleServer\IcdConsoleServerSettings.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Device\AbstractKrangAtHomeUiDevice.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Device\IKrangAtHomeUiDeviceShimmable.cs" />
+    <Compile Include="KrangAtHomeUiDevices\Abstract\EventArgs\SetAudioSourceIdApiEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\Abstract\EventArgs\SetRoomIdApiEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\Abstract\EventArgs\SetVideoSourceIdApiEventArgs.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Proxy\SPlusUiDeviceApi.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Shim\AbstractSPlusUiShim.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Device\IKrangAtHomeSPlusRemoteDevice.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Device\IKrangAtHomeSPlusRemoteDeviceShimmable.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Device\KrangAtHomeSPlusRemoteDevice.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Device\KrangAtHomeSPlusRemoteDeviceSettings.cs" />
-    <Compile Include="KrangAtHomeUiDevices\SPlusRemote\EventArgs\RoomChangedApiEventArgs.cs" />
-    <Compile Include="KrangAtHomeUiDevices\SPlusRemote\EventArgs\SourceChangedApiEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusRemote\EventArgs\RoomChangedEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusRemote\EventArgs\SourceChangedEventArgs.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Proxy\ProxySPlusRemoteDevice.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Proxy\ProxySPlusRemoteDeviceSettings.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Proxy\SPlusRemoteApi.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusRemote\Shim\SPlusRemoteShim.cs" />
     <Compile Include="KrangAtHomeUiDevices\Abstract\Proxy\AbstractProxySPlusUiDevice.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\Device\IKrangAtHomeSplusTouchpanelDevice.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\AbstractSourceBaseListItemEventArgs.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\AudioSourceBaseListItemEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\RequestRefreshApiEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\SetAudioSourceIndexApiEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\SetRoomIndexApiEventArgs.cs" />
+    <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\SetVideoSourceIndexApiEventArgs.cs" />
     <Compile Include="KrangAtHomeUiDevices\SPlusTouchpanel\EventArgs\VideoSourceBaseListItemEventArgs.cs" />
     <Compile Include="KrangPlugin.cs" />
     <None Include="ObfuscationSettings.cs" />
@@ -206,6 +215,10 @@
     <ProjectReference Include="..\..\ICD.Connect.Settings\ICD.Connect.Settings\ICD.Connect.Settings_SimplSharp.csproj">
       <Project>{5B84EB3C-1C3A-4C4D-98C2-69F67CF51D5A}</Project>
       <Name>ICD.Connect.Settings_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Telemetry\ICD.Connect.Telemetry\ICD.Connect.Telemetry_SimplSharp.csproj">
+      <Project>{9512C0A5-F966-4AC6-9668-62C6F343B0CD}</Project>
+      <Name>ICD.Connect.Telemetry_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_SimplSharp.csproj">
       <Project>{7D599445-C1F9-4BBD-ACC4-DC80E3311376}</Project>

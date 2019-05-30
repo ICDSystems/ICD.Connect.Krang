@@ -3,12 +3,10 @@
 	public static class SPlusRemoteApi
 	{
 
+		public const string METHOD_RAISE_ROOM_CHANGED = "RaiseRoomChanged";
+		public const string METHOD_RAISE_SOURCE_CHANGED = "RaiseSourceChanged";
 
-		public const string EVENT_ROOM_CHANGED = "EventRoomChanged";
-		public const string EVENT_SOURCE_CHANGED = "EventSourceChanged";
-
-
-		public const string EVENT_ROOM_CHANGED_HELP = "Raised when the room changes";
-		public const string EVENT_SOURCE_CHANGED_HELP = "Raised when the rooms source changes";
+		public const string HELP_METHOD_RAISE_ROOM_CHANGED = "";
+		public const string HELP_METHOD_RAISE_SOURCE_CHANGED = "";
 	}
 }

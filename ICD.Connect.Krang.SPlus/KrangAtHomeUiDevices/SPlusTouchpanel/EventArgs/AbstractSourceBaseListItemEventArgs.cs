@@ -1,16 +1,15 @@
-﻿using ICD.Connect.API.EventArguments;
+﻿using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 {
-	public abstract class AbstractSourceBaseListItemEventArgs : AbstractGenericApiEventArgs<SourceBaseListInfo>
+	public abstract class AbstractSourceBaseListItemEventArgs : GenericEventArgs<SourceBaseListInfo>
 	{
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		/// <param name="eventName"></param>
 		/// <param name="data"></param>
-		public AbstractSourceBaseListItemEventArgs(string eventName, SourceBaseListInfo data) : base(eventName, data)
+		protected AbstractSourceBaseListItemEventArgs(SourceBaseListInfo data) : base(data)
 		{
 		}
 	}

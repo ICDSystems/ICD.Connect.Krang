@@ -1,11 +1,10 @@
-﻿using ICD.Connect.API.EventArguments;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy;
+﻿using ICD.Common.Utils.EventArguments;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 {
-	public class VolumeMuteFeedbackEventArgs : AbstractGenericApiEventArgs<bool>
+	public sealed class VolumeMuteFeedbackEventArgs : GenericEventArgs<bool>
 	{
-		public VolumeMuteFeedbackEventArgs(bool state) : base(SPlusTouchpanelDeviceApi.EVENT_VOLUME_MUTE_FEEDBACK, state)
+		public VolumeMuteFeedbackEventArgs(bool state) : base(state)
 		{
 
 		}

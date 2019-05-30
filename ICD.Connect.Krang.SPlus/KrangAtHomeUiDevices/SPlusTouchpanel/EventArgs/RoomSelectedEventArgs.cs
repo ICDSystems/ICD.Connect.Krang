@@ -1,8 +1,8 @@
 ﻿using System;
-using ICD.Connect.API.EventArguments;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy;
+using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
+using ICD.Connect.Partitioning.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 {
@@ -11,9 +11,30 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 	{
 		public int Index { get; set; }
 		public RoomInfo RoomInfo { get; set; }
+
+		public RoomSelected(RoomInfo roomInfo, int index)
+		{
+			RoomInfo = roomInfo;
+			Index = index;
+		}
+
+		public RoomSelected(IKrangAtHomeRoom room, int index)
+		{
+			RoomInfo = new RoomInfo(room);
+			Index = index;
+		}
+
+		public RoomSelected(int index)
+		{
+			Index = index;
+		}
+
+		public RoomSelected()
+		{
+		}
 	}
 
-	public sealed class RoomSelectedEventArgs : AbstractGenericApiEventArgs<RoomSelected>
+	public sealed class RoomSelectedEventArgs : GenericEventArgs<RoomSelected>
 	{
 
 		public int Index { get { return Data.Index; }}
@@ -21,13 +42,13 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 		public RoomInfo RoomInfo {get { return Data.RoomInfo; }}
 
 		public RoomSelectedEventArgs(RoomSelected roomSelected)
-			: base(SPlusTouchpanelDeviceApi.EVENT_ROOM_SELECTED, roomSelected)
+			: base(roomSelected)
 		{
 			
 		}
 
 		public RoomSelectedEventArgs(RoomInfo roomInfo, int index)
-			: base(SPlusTouchpanelDeviceApi.EVENT_ROOM_SELECTED, new RoomSelected()
+			: base(new RoomSelected()
 			{
 				Index = index,
 				RoomInfo = roomInfo
@@ -36,7 +57,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 		}
 
 		public RoomSelectedEventArgs(IKrangAtHomeRoom room, int index)
-			: base(SPlusTouchpanelDeviceApi.EVENT_ROOM_SELECTED, new RoomSelected()
+			: base(new RoomSelected()
 			{
 				Index = index,
 				RoomInfo = new RoomInfo(room)

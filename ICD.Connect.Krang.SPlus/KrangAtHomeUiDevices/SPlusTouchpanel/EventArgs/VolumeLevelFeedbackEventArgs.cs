@@ -1,11 +1,10 @@
-﻿using ICD.Connect.API.EventArguments;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy;
+﻿using ICD.Common.Utils.EventArguments;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 {
-	public sealed class VolumeLevelFeedbackEventArgs : AbstractGenericApiEventArgs<float>
+	public sealed class VolumeLevelFeedbackEventArgs : GenericEventArgs<float>
 	{
-		public VolumeLevelFeedbackEventArgs(float level) : base(SPlusTouchpanelDeviceApi.EVENT_VOLUME_LEVEL_FEEDBACK, level)
+		public VolumeLevelFeedbackEventArgs(float level) : base(level)
 		{
 			
 		}

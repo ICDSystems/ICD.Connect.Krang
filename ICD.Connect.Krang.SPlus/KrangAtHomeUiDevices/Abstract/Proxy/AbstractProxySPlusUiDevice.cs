@@ -1,54 +1,71 @@
+using System;
+using ICD.Common.Utils.Extensions;
+using ICD.Connect.API;
+using ICD.Connect.API.Info;
 using ICD.Connect.Devices.Proxies.Devices;
-using ICD.Connect.Devices.Simpl;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy
 {
-	public abstract class AbstractProxySPlusUiDevice<TSettings> : AbstractSimplProxyDevice<TSettings>
+	public abstract class AbstractProxySPlusUiDevice<TSettings> : AbstractProxyDevice<TSettings>, IKrangAtHomeUiDevice
 		where TSettings : IProxyDeviceSettings
 	{
-		public void SetRoomId(int id)
+		public event EventHandler<SetRoomIdApiEventArgs> OnSetRoomId;
+		public event EventHandler<SetAudioSourceIdApiEventArgs> OnSetAudioSourceId;
+		public event EventHandler<SetVideoSourceIdApiEventArgs> OnSetVideoSourceId;
+
+		/// <summary>
+		/// Override to build initialization commands on top of the current class info.
+		/// </summary>
+		/// <param name="command"></param>
+		protected override void Initialize(ApiClassInfo command)
 		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_ROOM_ID, id);
+			base.Initialize(command);
+
+			ApiCommandBuilder.UpdateCommand(command)
+			                 .SubscribeEvent(SPlusUiDeviceApi.EVENT_SET_ROOM_ID)
+			                 .SubscribeEvent(SPlusUiDeviceApi.EVENT_SET_AUDIO_SOURCE_ID)
+			                 .SubscribeEvent(SPlusUiDeviceApi.EVENT_SET_VIDEO_SOURCE_ID)
+			                 .Complete();
 		}
 
-		public void SetAudioSourceId(int id)
+		/// <summary>
+		/// Updates the proxy with event feedback info.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="result"></param>
+		protected override void ParseEvent(string name, ApiResult result)
 		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_AUDIO_SOURCE_ID, id);
+			base.ParseEvent(name, result);
+
+			switch (name)
+			{
+				case SPlusUiDeviceApi.EVENT_SET_ROOM_ID:
+					RaiseSetRoomId(result.GetValue<int>());
+					break;
+				case SPlusUiDeviceApi.EVENT_SET_AUDIO_SOURCE_ID:
+					RaiseSetAudioSourceId(result.GetValue<int>());
+					break;
+				case SPlusUiDeviceApi.EVENT_SET_VIDEO_SOURCE_ID:
+					RaiseSetVideoSourceId(result.GetValue<int>());
+					break;
+			}
 		}
 
-		public void SetVideoSourcdId(int id)
+		private void RaiseSetRoomId(int data)
 		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_VIDEO_SOURCE_ID, id);
+			OnSetRoomId.Raise(this, new SetRoomIdApiEventArgs(data));
 		}
 
-		public void SetVolumeLevel(float volumeLevel)
+		private void RaiseSetAudioSourceId(int data)
 		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_VOLUME_LEVEL, volumeLevel);
+			OnSetAudioSourceId.Raise(this, new SetAudioSourceIdApiEventArgs(data));
 		}
 
-		public void SetVolumeRampUp()
+		private void RaiseSetVideoSourceId(int data)
 		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_VOLUME_RAMP_UP);
-		}
-
-		public void SetVolumeRampDown()
-		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_VOLUME_RAMP_DOWN);
-		}
-
-		public void SetVolumeRampStop()
-		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_VOLUME_RAMP_STOP);
-		}
-
-		public void SetVolumeMute(bool state)
-		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_VOLUME_MUTE, state);
-		}
-
-		public void SetVolumeMuteToggle()
-		{
-			CallMethod(SPlusUiDeviceApi.METHOD_SET_VOLUME_MUTE_TOGGLE);
+			OnSetVideoSourceId.Raise(this, new SetVideoSourceIdApiEventArgs(data));
 		}
 	}
 }

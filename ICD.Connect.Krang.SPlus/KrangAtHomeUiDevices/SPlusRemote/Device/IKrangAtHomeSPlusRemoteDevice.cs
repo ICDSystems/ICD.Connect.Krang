@@ -1,19 +1,16 @@
-﻿using System;
-using ICD.Connect.API.Attributes;
-using ICD.Connect.Devices;
+﻿using ICD.Connect.API.Attributes;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.EventArgs;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Proxy;
+using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Device
 {
-	[ApiClass(typeof(ProxySPlusRemoteDevice), typeof(IDevice))]
-	public interface IKrangAtHomeSPlusRemoteDeviceShimmable : IKrangAtHomeUiDeviceShimmable
+	public interface IKrangAtHomeSPlusRemoteDevice: IKrangAtHomeUiDevice
 	{
-		[ApiEvent(SPlusRemoteApi.EVENT_ROOM_CHANGED, SPlusRemoteApi.EVENT_ROOM_CHANGED_HELP)]
-		event EventHandler<RoomChangedApiEventArgs> OnRoomChanged;
+		[ApiMethod(SPlusRemoteApi.METHOD_RAISE_ROOM_CHANGED, SPlusRemoteApi.HELP_METHOD_RAISE_ROOM_CHANGED)]
+		void RaiseRoomChanged(RoomInfo roomInfo);
 
-		[ApiEvent(SPlusRemoteApi.EVENT_SOURCE_CHANGED, SPlusRemoteApi.EVENT_SOURCE_CHANGED_HELP)]
-		event EventHandler<SourceChangedApiEventArgs> OnSourceChanged;
+		[ApiMethod(SPlusRemoteApi.METHOD_RAISE_SOURCE_CHANGED, SPlusRemoteApi.HELP_METHOD_RAISE_SOURCE_CHANGED)]
+		void RaiseSourceChanged(SourceInfo sourceInfo);
 	}
 }

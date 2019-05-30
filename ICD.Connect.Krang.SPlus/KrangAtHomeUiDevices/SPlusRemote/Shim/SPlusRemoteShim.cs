@@ -60,12 +60,12 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Shim
 			originator.OnSourceChanged -= OriginatorOnSourceChanged;
 		}
 
-		private void OriginatorOnRoomChanged(object sender, RoomChangedApiEventArgs args)
+		private void OriginatorOnRoomChanged(object sender, RoomChangedEventArgs args)
 		{
 			SetSPlusRoomInfo(args.Data);
 		}
 
-		private void OriginatorOnSourceChanged(object sender, SourceChangedApiEventArgs args)
+		private void OriginatorOnSourceChanged(object sender, SourceChangedEventArgs args)
 		{
 			SetSPlusSourceInfo(args.Data);
 		}

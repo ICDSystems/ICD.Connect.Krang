@@ -75,6 +75,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		private IPathFinder m_PathFinder;
 
 		private IVolumeDeviceControl m_ActiveVolumeControl;
+		
+		private string m_ShortName;
 
 		#endregion
 
@@ -105,6 +107,9 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		public KrangAtHomeRouting Routing { get; private set; }
 
 		public KrangAtHomeSourceGroupManager SourceGroupManager { get; private set; }
+		
+		
+		public string ShortName { get { return m_ShortName ?? Name; }}
 
 		#endregion
 
@@ -646,6 +651,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			m_CrosspointsSection.Execute(() => m_Crosspoints.Clear());
 
+			m_ShortName = null;
+
 			Unsubscribe(m_SubscribedRoutingGraph);
 		}
 
@@ -658,6 +665,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			base.CopySettingsFinal(settings);
 
 			settings.SetCrosspoints(GetCrosspoints());
+			settings.ShortName = m_ShortName;
 		}
 
 		/// <summary>
@@ -673,6 +681,7 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 			base.ApplySettingsFinal(settings, factory);
 
 			SetCrosspoints(settings.GetCrosspoints());
+			m_ShortName = settings.ShortName;
 
 			Subscribe(graph);
 			UpdateCachedActiveSources();

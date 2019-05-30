@@ -7,10 +7,8 @@ using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
-using ICD.Connect.Audio.Controls.Mute;
-using ICD.Connect.Audio.Controls.Volume;
-using ICD.Connect.Audio.EventArguments;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
@@ -18,7 +16,7 @@ using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 {
-	public sealed class KrangAtHomeTouchpanelUi : AbstractKrangAtHomeUi<KrangAtHomeSPlusTouchpanelDevice>
+	public sealed class KrangAtHomeTouchpanelUi : AbstractKrangAtHomeUi<IKrangAtHomeSPlusTouchpanelDevice>
 	{
 		private const int INDEX_NOT_FOUND = -1;
 		private const int INDEX_OFF = -1;
@@ -162,7 +160,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		{
 			if (Room == null)
 			{
-				UiDevice.SetRoomInfo(null, INDEX_NOT_FOUND);
+				UiDevice.SetRoomInfo(new RoomSelected(INDEX_NOT_FOUND));
 				return;
 			}
 
@@ -170,7 +168,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			if (!m_RoomListBiDictionary.TryGetKey(Room, out index))
 				index = INDEX_NOT_FOUND;
 
-			UiDevice.SetRoomInfo(Room, index);
+			UiDevice.SetRoomInfo(new RoomSelected(Room, index));
 
 			RaiseSourceList();
 		}
@@ -284,9 +282,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			}
 
 			if (type.HasFlag(eSourceTypeRouted.Video))
-				UiDevice.SetSourceInfo(source, INDEX_NOT_FOUND, index);
+				UiDevice.SetSourceInfo(new SourceSelected(source, INDEX_NOT_FOUND, index));
 			else
-				UiDevice.SetSourceInfo(source, index, INDEX_NOT_FOUND);
+				UiDevice.SetSourceInfo(new SourceSelected(source, index, INDEX_NOT_FOUND));
 		}
 
 		/// <summary>
@@ -435,113 +433,9 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		#endregion
 
-		#region VolumeDeviceControl
-
-		protected override void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
-		{
-			// Test for ActiveVolumeControl being Null
-			if (volumeDevice == null)
-			{
-				UiDevice.SetVolumeAvaliableControls(eVolumeLevelAvailableControl.None, eVolumeMuteAvailableControl.None);
-				UiDevice.SetVolumeLevelFeedback(0);
-				UiDevice.SetVolumeMuteFeedback(false);
-				return;
-			}
-
-			//Cast to volume devices
-			IVolumeRampDeviceControl volumeRampDevice = volumeDevice as IVolumeRampDeviceControl;
-			IVolumePositionDeviceControl volumePositionDevice = volumeDevice as IVolumePositionDeviceControl;
-
-			//Cast to mute devices
-			IVolumeMuteBasicDeviceControl muteBasicDevice = volumeDevice as IVolumeMuteBasicDeviceControl;
-			IVolumeMuteDeviceControl muteDiscreteDevice = volumeDevice as IVolumeMuteDeviceControl;
-			IVolumeMuteFeedbackDeviceControl muteFeedbackDevice = volumeDevice as IVolumeMuteFeedbackDeviceControl;
-
-			//Figure out volume control and feedback
-			eVolumeLevelAvailableControl volumeAvailableControl = eVolumeLevelAvailableControl.None;
-			float volumeLevelFeedback = 0;
-			if (volumePositionDevice != null)
-			{
-				volumeAvailableControl = eVolumeLevelAvailableControl.Position;
-				volumeLevelFeedback = volumePositionDevice.VolumePosition;
-			}
-			else if (volumeRampDevice != null)
-				volumeAvailableControl = eVolumeLevelAvailableControl.Ramp;
-
-			//Figure out mute control and feedback
-			eVolumeMuteAvailableControl muteAvailableControl = eVolumeMuteAvailableControl.None;
-			bool muteStateFeedback = false;
-			if (muteFeedbackDevice != null)
-			{
-				muteAvailableControl = eVolumeMuteAvailableControl.Feedback;
-				muteStateFeedback = muteFeedbackDevice.VolumeIsMuted;
-			}
-			else if (muteDiscreteDevice != null)
-				muteAvailableControl = eVolumeMuteAvailableControl.Discrete;
-			else if (muteBasicDevice != null)
-				muteAvailableControl = eVolumeMuteAvailableControl.Toggle;
-
-			// Send Feedback to Panel
-			UiDevice.SetVolumeAvaliableControls(volumeAvailableControl, muteAvailableControl);
-			UiDevice.SetVolumeLevelFeedback(volumeLevelFeedback);
-			UiDevice.SetVolumeMuteFeedback(muteStateFeedback);
-		}
-
-		#region VolumePositionDeviceControl
-
-		protected override void SubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
-		{
-			if (control == null)
-				return;
-
-			control.OnVolumeChanged += ControlOnVolumeChanged;
-		}
-
-		protected override void UnsubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
-		{
-			if (control == null)
-				return;
-
-			control.OnVolumeChanged -= ControlOnVolumeChanged;
-		}
-
-		private void ControlOnVolumeChanged(object sender, VolumeDeviceVolumeChangedEventArgs args)
-		{
-			UiDevice.SetVolumeLevelFeedback(args.VolumePosition);
-		}
-
-		#endregion
-
-		#region MuteFeedbackDeviceControl
-
-		protected override void SubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
-		{
-			if (control == null)
-				return;
-
-			control.OnMuteStateChanged += ControlOnMuteStateChanged;
-		}
-
-		protected override void UnsubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
-		{
-			if (control == null)
-				return;
-
-			control.OnMuteStateChanged -= ControlOnMuteStateChanged;
-		}
-
-		private void ControlOnMuteStateChanged(object sender, BoolEventArgs args)
-		{
-			UiDevice.SetVolumeMuteFeedback(args.Data);
-		}
-
-		#endregion
-
-		#endregion
-
 		#region Panel Callback
 
-		protected override void Subscribe(KrangAtHomeSPlusTouchpanelDevice panel)
+		protected override void Subscribe(IKrangAtHomeSPlusTouchpanelDevice panel)
 		{
 			base.Subscribe(panel);
 
@@ -554,7 +448,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			panel.OnSetVideoSourceIndex += PanelOnSetVideoSourceIndex;
 		}
 
-		protected override void Unsubscribe(KrangAtHomeSPlusTouchpanelDevice panel)
+		protected override void Unsubscribe(IKrangAtHomeSPlusTouchpanelDevice panel)
 		{
 			base.Unsubscribe(panel);
 
@@ -579,17 +473,17 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			RaiseRoomInfo();
 		}
 
-		private void PanelOnSetRoomIndex(object sender, IntEventArgs args)
+		private void PanelOnSetRoomIndex(object sender, SetRoomIndexApiEventArgs args)
 		{
 			SetRoomIndex(args.Data);
 		}
 
-		private void PanelOnSetAudioSourceIndex(object sender, IntEventArgs args)
+		private void PanelOnSetAudioSourceIndex(object sender, SetAudioSourceIndexApiEventArgs args)
 		{
 			SetAudioSourceIndex(args.Data);
 		}
 
-		private void PanelOnSetVideoSourceIndex(object sender, IntEventArgs args)
+		private void PanelOnSetVideoSourceIndex(object sender, SetVideoSourceIndexApiEventArgs args)
 		{
 			SetVideoSourceIndex(args.Data);
 		}

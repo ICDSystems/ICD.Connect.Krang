@@ -17,9 +17,13 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 		private const string CROSSPOINT_ELEMENT = "Crosspoint";
 		private const string CROSSPOINT_ID_ELEMENT = "CrosspointId";
 		private const string CROSSPOINT_TYPE_ELEMENT = "Type";
+		private const string SHORT_NAME_ELEMENT = "ShortName";
 
 		private readonly Dictionary<eCrosspointType, ushort> m_Crosspoints;
 		private readonly SafeCriticalSection m_CrosspointsSection;
+
+
+		public string ShortName { get; set; }
 
 		/// <summary>
 		/// Constructor.
@@ -74,6 +78,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			XmlUtils.WriteDictToXml(writer, m_Crosspoints, CROSSPOINTS_ELEMENT, CROSSPOINT_ELEMENT, CROSSPOINT_TYPE_ELEMENT,
 			                        CROSSPOINT_ID_ELEMENT);
+
+			writer.WriteElementString(SHORT_NAME_ELEMENT, ShortName);
 		}
 
 		/// <summary>
@@ -86,6 +92,8 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 
 			IEnumerable<KeyValuePair<eCrosspointType,ushort>> crosspoints = ReadCrosspointsFromXml(xml);
 			SetCrosspoints(crosspoints);
+
+			ShortName = XmlUtils.TryReadChildElementContentAsString(xml, SHORT_NAME_ELEMENT);
 		}
 
 		private static IEnumerable<KeyValuePair<eCrosspointType,ushort>> ReadCrosspointsFromXml(string xml)

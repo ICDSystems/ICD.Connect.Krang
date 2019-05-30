@@ -1,26 +1,31 @@
 ﻿using System;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.EventArgs;
-using ICD.Connect.Krang.SPlus.Rooms;
-using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
+using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Device
 {
-	public sealed class KrangAtHomeSPlusRemoteDevice : AbstractKrangAtHomeUiDevice<KrangAtHomeSPlusRemoteDeviceSettings>, IKrangAtHomeSPlusRemoteDeviceShimmable
+	public sealed class KrangAtHomeSPlusRemoteDevice : AbstractKrangAtHomeUiDevice<KrangAtHomeSPlusRemoteDeviceSettings>, IKrangAtHomeSPlusRemoteDeviceShimmable, IKrangAtHomeSPlusRemoteDevice
 	{
-		public event EventHandler<RoomChangedApiEventArgs> OnRoomChanged;
+		public event EventHandler<RoomChangedEventArgs> OnRoomChanged;
 
-		public event EventHandler<SourceChangedApiEventArgs> OnSourceChanged;
+		public event EventHandler<SourceChangedEventArgs> OnSourceChanged;
 
-		internal void RaiseRoomChanged(IKrangAtHomeRoom room)
+		public void RaiseRoomChanged(RoomInfo room)
 		{
-			OnRoomChanged.Raise(this, new RoomChangedApiEventArgs(room));
+			OnRoomChanged.Raise(this, new RoomChangedEventArgs(room));
 		}
 
-		internal void RaiseSourceChanged(IKrangAtHomeSource source)
+		public void RaiseSourceChanged(SourceInfo source)
 		{
-			OnSourceChanged.Raise(this, new SourceChangedApiEventArgs(source));
+			OnSourceChanged.Raise(this, new SourceChangedEventArgs(source));
+		}
+
+		protected override void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
+		{
+			//Remote doesn't do volume feedback
 		}
 	}
 }

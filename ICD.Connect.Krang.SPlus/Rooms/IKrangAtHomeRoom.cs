@@ -11,10 +11,11 @@ namespace ICD.Connect.Krang.SPlus.Rooms
 {
 	public interface IKrangAtHomeRoom : IRoom
 	{
-
 		event EventHandler OnActiveSourcesChange;
 
 		event EventHandler<GenericEventArgs<IVolumeDeviceControl>> OnActiveVolumeControlChanged;
+
+		string ShortName { get; }
 
 		IKrangAtHomeSource GetSource();
 

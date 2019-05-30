@@ -135,7 +135,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 			for (ushort index = 0; index < m_RoomStates.Count; index++)
 			{
 				RoomState roomState = m_RoomStates[index];
-				string name = roomState.Room.Name;
+				string name = roomState.Room.ShortName;
 				string sourcesFeedback = roomState.Room.GetSource() == null ? null : roomState.Room.GetSource().Name;
 
 				// Labels

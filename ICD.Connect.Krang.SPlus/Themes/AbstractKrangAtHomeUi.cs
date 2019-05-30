@@ -1,9 +1,9 @@
 ﻿using System;
 using ICD.Common.Properties;
 using ICD.Common.Utils.EventArguments;
-using ICD.Connect.Audio.Controls.Mute;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Settings.Originators;
@@ -28,12 +28,6 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		protected KrangAtHomeTheme Theme {get { return m_Theme; }}
 
 		protected IKrangAtHomeRoom Room { get; set; }
-
-		protected IVolumeDeviceControl VolumeControl { get; set; }
-
-		protected IVolumePositionDeviceControl VolumePositionControl { get; set; }
-
-		protected IVolumeMuteFeedbackDeviceControl VolumeMuteFeedbackControl { get; set; }
 
 		#endregion
 
@@ -153,18 +147,10 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			RaiseRoomInfo();
 		}
 
-		private void SetVolumeControl(IVolumeDeviceControl control)
+		private void SetVolumeControl(IVolumeDeviceControl activeVolumeControl)
 		{
-			if (VolumeControl == control)
-				return;
-
-			Unsubscribe(VolumeControl);
-
-			VolumeControl = control;
-
-			Subscribe(VolumeControl);
-
-			InstantiateVolumeControl(VolumeControl);
+			// todo: Pass volume control info to device for direct control
+			throw new NotImplementedException();
 		}
 
 		/// <summary>
@@ -226,58 +212,6 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		#endregion
 
-		#region VolumeDeviceControl
-
-		private void Subscribe(IVolumeDeviceControl volumeDevice)
-		{
-			if (volumeDevice == null)
-				return;
-
-			VolumePositionControl = volumeDevice as IVolumePositionDeviceControl;
-			SubscribeVolumePositionDeviceControl(VolumePositionControl);
-
-			VolumeMuteFeedbackControl = volumeDevice as IVolumeMuteFeedbackDeviceControl;
-			SubscribeVolumeMuteFeedbackDeviceControl(VolumeMuteFeedbackControl);
-
-		}
-
-		private void Unsubscribe(IVolumeDeviceControl volumeDevice)
-		{
-			if (volumeDevice == null)
-				return;
-
-			UnsubscribeVolumePositionDeviceControl(VolumePositionControl);
-			UnsubscribeVolumeMuteFeedbackDeviceControl(VolumeMuteFeedbackControl);
-		}
-
-		protected abstract void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice);
-
-		#region VolumePositionDeviceControl
-
-		protected virtual void SubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
-		{
-		}
-
-		protected virtual void UnsubscribeVolumePositionDeviceControl(IVolumePositionDeviceControl control)
-		{
-		}
-
-		#endregion
-
-		#region MuteFeedbackDeviceControl
-
-		protected virtual void SubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
-		{
-		}
-
-		protected virtual void UnsubscribeVolumeMuteFeedbackDeviceControl(IVolumeMuteFeedbackDeviceControl control)
-		{
-		}
-
-		#endregion
-
-		#endregion
-
 		#region Panel Callback
 
 		protected virtual void Subscribe(T panel)
@@ -288,12 +222,6 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			panel.OnSetRoomId += PanelOnSetRoomId;
 			panel.OnSetAudioSourceId += PanelOnSetAudioSourceId;
 			panel.OnSetVideoSourceId += PanelOnSetVideoSourceId;
-			panel.OnSetVolumeLevel += PanelOnSetVolumeLevel;
-			panel.OnSetVolumeRampUp += PanelOnSetVolumeRampUp;
-			panel.OnSetVolumeRampDown += PanelOnSetVolumeRampDown;
-			panel.OnSetVolumeRampStop += PanelOnSetVolumeRampStop;
-			panel.OnSetVolumeMute += PanelOnSetVolumeMute;
-			panel.OnSetVolumeMuteToggle += PanelOnSetVolumeMuteToggle;
 		}
 
 		protected virtual void Unsubscribe(T panel)
@@ -304,107 +232,25 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			panel.OnSetRoomId -= PanelOnSetRoomId;
 			panel.OnSetAudioSourceId -= PanelOnSetAudioSourceId;
 			panel.OnSetVideoSourceId -= PanelOnSetVideoSourceId;
-			panel.OnSetVolumeLevel -= PanelOnSetVolumeLevel;
-			panel.OnSetVolumeRampUp -= PanelOnSetVolumeRampUp;
-			panel.OnSetVolumeRampDown -= PanelOnSetVolumeRampDown;
-			panel.OnSetVolumeRampStop -= PanelOnSetVolumeRampStop;
-			panel.OnSetVolumeMute -= PanelOnSetVolumeMute;
-			panel.OnSetVolumeMuteToggle -= PanelOnSetVolumeMuteToggle;
 		}
 
 
-		private void PanelOnSetRoomId(object sender, IntEventArgs args)
+		private void PanelOnSetRoomId(object sender, SetRoomIdApiEventArgs args)
 		{
 			SetRoomId(args.Data);
 		}
 
-		private void PanelOnSetAudioSourceId(object sender, IntEventArgs args)
+		private void PanelOnSetAudioSourceId(object sender, SetAudioSourceIdApiEventArgs args)
 		{
 			SetSourceId(args.Data, eSourceTypeRouted.Audio);
 		}
 
-		private void PanelOnSetVideoSourceId(object sender, IntEventArgs args)
+		private void PanelOnSetVideoSourceId(object sender, SetVideoSourceIdApiEventArgs args)
 		{
 			SetSourceId(args.Data, eSourceTypeRouted.AudioVideo);
 		}
 
-		private void PanelOnSetVolumeLevel(object sender, FloatEventArgs args)
-		{
-			IVolumePositionDeviceControl control = VolumeControl as IVolumePositionDeviceControl;
-
-			if (control != null)
-				control.SetVolumePosition(args.Data);
-		}
-
-		private void PanelOnSetVolumeRampUp(object sender, EventArgs args)
-		{
-			// todo: fix ramping RPC issues and re-enable ramping
-			
-			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
-			if (control != null)
-				control.VolumeLevelIncrement(4);
-			
-			/*
-			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
-			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
-
-			if (controlLvl != null)
-				controlLvl.VolumePositionRampUp(0.03f);
-			else if (control != null)
-				control.VolumeRampUp();
-			*/
-			
-		}
-
-		private void PanelOnSetVolumeRampDown(object sender, EventArgs args)
-		{
-			// todo: fix ramping RPC issues and re-enable ramping
-
-			
-			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
-			if (control != null)
-				control.VolumeLevelDecrement(4);
-			
-			/*
-			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
-			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
-
-			if (controlLvl != null)
-				controlLvl.VolumePositionRampDown(0.03f);
-			else if (control != null)
-				control.VolumeRampDown();
-			*/
-			
-		}
-
-		private void PanelOnSetVolumeRampStop(object sender, EventArgs args)
-		{
-			// todo: fix ramping RPC issues and re-enable ramping
-
-			/*
-			IVolumeRampDeviceControl control = VolumeControl as IVolumeRampDeviceControl;
-
-			if (control != null)
-				control.VolumeRampStop();
-			*/
-			
-		}
-
-		private void PanelOnSetVolumeMute(object sender, BoolEventArgs args)
-		{
-			IVolumeMuteDeviceControl control = VolumeControl as IVolumeMuteDeviceControl;
-
-			if (control != null)
-				control.SetVolumeMute(args.Data);
-		}
-
-		private void PanelOnSetVolumeMuteToggle(object sender, EventArgs args)
-		{
-			IVolumeMuteBasicDeviceControl control = VolumeControl as IVolumeMuteBasicDeviceControl;
-
-			if (control != null)
-				control.VolumeMuteToggle();
-		}
+		
 
 		#endregion
 	}

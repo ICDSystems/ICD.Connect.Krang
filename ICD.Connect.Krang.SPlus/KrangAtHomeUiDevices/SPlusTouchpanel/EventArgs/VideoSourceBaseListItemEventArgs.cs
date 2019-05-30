@@ -9,7 +9,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 		/// Constructor.
 		/// </summary>
 		/// <param name="data"></param>
-		public VideoSourceBaseListItemEventArgs(SourceBaseListInfo data) : base(SPlusTouchpanelDeviceApi.EVENT_VIDEO_SOURCE_LIST_ITEM, data)
+		public VideoSourceBaseListItemEventArgs(SourceBaseListInfo data) : base(data)
 		{
 		}
 	}

@@ -1,30 +1,24 @@
 ﻿using System;
-using ICD.Common.Utils.EventArguments;
+using ICD.Connect.API.Attributes;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy;
+using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 {
-	public interface IKrangAtHomeUiDevice
+	public interface IKrangAtHomeUiDevice : IOriginator
 	{
 
 		#region Events
 
-		event EventHandler<IntEventArgs> OnSetRoomId;
+		[ApiEvent(SPlusUiDeviceApi.EVENT_SET_ROOM_ID, SPlusUiDeviceApi.HELP_EVENT_SET_ROOM_ID)]
+		event EventHandler<SetRoomIdApiEventArgs> OnSetRoomId;
 
-		event EventHandler<IntEventArgs> OnSetAudioSourceId;
+		[ApiEvent(SPlusUiDeviceApi.EVENT_SET_AUDIO_SOURCE_ID, SPlusUiDeviceApi.HELP_EVENT_SET_AUDIO_SOURCE_ID)]
+		event EventHandler<SetAudioSourceIdApiEventArgs> OnSetAudioSourceId;
 
-		event EventHandler<IntEventArgs> OnSetVideoSourceId;
-
-		event EventHandler<FloatEventArgs> OnSetVolumeLevel;
-
-		event EventHandler OnSetVolumeRampUp;
-
-		event EventHandler OnSetVolumeRampDown;
-
-		event EventHandler OnSetVolumeRampStop;
-
-		event EventHandler<BoolEventArgs> OnSetVolumeMute;
-
-		event EventHandler OnSetVolumeMuteToggle;
+		[ApiEvent(SPlusUiDeviceApi.EVENT_SET_VIDEO_SOURCE_ID, SPlusUiDeviceApi.HELP_EVENT_SET_VIDEO_SOURCE_ID)]
+		event EventHandler<SetVideoSourceIdApiEventArgs> OnSetVideoSourceId;
 
 		#endregion
 

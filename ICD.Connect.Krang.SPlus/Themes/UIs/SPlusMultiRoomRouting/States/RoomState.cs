@@ -163,7 +163,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 				muteFeedbackControl.OnMuteStateChanged += MuteFeedbackControlOnMuteStateChanged;
 		}
 
-		private void MuteFeedbackControlOnMuteStateChanged(object sender, BoolEventArgs boolEventArgs)
+		private void MuteFeedbackControlOnMuteStateChanged(object sender, MuteDeviceMuteStateChangedApiEventArgs boolEventArgs)
 		{
 			Muted = boolEventArgs.Data;
 		}

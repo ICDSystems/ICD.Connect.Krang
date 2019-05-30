@@ -1,6 +1,5 @@
 ﻿using System;
-using ICD.Connect.API.EventArguments;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy;
+using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Krang.SPlus.OriginatorInfo.Devices;
 using ICD.Connect.Krang.SPlus.Routing.Endpoints.Sources;
 
@@ -12,9 +11,27 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 		public int AudioIndex { get; set; }
 		public int VideoIndex { get; set; }
 		public SourceInfo SourceInfo { get; set; }
+
+		public SourceSelected(SourceInfo sourceInfo, int audioIndex, int videoIndex)
+		{
+			SourceInfo = sourceInfo;
+			AudioIndex = audioIndex;
+			VideoIndex = videoIndex;
+		}
+
+		public SourceSelected(IKrangAtHomeSource source, int audioIndex, int videoIndex)
+		{
+			SourceInfo = new SourceInfo(source);
+			AudioIndex = audioIndex;
+			VideoIndex = videoIndex;
+		}
+
+		public SourceSelected()
+		{
+		}
 	}
 
-	public sealed class SourceSelectedEventArgs : AbstractGenericApiEventArgs<SourceSelected>
+	public sealed class SourceSelectedEventArgs : GenericEventArgs<SourceSelected>
 	{
 
 		public int AudioIndex { get { return Data.AudioIndex; } }
@@ -22,28 +39,18 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 
 		public SourceInfo SourceInfo { get { return Data.SourceInfo; } }
 
-		public SourceSelectedEventArgs(SourceSelected source) : base(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, source)
+		public SourceSelectedEventArgs(SourceSelected source) : base(source)
 		{
 			
 		}
 
 		public SourceSelectedEventArgs(IKrangAtHomeSource source, int audioIndex, int videoIndex)
-			: base(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, new SourceSelected
-			{
-				AudioIndex =  audioIndex,
-				VideoIndex =  videoIndex,
-				SourceInfo = new SourceInfo(source)
-			})
+			: base(new SourceSelected(source, audioIndex,videoIndex))
 		{
 		}
 
 		public SourceSelectedEventArgs(SourceInfo sourceInfo, int audioIndex, int videoIndex)
-			: base(SPlusTouchpanelDeviceApi.EVENT_SOURCE_SELECTED, new SourceSelected
-			{
-				AudioIndex = audioIndex,
-				VideoIndex = videoIndex,
-				SourceInfo = sourceInfo
-			})
+			: base(new SourceSelected(sourceInfo, audioIndex, videoIndex))
 		{
 		}
 	}
