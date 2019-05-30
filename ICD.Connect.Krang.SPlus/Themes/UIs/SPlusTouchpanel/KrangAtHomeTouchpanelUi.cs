@@ -70,6 +70,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 
 		#region Methods
 
+		protected override float IncrementValue { get { return 4; } }
 
 		/// <summary>
 		/// Release resources.
