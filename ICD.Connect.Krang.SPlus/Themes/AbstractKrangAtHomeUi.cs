@@ -35,6 +35,8 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		protected IVolumeMuteFeedbackDeviceControl VolumeMuteFeedbackControl { get; set; }
 
+		protected abstract float IncrementValue { get; }
+
 		#endregion
 
 		/// <summary>
@@ -342,7 +344,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelIncrement(4);
+				control.VolumeLevelIncrement(IncrementValue);
 			
 			/*
 			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
@@ -363,7 +365,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelDecrement(4);
+				control.VolumeLevelDecrement(IncrementValue);
 			
 			/*
 			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
