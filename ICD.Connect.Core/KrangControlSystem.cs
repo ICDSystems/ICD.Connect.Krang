@@ -70,7 +70,10 @@ namespace ICD.Connect.Core
 		private object Start(object unused)
 		{
 			m_Bootstrap.Start();
+
 			SystemMonitor.ProgramInitialization.ProgramInitializationComplete = true;
+			IcdEnvironment.SetProgramInitializationComplete();
+
 			return null;
 		}
 
