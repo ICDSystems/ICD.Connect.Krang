@@ -14,8 +14,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote
 			Subscribe(UiDevice);
 		}
 
-		protected override float IncrementValue { get { return 2; } }
-
 		protected override void RaiseRoomInfo()
 		{
 			UiDevice.RaiseRoomChanged(new RoomInfo(Room));
