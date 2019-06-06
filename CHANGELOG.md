@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [12.2.0] - 2019-05-24
+### Added
+ - Added localization settings to Krang Configuration
+ 
+### Changed
+ - Renamed Core directory to Cores for consistency
+ - Failing gracefully when a cofigured localization is not valid
+
 ## [12.1.0] - 2019-02-13
 ### Added
  - Added VolumePoints to the core console
@@ -17,6 +25,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2019-01-10
 ### Changed
  - Core namespace renamed
+
+## [11.4.0] - 2019-06-06
+### Added
+ - Setting the program initialization complete state as final step in program start
 
 ## [11.3.0] - 2019-05-17
 ### Added

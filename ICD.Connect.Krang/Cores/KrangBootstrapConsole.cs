@@ -14,7 +14,7 @@ using Crestron.SimplSharp.Reflection;
 using System.Reflection;
 #endif
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Cores
 {
 	public static class KrangBootstrapConsole
 	{
