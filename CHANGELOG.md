@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [11.4.0] - 2019-06-06
 ### Added
  - Setting the program initialization complete state as final step in program start
 
