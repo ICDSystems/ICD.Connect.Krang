@@ -40,6 +40,8 @@ namespace ICD.Connect.Core
 
 			s_Bootstrap.Start();
 
+			IcdEnvironment.SetProgramInitializationComplete();
+
 			while (true)
 			{
 				string command = Console.ReadLine();
