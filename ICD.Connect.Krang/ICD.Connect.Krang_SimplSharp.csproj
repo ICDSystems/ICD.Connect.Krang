@@ -80,7 +80,6 @@
     <Compile Include="Remote\Direct\Disconnect\DisconnectData.cs" />
     <Compile Include="Remote\InterCoreCommunication.cs" />
     <Compile Include="Remote\RemoteCore.cs" />
-    <Compile Include="Remote\RemoteCoreCollection.cs" />
     <Compile Include="Cores\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
     <Compile Include="Remote\Broadcast\AbstractBroadcastHandler.cs" />
@@ -107,10 +106,6 @@
     <Compile Include="Devices\RemoteSwitcher.cs" />
     <Compile Include="Devices\RemoteSwitcherControl.cs" />
     <Compile Include="Devices\RemoteSwitcherSettings.cs" />
-    <Compile Include="Rooms\SimplRoom.cs" />
-    <Compile Include="Rooms\SimplRoomSettings.cs" />
-    <Compile Include="Routing\Endpoints\Sources\SimplSource.cs" />
-    <Compile Include="Routing\Endpoints\Sources\SimplSourceSettings.cs" />
     <Compile Include="Cores\KrangCore.cs" />
     <Compile Include="Cores\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
