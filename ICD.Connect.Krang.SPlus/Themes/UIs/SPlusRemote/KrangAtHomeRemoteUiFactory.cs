@@ -3,7 +3,7 @@ using ICD.Connect.Krang.SPlus.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote
 {
-	public sealed class KrangAtHomeRemoteUiFactory : AbstractKrangAtHomeUiFactory<KrangAtHomeRemoteUi, KrangAtHomeSPlusRemoteDevice>
+	public sealed class KrangAtHomeRemoteUiFactory : AbstractKrangAtHomeUiFactory<KrangAtHomeRemoteUi, IKrangAtHomeSPlusRemoteDevice>
 	{
 		/// <summary>
 		/// Constructor.
@@ -18,7 +18,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusRemote
 		/// </summary>
 		/// <param name="originator"></param>
 		/// <returns></returns>
-		protected override KrangAtHomeRemoteUi CreateUserInterface(KrangAtHomeSPlusRemoteDevice originator)
+		protected override KrangAtHomeRemoteUi CreateUserInterface(IKrangAtHomeSPlusRemoteDevice originator)
 		{
 			return new KrangAtHomeRemoteUi(Theme, originator);
 		}

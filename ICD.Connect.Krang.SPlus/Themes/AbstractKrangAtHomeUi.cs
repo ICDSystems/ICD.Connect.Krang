@@ -2,6 +2,7 @@
 using ICD.Common.Properties;
 using ICD.Common.Utils.EventArguments;
 using ICD.Connect.Audio.Controls.Volume;
+using ICD.Connect.Devices.Controls;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
 using ICD.Connect.Krang.SPlus.Rooms;
@@ -149,8 +150,13 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		private void SetVolumeControl(IVolumeDeviceControl activeVolumeControl)
 		{
-			// todo: Pass volume control info to device for direct control
-			throw new NotImplementedException();
+			if (activeVolumeControl != null)
+				UiDevice.SetVolumeControl(activeVolumeControl.DeviceControlInfo);
+			else
+			{
+				DeviceControlInfo info = new DeviceControlInfo(0,0);
+				UiDevice.SetVolumeControl(info);
+			}
 		}
 
 		/// <summary>

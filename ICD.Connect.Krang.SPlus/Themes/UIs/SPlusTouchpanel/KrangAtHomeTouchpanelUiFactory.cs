@@ -3,7 +3,7 @@ using ICD.Connect.Krang.SPlus.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 {
-	public sealed class KrangAtHomeTouchpanelUiFactory : AbstractKrangAtHomeUiFactory<KrangAtHomeTouchpanelUi, KrangAtHomeSPlusTouchpanelDevice>
+	public sealed class KrangAtHomeTouchpanelUiFactory : AbstractKrangAtHomeUiFactory<KrangAtHomeTouchpanelUi, IKrangAtHomeSPlusTouchpanelDevice>
 	{
 		/// <summary>
 		/// Constructor.
@@ -18,7 +18,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// </summary>
 		/// <param name="originator"></param>
 		/// <returns></returns>
-		protected override KrangAtHomeTouchpanelUi CreateUserInterface(KrangAtHomeSPlusTouchpanelDevice originator)
+		protected override KrangAtHomeTouchpanelUi CreateUserInterface(IKrangAtHomeSPlusTouchpanelDevice originator)
 		{
 			return new KrangAtHomeTouchpanelUi(Theme, originator);
 		}

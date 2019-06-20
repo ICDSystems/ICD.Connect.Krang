@@ -2,6 +2,7 @@ using System;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
 using ICD.Connect.API.Info;
+using ICD.Connect.Devices.Controls;
 using ICD.Connect.Devices.Proxies.Devices;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
@@ -14,6 +15,12 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy
 		public event EventHandler<SetRoomIdApiEventArgs> OnSetRoomId;
 		public event EventHandler<SetAudioSourceIdApiEventArgs> OnSetAudioSourceId;
 		public event EventHandler<SetVideoSourceIdApiEventArgs> OnSetVideoSourceId;
+		
+		
+		public void SetVolumeControl(DeviceControlInfo controlInfo)
+		{
+			CallMethod(SPlusUiDeviceApi.METHOD_SET_VOLUME_CONTROL, controlInfo);
+		}
 
 		/// <summary>
 		/// Override to build initialization commands on top of the current class info.

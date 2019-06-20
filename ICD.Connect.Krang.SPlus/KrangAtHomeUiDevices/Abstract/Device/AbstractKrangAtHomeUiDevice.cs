@@ -1,10 +1,15 @@
 ﻿using System;
-using ICD.Common.Utils.EventArguments;
+using System.Collections.Generic;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Audio.Controls.Mute;
 using ICD.Connect.Audio.Controls.Volume;
+using ICD.Connect.Devices.Controls;
+using ICD.Connect.Devices.Extensions;
 using ICD.Connect.Devices.Simpl;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 {
@@ -17,6 +22,31 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 		public event EventHandler<SetRoomIdApiEventArgs> OnSetRoomId;
 		public event EventHandler<SetAudioSourceIdApiEventArgs> OnSetAudioSourceId;
 		public event EventHandler<SetVideoSourceIdApiEventArgs> OnSetVideoSourceId;
+		
+		public void SetVolumeControl(DeviceControlInfo controlInfo)
+		{
+			if (controlInfo.DeviceId == 0)
+			{
+				SetVolumeControl(null);
+				return;
+			}
+
+			IVolumeDeviceControl control = null;
+
+			try
+			{
+				control = ServiceProvider.GetService<ICore>().GetControl<IVolumeDeviceControl>(controlInfo);
+			}
+			catch (KeyNotFoundException)
+			{
+				Log(eSeverity.Error, "Volume control not found at {0}", VolumeControl);
+			}
+			catch (InvalidCastException)
+			{
+				Log(eSeverity.Error, "Control at {0} is not a volume control", VolumeControl);
+			}
+			SetVolumeControl(control);
+		}
 
 		#endregion
 
@@ -24,6 +54,8 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 		public IVolumePositionDeviceControl VolumePositionControl { get; private set; }
 
 		public IVolumeMuteFeedbackDeviceControl VolumeMuteFeedbackControl { get; private set; }
+
+		public abstract float IncrementValue { get; }
 
 		#region Methods From Shim
 
@@ -56,7 +88,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelIncrement(4);
+				control.VolumeLevelIncrement(IncrementValue);
 
 			/*
 			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
@@ -76,7 +108,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 
 			IVolumeLevelDeviceControl control = VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				control.VolumeLevelDecrement(4);
+				control.VolumeLevelDecrement(IncrementValue);
 
 			/*
 			IVolumeLevelDeviceControl controlLvl = VolumeControl as IVolumeLevelDeviceControl;
