@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
-using ICD.Connect.Krang.SPlus.Rooms;
+using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Themes.UserInterfaceFactories;
+using ICD.Connect.Themes.UserInterfaces;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 {
-	public sealed class KrangAtHomeMultiRoomRoutingUiFactory : IKrangAtHomeUserInterfaceFactory
+	public sealed class KrangAtHomeMultiRoomRoutingUiFactory : AbstractUserInterfaceFactory, IKrangAtHomeUserInterfaceFactory
 	{
 		private readonly KrangAtHomeTheme m_Theme;
 
@@ -19,7 +21,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		/// <summary>
 		/// Disposes the instantiated UIs.
 		/// </summary>
-		public void Clear()
+		public override void Clear()
 		{
 			if (m_UserInterface != null)
 				m_UserInterface.Dispose();
@@ -30,7 +32,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		/// Instantiates the user interfaces for the originators in the core.
 		/// </summary>
 		/// <returns></returns>
-		public void BuildUserInterfaces()
+		public override void BuildUserInterfaces()
 		{
 			Clear();
 
@@ -38,16 +40,31 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		}
 
 		/// <summary>
+		/// Gets the instantiated user interfaces.
+		/// </summary>
+		public override IEnumerable<IUserInterface> GetUserInterfaces()
+		{
+			yield return m_UserInterface;
+		}
+
+		/// <summary>
 		/// Assigns the rooms to the existing user interfaces.
 		/// </summary>
-		void IKrangAtHomeUserInterfaceFactory.ReassignUserInterfaces()
+		public override void ReassignUserInterfaces()
 		{
 		}
 
 		/// <summary>
 		/// Assigns the rooms to the existing user interfaces.
 		/// </summary>
-		void IKrangAtHomeUserInterfaceFactory.AssignUserInterfaces(IEnumerable<IKrangAtHomeRoom> rooms)
+		public override void AssignUserInterfaces(IEnumerable<IRoom> rooms)
+		{
+		}
+
+		/// <summary>
+		/// Activates this user interface.
+		/// </summary>
+		public override void ActivateUserInterfaces()
 		{
 		}
 	}
