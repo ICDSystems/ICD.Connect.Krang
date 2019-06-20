@@ -6,7 +6,9 @@ using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
+using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Originators;
+using ICD.Connect.Themes.UserInterfaces;
 
 namespace ICD.Connect.Krang.SPlus.Themes
 {
@@ -27,7 +29,17 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 		protected KrangAtHomeTheme Theme {get { return m_Theme; }}
 
+		/// <summary>
+		/// Gets the room attached to this UI.
+		/// </summary>
+		IRoom IUserInterface.Room { get { return Room; } }
+
 		protected IKrangAtHomeRoom Room { get; set; }
+
+		/// <summary>
+		/// Gets the target instance attached to this UI (i.e. the Panel, KeyPad, etc).
+		/// </summary>
+		public object Target { get; private set; }
 
 		protected IVolumeDeviceControl VolumeControl { get; set; }
 
@@ -60,6 +72,14 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			Unsubscribe(m_UiDevice);
 
 			SetRoom(null);
+		}
+
+		/// <summary>
+		/// Tells the UI that it should be considered ready to use.
+		/// For example updating the online join on a panel or starting a long-running process that should be delayed.
+		/// </summary>
+		public void Activate()
+		{
 		}
 
 		#endregion
@@ -129,6 +149,15 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		#endregion
 
 		#region Private Methods
+
+		/// <summary>
+		/// Updates the UI to represent the given room.
+		/// </summary>
+		/// <param name="room"></param>
+		public void SetRoom(IRoom room)
+		{
+			SetRoom(room as IKrangAtHomeRoom);
+		}
 
 		/// <summary>
 		/// Sets the current room for routing operations.
