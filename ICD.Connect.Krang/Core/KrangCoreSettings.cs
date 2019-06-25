@@ -318,7 +318,6 @@ namespace ICD.Connect.Krang.Core
 				roomSettings.Panels.Remove(eventArgs.Data.Id);
 				roomSettings.Sources.Remove(eventArgs.Data.Id);
 				roomSettings.Destinations.Remove(eventArgs.Data.Id);
-				roomSettings.Partitions.Remove(eventArgs.Data.Id);
 				roomSettings.VolumePoints.Remove(eventArgs.Data.Id);
 			}
 		}
