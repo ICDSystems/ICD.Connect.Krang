@@ -5,7 +5,6 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
-using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Globalization;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
