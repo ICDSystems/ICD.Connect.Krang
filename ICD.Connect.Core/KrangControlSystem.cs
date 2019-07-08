@@ -1,10 +1,10 @@
-﻿#if SIMPLSHARP
+﻿using ICD.Connect.Krang.Cores;
+#if SIMPLSHARP
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.Diagnostics;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
-using ICD.Connect.Krang.Core;
 using ICD.Connect.Misc.CrestronPro;
 
 namespace ICD.Connect.Core
@@ -70,7 +70,10 @@ namespace ICD.Connect.Core
 		private object Start(object unused)
 		{
 			m_Bootstrap.Start();
+
 			SystemMonitor.ProgramInitialization.ProgramInitializationComplete = true;
+			IcdEnvironment.SetProgramInitializationComplete();
+
 			return null;
 		}
 
