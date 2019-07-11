@@ -129,6 +129,8 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_SET_AUDIO_SOURCE_INDEX)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_SET_VIDEO_SOURCE_INDEX)
 							 .Complete();
+
+			RaiseOnRequestRefresh();
 		}
 
 		/// <summary>
