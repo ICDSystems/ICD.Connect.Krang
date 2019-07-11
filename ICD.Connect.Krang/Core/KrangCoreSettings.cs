@@ -18,10 +18,9 @@ using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Header;
-using ICD.Connect.Settings.Utils;
 using ICD.Connect.Themes;
 
-namespace ICD.Connect.Krang.Cores
+namespace ICD.Connect.Krang.Core
 {
 	/// <summary>
 	/// Settings for the Krang core.
@@ -52,12 +51,10 @@ namespace ICD.Connect.Krang.Cores
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
 
-		private const string LOCALIZATION_ELEMENT = "Localization";
 		private const string BROADCAST_ELEMENT = "Broadcast";
 
 		private readonly SettingsCollection m_OriginatorSettings;
 		private readonly ConfigurationHeader m_Header;
-		private readonly LocalizationSettings m_LocalizationSettings;
 		private readonly BroadcastSettings m_BroadcastSettings;
 
 		#region Properties
@@ -80,11 +77,6 @@ namespace ICD.Connect.Krang.Cores
 		public ConfigurationHeader Header { get { return m_Header; } }
 
 		/// <summary>
-		/// Gets the localization configuration.
-		/// </summary>
-		public LocalizationSettings LocalizationSettings { get { return m_LocalizationSettings; } }
-
-		/// <summary>
 		/// Gets the broadcasting configuration.
 		/// </summary>
 		public BroadcastSettings BroadcastSettings { get { return m_BroadcastSettings; } }
@@ -98,7 +90,6 @@ namespace ICD.Connect.Krang.Cores
 		{
 			m_OriginatorSettings = new SettingsCollection();
 			m_Header = new ConfigurationHeader();
-			m_LocalizationSettings = new LocalizationSettings();
 			m_BroadcastSettings = new BroadcastSettings();
 
 			m_OriginatorSettings.OnItemRemoved += SettingsOnItemRemoved;
@@ -116,7 +107,6 @@ namespace ICD.Connect.Krang.Cores
 
 			new ConfigurationHeader(true).ToXml(writer, HEADER_ELEMENT);
 
-			LocalizationSettings.ToXml(writer, LOCALIZATION_ELEMENT);
 			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
 
 			GetSettings<IThemeSettings>().ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
@@ -147,7 +137,6 @@ namespace ICD.Connect.Krang.Cores
 			base.ParseXml(xml);
 
 			UpdateHeaderFromXml(m_Header, xml);
-			UpdateLocalizationSettingsFromXml(xml);
 			UpdateBroadcastSettingsFromXml(xml);
 
 			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
@@ -254,15 +243,6 @@ namespace ICD.Connect.Krang.Cores
 			string child;
 			if (XmlUtils.TryGetChildElementAsString(xml, HEADER_ELEMENT, out child))
 				header.ParseXml(child);
-		}
-
-		private void UpdateLocalizationSettingsFromXml(string xml)
-		{
-			m_LocalizationSettings.Clear();
-
-			string child;
-			if (XmlUtils.TryGetChildElementAsString(xml, LOCALIZATION_ELEMENT, out child))
-				m_LocalizationSettings.ParseXml(child);
 		}
 
 		private void UpdateBroadcastSettingsFromXml(string xml)

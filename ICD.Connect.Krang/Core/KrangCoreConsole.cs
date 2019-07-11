@@ -12,7 +12,7 @@ using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Themes;
 
-namespace ICD.Connect.Krang.Cores
+namespace ICD.Connect.Krang.Core
 {
 	public static class KrangCoreConsole
 	{

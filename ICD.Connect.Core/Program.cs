@@ -1,7 +1,7 @@
 ﻿#if !SIMPLSHARP
 using System;
 using ICD.Connect.API;
-using ICD.Connect.Krang.Cores;
+using ICD.Connect.Krang.Core;
 using CommandLine;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
@@ -39,8 +39,6 @@ namespace ICD.Connect.Core
 			Console.CancelKeyPress += (a, b) => s_Bootstrap.Stop();
 
 			s_Bootstrap.Start();
-
-			IcdEnvironment.SetProgramInitializationComplete();
 
 			while (true)
 			{

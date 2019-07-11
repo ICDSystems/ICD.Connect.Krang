@@ -2,7 +2,7 @@
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.Krang.Cores;
+using ICD.Connect.Krang.Core;
 using ICD.Connect.Settings.SPlusShims.GlobalEvents;
 
 namespace ICD.Connect.Krang.SPlus

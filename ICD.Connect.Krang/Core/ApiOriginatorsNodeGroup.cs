@@ -3,7 +3,7 @@ using System.Linq;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Settings.Originators;
 
-namespace ICD.Connect.Krang.Cores
+namespace ICD.Connect.Krang.Core
 {
 	public sealed class ApiOriginatorsNodeGroup<TOriginator> : AbstractApiNodeGroup
 		where TOriginator : class, IOriginator

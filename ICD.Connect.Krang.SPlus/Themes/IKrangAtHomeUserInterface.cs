@@ -1,10 +1,11 @@
-﻿using ICD.Connect.Krang.SPlus.Rooms;
-using ICD.Connect.Themes.UserInterfaces;
+﻿using System;
+using ICD.Connect.Krang.SPlus.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Themes
 {
-	public interface IKrangAtHomeUserInterface : IUserInterface
+	public interface IKrangAtHomeUserInterface : IDisposable
 	{
+
 		/// <summary>
 		/// Updates the UI to represent the given room.
 		/// </summary>

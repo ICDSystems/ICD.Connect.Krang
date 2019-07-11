@@ -21,7 +21,6 @@ using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Themes;
-using ICD.Connect.Themes.UserInterfaceFactories;
 
 namespace ICD.Connect.Krang.SPlus.Themes
 {
@@ -96,14 +95,6 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			Core.Originators.OnChildrenChanged -= OriginatorsOnChildrenChanged;
 
 			base.DisposeFinal(disposing);
-		}
-
-		/// <summary>
-		/// Gets the UI Factories.
-		/// </summary>
-		public override IEnumerable<IUserInterfaceFactory> GetUiFactories()
-		{
-			return m_UiFactoriesSection.Execute(() => m_UiFactories.ToArray());
 		}
 
 		private void OriginatorsOnChildrenChanged(object sender, EventArgs e)

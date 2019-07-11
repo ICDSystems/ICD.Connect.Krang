@@ -4,7 +4,7 @@ using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
-using ICD.Connect.Krang.Cores;
+using ICD.Connect.Krang.Core;
 using ICD.Connect.Krang.Remote.Direct.RouteDevices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;

@@ -4,14 +4,11 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.SPlus.Rooms;
-using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Originators;
-using ICD.Connect.Themes.UserInterfaceFactories;
-using ICD.Connect.Themes.UserInterfaces;
 
 namespace ICD.Connect.Krang.SPlus.Themes
 {
-	public abstract class AbstractKrangAtHomeUiFactory<TUserInterface, TOriginator> : AbstractUserInterfaceFactory, IKrangAtHomeUserInterfaceFactory
+	public abstract class AbstractKrangAtHomeUiFactory<TUserInterface, TOriginator> : IKrangAtHomeUserInterfaceFactory
 		where TUserInterface : IKrangAtHomeUserInterface
 		where TOriginator : IOriginator
 	{
@@ -39,7 +36,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		/// <summary>
 		/// Disposes the instantiated UIs.
 		/// </summary>
-		public override void Clear()
+		public void Clear()
 		{
 			m_UserInterfacesSection.Enter();
 
@@ -58,7 +55,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		/// Instantiates the user interfaces for the originators in the core.
 		/// </summary>
 		/// <returns></returns>
-		public override void BuildUserInterfaces()
+		public void BuildUserInterfaces()
 		{
 			m_UserInterfacesSection.Enter();
 
@@ -85,17 +82,9 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		/// <summary>
 		/// Assigns the rooms to the existing user interfaces.
 		/// </summary>
-		public override void ReassignUserInterfaces()
+		public void ReassignUserInterfaces()
 		{
 			AssignUserInterfaces(GetKrangAtHomeRooms());
-		}
-
-		/// <summary>
-		/// Assigns the rooms to the existing user interfaces.
-		/// </summary>
-		public override void AssignUserInterfaces(IEnumerable<IRoom> rooms)
-		{
-			AssignUserInterfaces(rooms.OfType<IKrangAtHomeRoom>());
 		}
 
 		/// <summary>
@@ -120,14 +109,6 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			{
 				m_UserInterfacesSection.Leave();
 			}
-		}
-
-		/// <summary>
-		/// Gets the instantiated user interfaces.
-		/// </summary>
-		public override IEnumerable<IUserInterface> GetUserInterfaces()
-		{
-			return m_UserInterfacesSection.Execute(() => m_UserInterfaces.Cast<IUserInterface>().ToArray());
 		}
 
 		#endregion
