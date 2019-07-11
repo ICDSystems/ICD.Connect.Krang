@@ -18,6 +18,7 @@ using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Header;
+using ICD.Connect.Settings.Utils;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Core
@@ -327,7 +328,6 @@ namespace ICD.Connect.Krang.Core
 				roomSettings.Panels.Remove(eventArgs.Data.Id);
 				roomSettings.Sources.Remove(eventArgs.Data.Id);
 				roomSettings.Destinations.Remove(eventArgs.Data.Id);
-				roomSettings.Partitions.Remove(eventArgs.Data.Id);
 				roomSettings.VolumePoints.Remove(eventArgs.Data.Id);
 			}
 		}

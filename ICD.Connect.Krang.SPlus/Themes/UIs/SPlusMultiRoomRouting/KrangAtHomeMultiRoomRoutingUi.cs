@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
-using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages;
+using ICD.Connect.Partitioning.Rooms;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 {
@@ -30,15 +30,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 			foreach(KeyValuePair<int, AudioVideoEquipmentPage> kvp in m_Pages)
 				kvp.Value.Dispose();
 		}
-
-		/// <summary>
-		/// Updates the UI to represent the given room.
-		/// </summary>
-		/// <param name="room"></param>
-		void IKrangAtHomeUserInterface.SetRoom(IKrangAtHomeRoom room)
-		{
-		}
-
 
 		#region Console
 		/// <summary>
@@ -78,5 +69,31 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		}
 
 		#endregion
+
+		/// <summary>
+		/// Gets the room attached to this UI.
+		/// </summary>
+		public IRoom Room { get { return null; } }
+
+		/// <summary>
+		/// Gets the target instance attached to this UI (i.e. the Panel, KeyPad, etc).
+		/// </summary>
+		public object Target { get { return null; } }
+
+		/// <summary>
+		/// Updates the UI to represent the given room.
+		/// </summary>
+		/// <param name="room"></param>
+		public void SetRoom(IRoom room)
+		{
+		}
+
+		/// <summary>
+		/// Tells the UI that it should be considered ready to use.
+		/// For example updating the online join on a panel or starting a long-running process that should be delayed.
+		/// </summary>
+		public void Activate()
+		{
+		}
 	}
 }

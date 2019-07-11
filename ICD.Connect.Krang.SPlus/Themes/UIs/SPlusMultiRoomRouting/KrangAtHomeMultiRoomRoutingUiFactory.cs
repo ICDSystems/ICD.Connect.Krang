@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using ICD.Connect.Krang.SPlus.Rooms;
+using ICD.Connect.Partitioning.Rooms;
+using ICD.Connect.Themes.UserInterfaces;
 
 namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 {
@@ -38,16 +40,39 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting
 		}
 
 		/// <summary>
+		/// Gets the instantiated user interfaces.
+		/// </summary>
+		public IEnumerable<IUserInterface> GetUserInterfaces()
+		{
+			yield return m_UserInterface;
+		}
+
+		/// <summary>
 		/// Assigns the rooms to the existing user interfaces.
 		/// </summary>
-		void IKrangAtHomeUserInterfaceFactory.ReassignUserInterfaces()
+		public void ReassignUserInterfaces()
 		{
 		}
 
 		/// <summary>
 		/// Assigns the rooms to the existing user interfaces.
 		/// </summary>
-		void IKrangAtHomeUserInterfaceFactory.AssignUserInterfaces(IEnumerable<IKrangAtHomeRoom> rooms)
+		public void AssignUserInterfaces(IEnumerable<IKrangAtHomeRoom> rooms)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		/// <summary>
+		/// Assigns the rooms to the existing user interfaces.
+		/// </summary>
+		public void AssignUserInterfaces(IEnumerable<IRoom> rooms)
+		{
+		}
+
+		/// <summary>
+		/// Activates this user interface.
+		/// </summary>
+		public void ActivateUserInterfaces()
 		{
 		}
 	}

@@ -1,13 +1,17 @@
 ﻿using System;
 using ICD.Common.Properties;
 using ICD.Common.Utils.EventArguments;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Devices.Controls;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
+using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings.Originators;
+using ICD.Connect.Themes.UserInterfaces;
 
 namespace ICD.Connect.Krang.SPlus.Themes
 {
@@ -29,6 +33,19 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		protected KrangAtHomeTheme Theme {get { return m_Theme; }}
 
 		protected IKrangAtHomeRoom Room { get; set; }
+
+		/// <summary>
+		/// Gets the target instance attached to this UI (i.e. the Panel, KeyPad, etc).
+		/// </summary>
+		public object Target { get { return m_UiDevice; } }
+
+		/// <summary>
+		/// Tells the UI that it should be considered ready to use.
+		/// For example updating the online join on a panel or starting a long-running process that should be delayed.
+		/// </summary>
+		public virtual void Activate()
+		{
+		}
 
 		#endregion
 
@@ -126,10 +143,13 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		/// <summary>
 		/// Sets the current room for routing operations.
 		/// </summary>
-		/// <param name="room"></param>
-		public void SetRoom(IKrangAtHomeRoom room)
+		/// <param name="genericRoom"></param>
+		public void SetRoom(IRoom genericRoom)
 		{
-			//ServiceProvider.GetService<ILoggerService>().AddEntry(eSeverity.Informational, "{0} setting room to {1}", this, room);
+			IKrangAtHomeRoom room = genericRoom as IKrangAtHomeRoom;
+			if (room == null && genericRoom != null)
+				ServiceProvider.GetService<ILoggerService>()
+				               .AddEntry(eSeverity.Error, "{0} Room is not KrangAtHomeRoom: {1}", this, genericRoom);
 
 			if (room == Room)
 				return;
@@ -259,5 +279,10 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		
 
 		#endregion
+
+		/// <summary>
+		/// Gets the room attached to this UI.
+		/// </summary>
+		IRoom IUserInterface.Room { get { return Room; } }
 	}
 }
