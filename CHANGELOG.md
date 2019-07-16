@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Core namespace renamed
 
+## [11.5.0] - 2019-07-16
+### Added
+ - Services are exposed in the console
+ - VolumePoints are exposed in the core console
+
 ## [11.4.0] - 2019-06-06
 ### Added
  - Setting the program initialization complete state as final step in program start
