@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Audio.VolumePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning.Rooms;
@@ -28,6 +29,7 @@ namespace ICD.Connect.Krang.Core
 			yield return ConsoleNodeGroup.KeyNodeMap("Devices", instance.Originators.GetChildren<IDevice>().OfType<IConsoleNode>(), p => (uint)((IDevice)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Ports", instance.Originators.GetChildren<IPort>().OfType<IConsoleNode>(), p => (uint)((IPort)p).Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", instance.Originators.GetChildren<IRoom>().OfType<IConsoleNode>(), p => (uint)((IRoom)p).Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("VolumePoints", instance.Originators.GetChildren<IVolumePoint>().OfType<IConsoleNode>(), p => (uint)((IVolumePoint)p).Id);
 
 			if (instance.RoutingGraph != null)
 				yield return instance.RoutingGraph;
@@ -51,6 +53,7 @@ namespace ICD.Connect.Krang.Core
 			addRow("Device count", instance.Originators.GetChildren<IDevice>().Count());
 			addRow("Port count", instance.Originators.GetChildren<IPort>().Count());
 			addRow("Room count", instance.Originators.GetChildren<IRoom>().Count());
+			addRow("Volume Point count", instance.Originators.GetChildren<IVolumePoint>().Count());
 		}
 
 		/// <summary>
