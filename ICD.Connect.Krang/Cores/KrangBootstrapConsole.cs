@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
+using ICD.Common.Utils.Services;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Settings;
@@ -31,6 +32,7 @@ namespace ICD.Connect.Krang.Cores
 			yield return instance.Krang;
 			yield return instance.BroadcastManager;
 			yield return instance.LicenseManager;
+			yield return ConsoleNodeGroup.IndexNodeMap("Services", ServiceProvider.GetServices().OfType<IConsoleNodeBase>().OrderBy(s => s.GetType().Name));
 		}
 
 		/// <summary>
