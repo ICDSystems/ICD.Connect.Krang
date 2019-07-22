@@ -113,6 +113,13 @@
     <Compile Include="SPlusKrangEventRelay.cs" />
     <Compile Include="RoomGroups\SPlusRoomGroup.cs" />
     <Compile Include="RoomGroups\SPlusRoomGroupSettings.cs" />
+    <Compile Include="SPlusRoomGroupControl\Device\SPlusRoomGroupControlDevice.cs" />
+    <Compile Include="SPlusRoomGroupControl\Device\SPlusRoomGroupControlDeviceSettings.cs" />
+    <Compile Include="SPlusRoomGroupControl\ISPlusRoomGroupControl.cs" />
+    <Compile Include="SPlusRoomGroupControl\Proxy\ProxySPlusRoomGroupControl.cs" />
+    <Compile Include="SPlusRoomGroupControl\Proxy\ProxySPlusRoomGroupControlSettings.cs" />
+    <Compile Include="SPlusRoomGroupControl\Proxy\SPlusRoomGroupControlApi.cs" />
+    <Compile Include="SPlusRoomGroupControl\Shim\SPlusRoomGroupControlShim.cs" />
     <Compile Include="SPlusRoomInfo\Device\ISPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfo.cs" />
     <Compile Include="SPlusRoomInfo\Device\SPlusRoomInfoSettings.cs" />
