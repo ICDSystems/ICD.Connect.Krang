@@ -1,19 +1,47 @@
 ﻿using System;
-using ICD.Connect.API.Attributes;
+using System.Collections.Generic;
+using ICD.Common.Utils.Services;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.SPlus.RoomGroups;
 using ICD.Connect.Krang.SPlus.Rooms;
 using ICD.Connect.Krang.SPlus.Routing;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Settings;
+using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Originators.Simpl;
 
 namespace ICD.Connect.Krang.SPlus.SPlusRoomGroupControl.Device
 {
 	public sealed class SPlusRoomGroupControlDevice : AbstractDevice<SPlusRoomGroupControlDeviceSettings>, ISimplOriginator, ISPlusRoomGroupControl
 	{
+		private int m_RoomGroupId;
+		
+		private SPlusRoomGroup m_CachedRoomGroup;
+		 
+		// Load room group at runtime to prevent cyclic dependency
+		private SPlusRoomGroup RoomGroup
+		{
+			get
+			{
+				if (m_CachedRoomGroup == null)
+					m_CachedRoomGroup = CachedCore.Originators.GetChild<SPlusRoomGroup>(m_RoomGroupId);
+				return m_CachedRoomGroup;
+			}
+		}
 
-		private SPlusRoomGroup m_RoomGroup;
+		private ICore m_CachedCore;
+
+		private ICore CachedCore
+		{
+			get
+			{
+				if (m_CachedCore == null)
+					m_CachedCore = ServiceProvider.TryGetService<ICore>();
+				return m_CachedCore;
+			}
+		}
 
 		/// <summary>
 		/// Gets the current online status of the device.
@@ -35,10 +63,10 @@ namespace ICD.Connect.Krang.SPlus.SPlusRoomGroupControl.Device
 
 		public void SetSource(IKrangAtHomeSourceBase source, eSourceTypeRouted routed)
 		{
-			if (m_RoomGroup == null)
+			if (RoomGroup == null)
 				return;
 
-			foreach (IRoom room in m_RoomGroup.GetRooms())
+			foreach (IRoom room in RoomGroup.GetRooms())
 			{
 				IKrangAtHomeRoom krangRoom = room as IKrangAtHomeRoom;
 				if (krangRoom == null)
@@ -46,6 +74,12 @@ namespace ICD.Connect.Krang.SPlus.SPlusRoomGroupControl.Device
 				
 				krangRoom.SetSource(source, routed);
 			}
+		}
+
+		public void SetSource(int sourceId, eSourceTypeRouted routed)
+		{
+			IKrangAtHomeSourceBase source = CachedCore.Originators.GetChild<IKrangAtHomeSourceBase>(sourceId);
+            SetSource(source, routed);       
 		}
 
 		#endregion
@@ -60,7 +94,8 @@ namespace ICD.Connect.Krang.SPlus.SPlusRoomGroupControl.Device
 		{
 			base.ApplySettingsFinal(settings, factory);
 
-			m_RoomGroup = factory.GetOriginatorById<SPlusRoomGroup>(settings.RoomGroupId);
+			m_RoomGroupId = settings.RoomGroupId;
+			//RoomGroup = factory.GetOriginatorById<SPlusRoomGroup>(settings.RoomGroupId);
 		}
 
 		/// <summary>
@@ -70,7 +105,8 @@ namespace ICD.Connect.Krang.SPlus.SPlusRoomGroupControl.Device
 		{
 			base.ClearSettingsFinal();
 
-			m_RoomGroup = null;
+			m_RoomGroupId = 0;
+			//RoomGroup = null;
 		}
 
 		/// <summary>
@@ -81,8 +117,50 @@ namespace ICD.Connect.Krang.SPlus.SPlusRoomGroupControl.Device
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.RoomGroupId = m_RoomGroup == null ? 0 : m_RoomGroup.Id;
+			settings.RoomGroupId = m_RoomGroupId;
+			//settings.RoomGroupId = RoomGroup == null ? 0 : RoomGroup.Id;
 		}
+		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			foreach (IConsoleNodeBase node in GetBaseConsoleNodes())
+				yield return node;
+
+			if (RoomGroup != null)
+				yield return RoomGroup;
+		}
+
+		private IEnumerable<IConsoleNodeBase> GetBaseConsoleNodes()
+		{
+			return base.GetConsoleNodes();
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			foreach (IConsoleCommand command in GetBaseConsoleCommands())
+				yield return command;
+
+			yield return new ConsoleCommand("AllOff", "Turns off all rooms in the group", () => AllOff());
+			yield return
+				new GenericConsoleCommand<int,eSourceTypeRouted>("SetSource", "Sets the given source id to all rooms", (s,t) => SetSource(s,t));
+		}
+
+		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
+		{
+			return base.GetConsoleCommands();
+		}
+
 		#endregion
 	}
 }
