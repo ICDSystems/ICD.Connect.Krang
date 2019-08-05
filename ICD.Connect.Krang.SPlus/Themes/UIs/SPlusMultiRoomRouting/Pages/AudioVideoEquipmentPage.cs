@@ -212,7 +212,12 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.Pages
 
 		private void Unsubscribe(KrangAtHomeTheme theme)
 		{
-			theme.KrangAtHomeRouting.OnSourceRoomsUsedUpdated -= KrangAtHomeRoutingOnSourceRoomsUsedUpdated;
+			if (theme == null)
+				return;
+
+			KrangAtHomeRouting routing = theme.KrangAtHomeRouting;
+			if (routing != null)
+				routing.OnSourceRoomsUsedUpdated -= KrangAtHomeRoutingOnSourceRoomsUsedUpdated;
 		}
 
 		private void KrangAtHomeRoutingOnSourceRoomsUsedUpdated(object sender, SourceRoomsUsedUpdatedEventArgs eventArgs)
