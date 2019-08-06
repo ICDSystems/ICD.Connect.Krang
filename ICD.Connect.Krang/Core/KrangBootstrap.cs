@@ -196,11 +196,11 @@ namespace ICD.Connect.Krang.Core
 		/// Returns true if we loaded a valid license file.
 		/// </summary>
 		/// <returns></returns>
-		private bool ValidateLicense()
+		private bool ValidateLicense(string licensePath)
 		{
 #if LICENSING
-			LicenseManager.LoadLicense(FileOperations.LicensePath);
-			return LicenseManager.IsValid();
+				LicenseManager.LoadLicense(licensePath);
+				return LicenseManager.IsValid();
 #else
 			return true;
 #endif
