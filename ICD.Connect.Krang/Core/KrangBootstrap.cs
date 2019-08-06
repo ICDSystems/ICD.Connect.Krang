@@ -84,9 +84,16 @@ namespace ICD.Connect.Krang.Core
 
 			NvramMigration.Migrate(m_Logger);
 
-			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
-			if (!ValidateLicense())
-				return;
+			//Check for system key file and ensure file is valid, else if check for license file and ensure file is valid, otherwise return.
+			if (IcdFile.Exists(FileOperations.SystemKeyPath) && ValidateLicense(FileOperations.SystemKeyPath))
+				ProgramUtils.PrintProgramInfoLine("System Key", FileOperations.SystemKeyPath);
+			else if (IcdFile.Exists(FileOperations.LicensePath) && ValidateLicense(FileOperations.LicensePath))
+				ProgramUtils.PrintProgramInfoLine("System Key", FileOperations.LicensePath);
+			else
+			{
+				if(!ValidateLicense(""))
+					return;
+			}
 
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
