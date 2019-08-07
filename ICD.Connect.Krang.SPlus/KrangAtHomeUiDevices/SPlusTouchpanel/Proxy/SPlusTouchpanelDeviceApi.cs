@@ -3,7 +3,7 @@
 	public static class SPlusTouchpanelDeviceApi
 	{
 
-		public const string EVENT_REQUEST_REFRESH = "OnRequestRefresh";
+		
 		public const string EVENT_SET_ROOM_INDEX = "OnSetRoomIndex";
 		public const string EVENT_SET_AUDIO_SOURCE_INDEX = "OnSetAuidoSourceIndex";
 		public const string EVENT_SET_VIDEO_SOURCE_INDEX = "OnSetVideoSoruceIndex";
@@ -18,7 +18,7 @@
 
 
 
-		public const string HELP_EVENT_REQUEST_REFRESH = "";
+		
 		public const string HELP_EVENT_SET_ROOM_INDEX = "";
 		public const string HELP_EVENT_SET_AUDIO_SOURCE_INDEX = "";
 		public const string HELP_EVENT_SET_VIDEO_SOURCE_INDEX = "";

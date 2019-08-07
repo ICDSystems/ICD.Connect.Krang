@@ -1,5 +1,6 @@
 ﻿using System;
 using ICD.Common.Properties;
+using ICD.Common.Utils;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -161,11 +162,16 @@ namespace ICD.Connect.Krang.SPlus.Themes
 
 			// Update Volume Control
 			if (Room != null)
-			{
 				SetVolumeControl(Room.ActiveVolumeControl);
-			}
+			else
+				SetVolumeControl(null);
 
 			RaiseRoomInfo();
+		}
+
+		private void SetVolumeControl()
+		{
+			SetVolumeControl(Room == null ? null : Room.ActiveVolumeControl);
 		}
 
 		private void SetVolumeControl(IVolumeDeviceControl activeVolumeControl)
@@ -244,7 +250,8 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		{
 			if (panel == null)
 				return;
-
+			
+			panel.OnRequestRefresh += PanelOnRequestRefresh;
 			panel.OnSetRoomId += PanelOnSetRoomId;
 			panel.OnSetAudioSourceId += PanelOnSetAudioSourceId;
 			panel.OnSetVideoSourceId += PanelOnSetVideoSourceId;
@@ -255,6 +262,7 @@ namespace ICD.Connect.Krang.SPlus.Themes
 			if (panel == null)
 				return;
 
+			panel.OnRequestRefresh -= PanelOnRequestRefresh;
 			panel.OnSetRoomId -= PanelOnSetRoomId;
 			panel.OnSetAudioSourceId -= PanelOnSetAudioSourceId;
 			panel.OnSetVideoSourceId -= PanelOnSetVideoSourceId;
@@ -274,6 +282,17 @@ namespace ICD.Connect.Krang.SPlus.Themes
 		private void PanelOnSetVideoSourceId(object sender, SetVideoSourceIdApiEventArgs args)
 		{
 			SetSourceId(args.Data, eSourceTypeRouted.AudioVideo);
+		}
+
+		/// <summary>
+		/// Panel requesting a refresh
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="args"></param>
+		protected virtual void PanelOnRequestRefresh(object sender, EventArgs args)
+		{
+			SetVolumeControl();
+			RaiseRoomInfo();
 		}
 
 		

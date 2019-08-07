@@ -14,7 +14,6 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 	{
 		#region Events
 
-		public event EventHandler<RequestRefreshApiEventArgs> OnRequestRefresh;
 		public event EventHandler<SetRoomIndexApiEventArgs> OnSetRoomIndex;
 
 		public event EventHandler<SetAudioSourceIndexApiEventArgs> OnSetAudioSourceIndex;
@@ -91,11 +90,6 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 
 		#region Private Methods
 
-		private void RaiseOnRequestRefresh()
-		{
-			OnRequestRefresh.Raise(this, new RequestRefreshApiEventArgs());
-		}
-
 		private void RaiseOnSetRoomIndex(int index)
 		{
 			OnSetRoomIndex.Raise(this, new SetRoomIndexApiEventArgs(index));
@@ -124,7 +118,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 			base.Initialize(command);
 
 			ApiCommandBuilder.UpdateCommand(command)
-							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_REQUEST_REFRESH)
+							 .SubscribeEvent(SPlusUiDeviceApi.EVENT_REQUEST_REFRESH)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_SET_ROOM_INDEX)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_SET_AUDIO_SOURCE_INDEX)
 							 .SubscribeEvent(SPlusTouchpanelDeviceApi.EVENT_SET_VIDEO_SOURCE_INDEX)
@@ -144,9 +138,6 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy
 
 			switch (name)
 			{
-				case SPlusTouchpanelDeviceApi.EVENT_REQUEST_REFRESH:
-					RaiseOnRequestRefresh();
-					break;
 				case SPlusTouchpanelDeviceApi.EVENT_SET_ROOM_INDEX:
 					RaiseOnSetRoomIndex(result.GetValue<int>());
 					break;

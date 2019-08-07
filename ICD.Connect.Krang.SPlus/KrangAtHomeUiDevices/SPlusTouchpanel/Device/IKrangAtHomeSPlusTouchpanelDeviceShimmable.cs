@@ -26,8 +26,6 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 
 		event EventHandler<VolumeAvailableControlEventArgs> OnVolumeAvailableControlUpdate;
 
-		void RequestDeviceRefresh();
-
 		void SetRoomIndex(int index);
 
 		void SetAudioSourceIndex(int index);

@@ -44,6 +44,16 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Shim
 
 		#endregion
 
+		/// <summary>
+		/// Called when the originator is attached.
+		/// Do any actions needed to syncronize
+		/// </summary>
+		protected override void InitializeOriginator()
+		{
+			base.InitializeOriginator();
+			Originator.RequestDeviceRefresh();
+		}
+
 
 		[PublicAPI("S+")]
 		public void SetRoomId(int id)

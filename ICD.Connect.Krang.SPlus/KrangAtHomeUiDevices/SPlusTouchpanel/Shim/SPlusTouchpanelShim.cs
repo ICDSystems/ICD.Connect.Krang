@@ -131,16 +131,6 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Shim
 		#region Private/Protected Methods
 
 		/// <summary>
-		/// Called when the originator is attached.
-		/// Do any actions needed to syncronize
-		/// </summary>
-		protected override void InitializeOriginator()
-		{
-			base.InitializeOriginator();
-			Originator.RequestDeviceRefresh();
-		}
-
-		/// <summary>
 		/// Sets the room info via the delegate
 		/// </summary>
 		/// <param name="roomInfo"></param>

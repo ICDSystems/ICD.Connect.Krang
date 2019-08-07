@@ -16,5 +16,20 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Proxy
 		{
 			CallMethod(SPlusRemoteApi.METHOD_RAISE_SOURCE_CHANGED, sourceInfo);
 		}
+
+		#region API
+
+		/// <summary>
+		/// Override to build initialization commands on top of the current class info.
+		/// </summary>
+		/// <param name="command"></param>
+		protected override void Initialize(ApiClassInfo command)
+		{
+			base.Initialize(command);
+
+			RaiseOnRequestRefresh();
+		}
+
+		#endregion
 	}
 }

@@ -440,7 +440,7 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			if (panel == null)
 				return;
 
-			panel.OnRequestRefresh += PanelOnRequestRefresh;
+			
 			panel.OnSetRoomIndex += PanelOnSetRoomIndex;
 			panel.OnSetAudioSourceIndex += PanelOnSetAudioSourceIndex;
 			panel.OnSetVideoSourceIndex += PanelOnSetVideoSourceIndex;
@@ -453,7 +453,6 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 			if (panel == null)
 				return;
 
-			panel.OnRequestRefresh -= PanelOnRequestRefresh;
 			panel.OnSetRoomIndex -= PanelOnSetRoomIndex;
 			panel.OnSetAudioSourceIndex -= PanelOnSetAudioSourceIndex;
 			panel.OnSetVideoSourceIndex -= PanelOnSetVideoSourceIndex;
@@ -464,11 +463,12 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusTouchpanel
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="args"></param>
-		private void PanelOnRequestRefresh(object sender, EventArgs args)
+		protected override void PanelOnRequestRefresh(object sender, EventArgs args)
 		{
 			RaiseRoomList();
 			RaiseSourceList();
-			RaiseRoomInfo();
+
+			base.PanelOnRequestRefresh(sender, args);
 		}
 
 		private void PanelOnSetRoomIndex(object sender, SetRoomIndexApiEventArgs args)

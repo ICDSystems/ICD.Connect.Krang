@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
-using ICD.Connect.API.Commands;
 using ICD.Connect.Audio.Controls.Mute;
 using ICD.Connect.Audio.Controls.Volume;
 using ICD.Connect.Audio.EventArguments;
@@ -64,8 +62,6 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 
 		#region Events to Ui
 
-		public event EventHandler<RequestRefreshApiEventArgs> OnRequestRefresh;
-
 		public event EventHandler<SetRoomIndexApiEventArgs> OnSetRoomIndex;
 
 		public event EventHandler<SetAudioSourceIndexApiEventArgs> OnSetAudioSourceIndex;
@@ -75,11 +71,6 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 		#endregion
 
 		#region Methods Called from Shim
-
-		public void RequestDeviceRefresh()
-		{
-			OnRequestRefresh.Raise(this, new RequestRefreshApiEventArgs());
-		}
 
 		public void SetRoomIndex(int index)
 		{
@@ -185,7 +176,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 
 		#region VolumeDeviceControl
 
-		public override float IncrementValue { get { return 4; } }
+		public override float IncrementValue { get { return 0.04f; } }
 
 		protected override void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
 		{
@@ -289,25 +280,5 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 
 		#endregion
 
-		#region Console
-
-		/// <summary>
-		/// Gets the child console commands.
-		/// </summary>
-		/// <returns></returns>
-		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
-		{
-			foreach (IConsoleCommand command in GetBaseConsoleCommands())
-				yield return command;
-
-			yield return new ConsoleCommand("RefreshPanel", "Requeust the UI to refresh all data on the panel", () => OnRequestRefresh.Raise(this, new RequestRefreshApiEventArgs()));
-		}
-
-		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
-		{
-			return base.GetConsoleCommands();
-		}
-
-		#endregion
 	}
 }

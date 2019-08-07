@@ -1,6 +1,6 @@
 ﻿using ICD.Connect.API.EventArguments;
 using ICD.Connect.API.Info;
-using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Proxy;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 {
@@ -9,7 +9,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public RequestRefreshApiEventArgs() : base(SPlusTouchpanelDeviceApi.EVENT_REQUEST_REFRESH)
+		public RequestRefreshApiEventArgs() : base(SPlusUiDeviceApi.EVENT_REQUEST_REFRESH)
 		{
 		}
 

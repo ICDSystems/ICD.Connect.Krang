@@ -3,6 +3,7 @@ using ICD.Connect.API.Attributes;
 using ICD.Connect.Devices.Controls;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.EventArgs;
 using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Proxy;
+using ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.EventArgs;
 using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
@@ -11,6 +12,9 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 	{
 
 		#region Events
+
+		[ApiEvent(SPlusUiDeviceApi.EVENT_REQUEST_REFRESH, SPlusUiDeviceApi.HELP_EVENT_REQUEST_REFRESH)]
+		event EventHandler<RequestRefreshApiEventArgs> OnRequestRefresh;
 
 		[ApiEvent(SPlusUiDeviceApi.EVENT_SET_ROOM_ID, SPlusUiDeviceApi.HELP_EVENT_SET_ROOM_ID)]
 		event EventHandler<SetRoomIdApiEventArgs> OnSetRoomId;

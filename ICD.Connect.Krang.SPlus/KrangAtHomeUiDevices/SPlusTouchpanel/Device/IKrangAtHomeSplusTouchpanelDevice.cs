@@ -12,8 +12,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 	public interface IKrangAtHomeSPlusTouchpanelDevice: IKrangAtHomeUiDevice
 	{
 
-		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_REQUEST_REFRESH, SPlusTouchpanelDeviceApi.HELP_EVENT_REQUEST_REFRESH)]
-		event EventHandler<RequestRefreshApiEventArgs> OnRequestRefresh;
+		
 
 		[ApiEvent(SPlusTouchpanelDeviceApi.EVENT_SET_ROOM_INDEX, SPlusTouchpanelDeviceApi.HELP_EVENT_SET_ROOM_INDEX)]
 		event EventHandler<SetRoomIndexApiEventArgs> OnSetRoomIndex;

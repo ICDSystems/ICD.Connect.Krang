@@ -23,7 +23,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusRemote.Device
 			OnSourceChanged.Raise(this, new SourceChangedEventArgs(source));
 		}
 
-		public override float IncrementValue { get { return 2; } }
+		public override float IncrementValue { get { return 0.02f; } }
 
 		protected override void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
 		{

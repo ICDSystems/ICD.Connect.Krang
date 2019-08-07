@@ -7,6 +7,8 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.Abstract.Device
 
 		#region Methods
 
+		void RequestDeviceRefresh();
+
 		void SetRoomId(int id);
 
 		void SetAudioSourceId(int id);
