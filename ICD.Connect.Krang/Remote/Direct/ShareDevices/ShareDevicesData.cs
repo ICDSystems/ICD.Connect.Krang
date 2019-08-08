@@ -49,13 +49,13 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 			if (value.SourceConnections != null)
 			{
 				writer.WritePropertyName(ATTR_SOURCE_CONNECTIONS);
-				serializer.SerializeDict(writer, value.SourceConnections, k => k.ToString(), (s, w, v) => s.SerializeArray(w, v));
+				serializer.SerializeDict(writer, value.SourceConnections, (s, w, k) => w.WriteValue(k), (s, w, v) => s.SerializeArray(w, v));
 			}
 
 			if (value.DestinationConnections != null)
 			{
 				writer.WritePropertyName(ATTR_DESTINATION_CONNECTIONS);
-				serializer.SerializeDict(writer, value.DestinationConnections, k => k.ToString(),
+				serializer.SerializeDict(writer, value.DestinationConnections, (s, w, k) => w.WriteValue(k),
 				                         (s, w, v) => s.SerializeArray(w, v));
 			}
 		}
@@ -81,14 +81,14 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 
 				case ATTR_SOURCE_CONNECTIONS:
 					instance.SourceConnections =
-						serializer.DeserializeDict<int, IEnumerable<ConnectorInfo>>(reader, int.Parse,
+						serializer.DeserializeDict(reader, (s, r) => r.GetValueAsInt(),
 						                                                            (s, r) => s.DeserializeArray<ConnectorInfo>(r))
 						          .ToDictionary();
 					break;
 
 				case ATTR_DESTINATION_CONNECTIONS:
 					instance.DestinationConnections =
-						serializer.DeserializeDict<int, IEnumerable<ConnectorInfo>>(reader, int.Parse,
+						serializer.DeserializeDict(reader, (s, r) => r.GetValueAsInt(),
 						                                                            (s, r) => s.DeserializeArray<ConnectorInfo>(r))
 						          .ToDictionary();
 					break;
