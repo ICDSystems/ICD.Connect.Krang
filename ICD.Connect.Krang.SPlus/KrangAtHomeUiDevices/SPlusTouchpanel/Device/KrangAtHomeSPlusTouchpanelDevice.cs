@@ -176,7 +176,7 @@ namespace ICD.Connect.Krang.SPlus.KrangAtHomeUiDevices.SPlusTouchpanel.Device
 
 		#region VolumeDeviceControl
 
-		public override float IncrementValue { get { return 0.04f; } }
+		public override float IncrementValue { get { return 0.03f; } }
 
 		protected override void InstantiateVolumeControl(IVolumeDeviceControl volumeDevice)
 		{
