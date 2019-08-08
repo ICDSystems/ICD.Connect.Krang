@@ -35,25 +35,25 @@ namespace ICD.Connect.Krang.SPlus.Themes.UIs.SPlusMultiRoomRouting.States
 		{
 			IVolumeLevelDeviceControl control = m_VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				//control.VolumePositionRampUp(.03f);
-				control.VolumeLevelIncrement(4);
+				control.VolumePositionRampUp(.03f);
+				//control.VolumeLevelIncrement(4);
 		}
 
 		public void VolumeDown()
 		{
 			IVolumeLevelDeviceControl control = m_VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
-				//control.VolumePositionRampDown(.03f);
-				control.VolumeLevelDecrement(4);
+				control.VolumePositionRampDown(.03f);
+				//control.VolumeLevelDecrement(4);
 		}
 
 		public void VolumeStop()
 		{
-			/*
+			
 			IVolumeLevelDeviceControl control = m_VolumeControl as IVolumeLevelDeviceControl;
 			if (control != null)
 				control.VolumeRampStop();
-			*/
+			
 		}
 
 		public void ToggleMute()
