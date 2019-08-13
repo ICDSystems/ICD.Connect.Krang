@@ -54,9 +54,9 @@ namespace ICD.Connect.Krang.Core
 		public BroadcastManager BroadcastManager { get; private set; }
 
 		/// <summary>
-		/// Gets the license manager instance.
+		/// Gets the system key manager instance.
 		/// </summary>
-		public LicenseManager LicenseManager { get; private set; }
+		public SystemKeyManager SystemKeyManager { get; private set; }
 
 		#endregion
 
@@ -82,11 +82,10 @@ namespace ICD.Connect.Krang.Core
 		{
 			ValidateProgram();
 
-			NvramMigration.Migrate(m_Logger);
-
-			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
-			if (!ValidateLicense())
+			if (!ValidateSystemKey())
 				return;
+
+			NvramMigration.Migrate(m_Logger);
 
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 
@@ -166,8 +165,8 @@ namespace ICD.Connect.Krang.Core
 
 			ServiceProvider.TryAddService(new PermissionsManager());
 
-			LicenseManager = new LicenseManager();
-			ServiceProvider.AddService(LicenseManager);
+			SystemKeyManager = new SystemKeyManager();
+			ServiceProvider.AddService(SystemKeyManager);
 
 			m_ActionSchedulerService = new ActionSchedulerService();
 			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
@@ -196,11 +195,26 @@ namespace ICD.Connect.Krang.Core
 		/// Returns true if we loaded a valid license file.
 		/// </summary>
 		/// <returns></returns>
-		private bool ValidateLicense()
+		private bool ValidateSystemKey()
 		{
 #if LICENSING
-			LicenseManager.LoadLicense(FileOperations.LicensePath);
-			return LicenseManager.IsValid();
+			string systemKeyPath = IcdFile.Exists(FileOperations.SystemKeyPath)
+				                       ? FileOperations.SystemKeyPath
+				                       : null;
+
+			// Backwards compatibility
+// ReSharper disable CSharpWarnings::CS0618
+			if (systemKeyPath == null)
+				systemKeyPath = IcdFile.Exists(FileOperations.LicensePath)
+					                ? FileOperations.LicensePath
+					                : null;
+// ReSharper restore CSharpWarnings::CS0618
+
+			// Revert back to the system key path for logging
+			systemKeyPath = systemKeyPath ?? FileOperations.SystemKeyPath;
+
+			SystemKeyManager.LoadSystemKey(systemKeyPath);
+			return SystemKeyManager.IsValid();
 #else
 			return true;
 #endif
