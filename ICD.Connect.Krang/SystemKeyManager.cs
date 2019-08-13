@@ -20,7 +20,7 @@ using ICD.Connect.API.Nodes;
 
 namespace ICD.Connect.Krang
 {
-	public sealed class LicenseManager : IConsoleNode
+	public sealed class SystemKeyManager : IConsoleNode
 	{
 		private enum eValidationState
 		{
@@ -32,17 +32,17 @@ namespace ICD.Connect.Krang
 		private const string PUBLIC_KEY =
 			@"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXfvikzhAIAOkoqwCXFTpcmr98LJ6CcndaTm+appVLBEo4Evo9c9en0cS8VbmwTWq+8/nnunEIlx4IdildXuNvg==";
 
-		private static readonly string s_RequiredLicenseVersion = new Version(1, 0).ToString();
+		private static readonly string s_RequiredSystemKeyVersion = new Version(1, 0).ToString();
 
-		private License m_License;
+		private License m_SystemKey;
 		private eValidationState m_Validation;
-		private string m_LicensePath;
+		private string m_SystemKeyPath;
 
 		#region Properties
 
 		public string ConsoleName { get { return GetType().Name; } }
 
-		public string ConsoleHelp { get { return "Features for software license registration"; } }
+		public string ConsoleHelp { get { return "Features for system key registration"; } }
 
 		private static ILoggerService Logger { get { return ServiceProvider.TryGetService<ILoggerService>(); } }
 
@@ -51,47 +51,47 @@ namespace ICD.Connect.Krang
 		#region Methods
 
 		/// <summary>
-		/// Loads the license at the given path.
+		/// Loads the systemKey at the given path.
 		/// </summary>
 		/// <param name="path"></param>
-		public void LoadLicense(string path)
+		public void LoadSystemKey(string path)
 		{
-			UnloadLicense();
+			UnloadSystemKey();
 
-			m_LicensePath = PathUtils.GetProgramConfigPath(path);
+			m_SystemKeyPath = PathUtils.GetProgramConfigPath(path);
 
-			Logger.AddEntry(eSeverity.Informational, "Loading license at path {0}", m_LicensePath);
+			Logger.AddEntry(eSeverity.Informational, "Loading System Key at path {0}", m_SystemKeyPath);
 
-			if (!IcdFile.Exists(m_LicensePath))
+			if (!IcdFile.Exists(m_SystemKeyPath))
 			{
-				Logger.AddEntry(eSeverity.Warning, "Unable to find license at path {0}", m_LicensePath);
+				Logger.AddEntry(eSeverity.Error, "Unable to find System Key at path {0}", m_SystemKeyPath);
 				return;
 			}
 
-			string licenseData = IcdFile.ReadToEnd(m_LicensePath, new UTF8Encoding(false));
-			licenseData = EncodingUtils.StripUtf8Bom(licenseData);
+			string systemKey = IcdFile.ReadToEnd(m_SystemKeyPath, new UTF8Encoding(false));
+			systemKey = EncodingUtils.StripUtf8Bom(systemKey);
 
-			m_License = License.Load(licenseData);
+			m_SystemKey = License.Load(systemKey);
 
-			m_Validation = ValidateLicense(m_License);
+			m_Validation = ValidateSystemKey(m_SystemKey);
 		}
 
 		/// <summary>
-		/// Unloads the current active license.
+		/// Unloads the current active systemKey.
 		/// </summary>
-		public void UnloadLicense()
+		public void UnloadSystemKey()
 		{
-			m_License = null;
+			m_SystemKey = null;
 			m_Validation = eValidationState.None;
 		}
 
 		/// <summary>
-		/// Returns true if the loaded license was validated.
+		/// Returns true if the loaded systemKey was validated.
 		/// </summary>
 		/// <returns></returns>
 		public bool IsValid()
 		{
-			if (m_License == null)
+			if (m_SystemKey == null)
 				return false;
 
 			return m_Validation == eValidationState.Valid;
@@ -122,30 +122,30 @@ namespace ICD.Connect.Krang
 		#region Validation
 
 		/// <summary>
-		/// Validates the loaded license.
+		/// Validates the loaded system key.
 		/// </summary>
-		/// <param name="license"></param>
-		private eValidationState ValidateLicense(License license)
+		/// <param name="systemKey"></param>
+		private eValidationState ValidateSystemKey(License systemKey)
 		{
-			if (license == null)
-				throw new InvalidOperationException("No loaded license to validate.");
+			if (systemKey == null)
+				throw new InvalidOperationException("No loaded System Key to validate.");
 
 			IValidationFailure[] validationResults =
-				license.Validate()
+				systemKey.Validate()
 					   .Signature(PUBLIC_KEY)
 					   .And()
 					   .AssertThat(ValidateMacAddress,
 								   new GeneralValidationFailure
 								   {
-									   Message = "License MAC Address does not match system",
-									   HowToResolve = "Are you using this license on the correct system?"
+									   Message = "System Key MAC Address does not match system",
+									   HowToResolve = "Are you using this System Key on the correct system?"
 								   })
 					   .And()
-					   .AssertThat(ValidateLicenseVersion,
+					   .AssertThat(ValidateSystemKeyVersion,
 								   new GeneralValidationFailure
 								   {
-									   Message = string.Format("License Version does not match checked version {0}", s_RequiredLicenseVersion),
-									   HowToResolve = "Are you using this license on the correct version of the program?"
+									   Message = string.Format("System Key Version does not match checked version {0}", s_RequiredSystemKeyVersion),
+									   HowToResolve = "Are you using this System Key on the correct version of the program?"
 								   })
 					   .AssertValidLicense()
 					   .ToArray();
@@ -153,26 +153,26 @@ namespace ICD.Connect.Krang
 			foreach (IValidationFailure failure in validationResults)
 				Logger.AddEntry(eSeverity.Warning, "{0} - {1} - {2}", GetType().Name, failure.Message, failure.HowToResolve);
 
-			// Only take the license if it passed validation.
+			// Only take the system key if it passed validation.
 			if (validationResults.Length > 0)
 				return eValidationState.Invalid;
 
-			Logger.AddEntry(eSeverity.Informational, "Successfully validated license");
+			Logger.AddEntry(eSeverity.Informational, "Successfully validated System Key");
 
 			return eValidationState.Valid;
 		}
 
 		/// <summary>
-		/// Returns true if the mac address in the license is valid for this program.
+		/// Returns true if the mac address in the System Key is valid for this program.
 		/// </summary>
-		/// <param name="license"></param>
+		/// <param name="systemKey"></param>
 		/// <returns></returns>
-		private static bool ValidateMacAddress(License license)
+		private static bool ValidateMacAddress(License systemKey)
 		{
-			if (!license.AdditionalAttributes.Contains(KrangLicenseAttributes.MAC_ADDRESS))
+			if (!systemKey.AdditionalAttributes.Contains(KrangSystemKeyAttributes.MAC_ADDRESS))
 				return true;
 
-			string macAddress = license.AdditionalAttributes.Get(KrangLicenseAttributes.MAC_ADDRESS);
+			string macAddress = systemKey.AdditionalAttributes.Get(KrangSystemKeyAttributes.MAC_ADDRESS);
 			return IcdEnvironment.MacAddresses.Any(m => CompareMacAddresses(m, macAddress));
 		}
 
@@ -190,17 +190,29 @@ namespace ICD.Connect.Krang
 	    }
 
 	    /// <summary>
-		/// Returns true if the license version is valid for this version of the program.
+		/// Returns true if the system key version is valid for this version of the program.
 		/// </summary>
-		/// <param name="license"></param>
+		/// <param name="systemKey"></param>
 		/// <returns></returns>
-		private static bool ValidateLicenseVersion(License license)
+		private static bool ValidateSystemKeyVersion(License systemKey)
 		{
-			if (!license.AdditionalAttributes.Contains(KrangLicenseAttributes.LICENSE_VERSION))
-				return true;
+		    if (systemKey.AdditionalAttributes.Contains(KrangSystemKeyAttributes.SYSTEM_KEY_VERSION))
+		    {
+			    string systemKeyVersion = systemKey.AdditionalAttributes.Get(KrangSystemKeyAttributes.SYSTEM_KEY_VERSION);
+			    return s_RequiredSystemKeyVersion.Equals(systemKeyVersion);
+		    }
 
-			string licenseVersion = license.AdditionalAttributes.Get(KrangLicenseAttributes.LICENSE_VERSION);
-			return s_RequiredLicenseVersion.Equals(licenseVersion);
+			// Backwards compatibility
+// ReSharper disable CSharpWarnings::CS0618
+			if (systemKey.AdditionalAttributes.Contains(KrangSystemKeyAttributes.LICENSE_VERSION))
+
+			{
+				string systemKeyVersion = systemKey.AdditionalAttributes.Get(KrangSystemKeyAttributes.LICENSE_VERSION);
+				return s_RequiredSystemKeyVersion.Equals(systemKeyVersion);
+			}
+// ReSharper restore CSharpWarnings::CS0618
+
+		    return true;
 		}
 
 		#endregion
@@ -209,7 +221,7 @@ namespace ICD.Connect.Krang
 
 		public IEnumerable<IConsoleCommand> GetConsoleCommands()
 		{
-			yield return new GenericConsoleCommand<string>("LoadLicense", "LoadLicense <PATH>", p => LoadLicense(p));
+			yield return new GenericConsoleCommand<string>("LoadSystemKey", "LoadSystemKey <PATH>", p => LoadSystemKey(p));
 		}
 
 		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
@@ -219,7 +231,7 @@ namespace ICD.Connect.Krang
 
 		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
 		{
-			addRow("License", m_LicensePath);
+			addRow("SystemKey", m_SystemKeyPath);
 		}
 
 		#endregion

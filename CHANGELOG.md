@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Core namespace renamed
 
+## [11.6.0] - 2019-08-13
+### Added
+ - Support for license files saved as system key
+
 ## [11.5.0] - 2019-07-16
 ### Added
  - Services are exposed in the console

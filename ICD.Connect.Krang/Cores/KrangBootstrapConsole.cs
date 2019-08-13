@@ -31,7 +31,7 @@ namespace ICD.Connect.Krang.Cores
 
 			yield return instance.Krang;
 			yield return instance.BroadcastManager;
-			yield return instance.LicenseManager;
+			yield return instance.SystemKeyManager;
 			yield return ConsoleNodeGroup.IndexNodeMap("Services", ServiceProvider.GetServices().OfType<IConsoleNodeBase>().OrderBy(s => s.GetType().Name));
 		}
 
@@ -71,7 +71,7 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 #if LICENSING
-			if (instance.LicenseManager.IsValid())
+			if (instance.SystemKeyManager.IsValid())
 #endif
 				instance.Krang.LoadSettings();
 		}
