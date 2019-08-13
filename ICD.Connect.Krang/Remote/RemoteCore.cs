@@ -63,11 +63,7 @@ namespace ICD.Connect.Krang.Remote
 			try
 			{
 				foreach (IProxy proxy in m_ProxyBuildCommand.Keys.ToArray())
-				{
 					DeinitializeProxyOriginator(proxy);
-					Unsubscribe(proxy);
-				}
-				m_ProxyBuildCommand.Clear();
 			}
 			finally
 			{
@@ -211,6 +207,8 @@ namespace ICD.Connect.Krang.Remote
 				return;
 
 			IcdConsole.PrintLine(eConsoleColor.Blue, "DeinitializeProxy: Deinitializing {0}", proxy);
+
+			Unsubscribe(proxy);
 			proxy.Deinitialize();
 		}
 
