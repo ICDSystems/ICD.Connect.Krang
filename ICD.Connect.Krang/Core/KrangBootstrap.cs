@@ -186,9 +186,6 @@ namespace ICD.Connect.Krang.Core
 #endif
 );
 
-			if (!ValidateSystemKey())
-				return;
-
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 		}
 
