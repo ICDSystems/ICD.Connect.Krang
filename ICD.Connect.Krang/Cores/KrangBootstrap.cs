@@ -186,12 +186,6 @@ namespace ICD.Connect.Krang.Cores
 #endif
 );
 
-#if LICENSING
-			ProgramUtils.PrintProgramInfoLine("License", FileOperations.LicensePath);
-			if (!ValidateLicense())
-				return;
-#endif
-
 			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
 		}
 
@@ -232,6 +226,8 @@ namespace ICD.Connect.Krang.Cores
 
 			// Revert back to the system key path for logging
 			systemKeyPath = systemKeyPath ?? FileOperations.SystemKeyPath;
+
+			ProgramUtils.PrintProgramInfoLine("System Key", systemKeyPath);
 
 			SystemKeyManager.LoadSystemKey(systemKeyPath);
 			return SystemKeyManager.IsValid();
