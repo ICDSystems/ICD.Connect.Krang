@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICD.Common.Logging.Console;
-using ICD.Common.Logging.Console.Loggers;
+using ICD.Common.Logging;
+using ICD.Common.Logging.Loggers;
 using ICD.Common.Permissions;
 using ICD.Common.Utils;
 using ICD.Common.Utils.IO;

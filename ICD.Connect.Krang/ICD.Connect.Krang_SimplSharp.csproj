@@ -118,9 +118,9 @@
       <Project>{57BDBCF2-FBD4-4F2C-AA5D-A0B79B730749}</Project>
       <Name>ICD.Common.Licensing_SimplSharp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Common.Logging\ICD.Common.Logging.Console\ICD.Common.Logging.Console_SimplSharp.csproj">
+    <ProjectReference Include="..\..\ICD.Common.Logging\ICD.Common.Logging\ICD.Common.Logging_SimplSharp.csproj">
       <Project>{8093AE94-7250-411E-9C55-68AB2B5D705A}</Project>
-      <Name>ICD.Common.Logging.Console_SimplSharp</Name>
+      <Name>ICD.Common.Logging_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Common.Permissions\ICD.Common.Permissions\ICD.Common.Permissions_SimplSharp.csproj">
       <Project>{36A8C910-4035-4F68-B0B6-2EC2D18FD939}</Project>
