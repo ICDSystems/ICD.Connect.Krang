@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [13.0.0] - 2019-08-15
+### Changed
+ - Substantial changes for Multi-Krang
+
 ## [12.1.0] - 2019-02-13
 ### Added
  - Added VolumePoints to the core console
