@@ -109,8 +109,14 @@
     <Compile Include="Core\KrangCoreSettings.cs" />
     <None Include="ObfuscationSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="LicenseManager.cs" />
-    <Compile Include="KrangLicenseAttributes.cs" />
+    <Compile Include="SystemKeyManager.cs" />
+    <Compile Include="KrangSystemKeyAttributes.cs" />
+    <Compile Include="SPlusShims\SPlusKrangBootstrap.cs" />
+    <Compile Include="SPlusShims\SPlusKrangEventRelay.cs" />
+    <Compile Include="SPlusShims\SPlusPanelShim.cs" />
+    <Compile Include="SPlusShims\SPlusSimplRoom.cs" />
+    <Compile Include="SPlusShims\SPlusSimplSource.cs" />
+    <Compile Include="SPlusShims\SPlusUiShim.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
