@@ -88,8 +88,6 @@ namespace ICD.Connect.Krang.Cores
 
 			NvramMigration.Migrate(m_Logger);
 
-			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
-
 			try
 			{
 				m_Core.LoadSettings();
