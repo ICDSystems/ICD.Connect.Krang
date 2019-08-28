@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [11.6.1] - 2019-09-03
+### Changed
+ - When a system key is missing or invalid the service logger logs an emergency message
+
 ## [11.6.0] - 2019-08-13
 ### Added
  - Support for license files saved as system key
