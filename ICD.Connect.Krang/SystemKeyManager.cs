@@ -151,7 +151,7 @@ namespace ICD.Connect.Krang
 					   .ToArray();
 
 			foreach (IValidationFailure failure in validationResults)
-				Logger.AddEntry(eSeverity.Warning, "{0} - {1} - {2}", GetType().Name, failure.Message, failure.HowToResolve);
+				Logger.AddEntry(eSeverity.Emergency, "{0} - {1} - {2}", GetType().Name, failure.Message, failure.HowToResolve);
 
 			// Only take the system key if it passed validation.
 			if (validationResults.Length > 0)
