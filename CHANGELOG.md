@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Substantial changes for Multi-Krang
 
+## [12.2.0] - 2019-05-24
+### Added
+ - Added localization settings to Krang Configuration
+ 
+### Changed
+ - Renamed Core directory to Cores for consistency
+ - Failing gracefully when a cofigured localization is not valid
+ 
 ## [12.1.0] - 2019-02-13
 ### Added
  - Added VolumePoints to the core console
