@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.Globalization;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Attributes;
@@ -32,6 +33,7 @@ namespace ICD.Connect.Krang.Cores
 		private readonly Stack<int> m_LoadedOriginators;
 
 		private readonly InterCoreCommunication m_InterCore;
+		private readonly LocalizationSettings m_LocalizationSettings;
 		private readonly BroadcastSettings m_BroadcastSettings;
 
 		#region Properties
@@ -93,6 +95,8 @@ namespace ICD.Connect.Krang.Cores
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 
 			m_InterCore = new InterCoreCommunication(this);
+
+			m_LocalizationSettings = new LocalizationSettings();
 			m_BroadcastSettings = new BroadcastSettings();
 		}
 
@@ -189,6 +193,7 @@ namespace ICD.Connect.Krang.Cores
 		{
 			base.CopySettingsFinal(settings);
 
+			settings.LocalizationSettings.Update(m_LocalizationSettings);
 			settings.BroadcastSettings.Update(m_BroadcastSettings);
 
 			// Clear the old originators
@@ -244,6 +249,7 @@ namespace ICD.Connect.Krang.Cores
 			m_InterCore.Stop();
 			m_InterCore.SetBroadcastAddresses(Enumerable.Empty<string>());
 
+			m_LocalizationSettings.Clear();
 			m_BroadcastSettings.Clear();
 
 			ResetDefaultPermissions();
@@ -261,6 +267,9 @@ namespace ICD.Connect.Krang.Cores
 
 			try
 			{
+				// Setup localization first
+				ApplyLocalizationSettings(settings.LocalizationSettings);
+
 				base.ApplySettingsFinal(settings, factory);
 
 				factory.LoadOriginators<IRoutingGraph>();
@@ -269,11 +278,40 @@ namespace ICD.Connect.Krang.Cores
 
 				ResetDefaultPermissions();
 
+				// Start broadcasting last
 				ApplyBroadcastSettings(settings.BroadcastSettings);
 			}
 			finally
 			{
 				factory.OnOriginatorLoaded -= FactoryOnOriginatorLoaded;
+			}
+		}
+
+		private void ApplyLocalizationSettings(LocalizationSettings settings)
+		{
+			m_LocalizationSettings.Update(settings);
+
+			if (!string.IsNullOrEmpty(settings.Culture))
+				IcdCultureInfo.CurrentCulture = TryLoadCulture(settings.Culture, IcdCultureInfo.CurrentCulture);
+
+			if (!string.IsNullOrEmpty(settings.UiCulture))
+				IcdCultureInfo.CurrentUICulture = TryLoadCulture(settings.UiCulture, IcdCultureInfo.CurrentUICulture);
+		}
+
+		private CultureInfo TryLoadCulture(string cultureName, CultureInfo current)
+		{
+			try
+			{
+				IcdCultureInfo output = new IcdCultureInfo(cultureName);
+				if (!output.IsNeutralCulture)
+					return output;
+
+				throw new ArgumentException("A neutral culture does not provide enough information to display the correct numeric format");
+			}
+			catch (Exception e)
+			{
+				Log(eSeverity.Error, "Failed to load Culture {0} - {1}", cultureName, e.Message);
+				return current;
 			}
 		}
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Crestron.SimplSharp.Reflection;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
@@ -11,7 +10,7 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
 #if SIMPLSHARP
-
+using Crestron.SimplSharp.Reflection;
 #else
 using System.Reflection;
 #endif
