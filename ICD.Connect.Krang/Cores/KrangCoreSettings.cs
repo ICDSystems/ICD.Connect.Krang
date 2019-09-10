@@ -21,7 +21,7 @@ using ICD.Connect.Settings.Header;
 using ICD.Connect.Settings.Utils;
 using ICD.Connect.Themes;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Cores
 {
 	/// <summary>
 	/// Settings for the Krang core.

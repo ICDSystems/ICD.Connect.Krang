@@ -18,7 +18,7 @@ using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
 using ICD.Connect.Telemetry.Service;
 
-namespace ICD.Connect.Krang.Core
+namespace ICD.Connect.Krang.Cores
 {
 	[ApiClass("ControlSystem", null)]
 	public sealed class KrangBootstrap : IConsoleNode
