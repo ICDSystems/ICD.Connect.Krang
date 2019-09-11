@@ -18,6 +18,7 @@ using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Header;
+using ICD.Connect.Settings.Localization;
 using ICD.Connect.Settings.Utils;
 using ICD.Connect.Themes;
 
