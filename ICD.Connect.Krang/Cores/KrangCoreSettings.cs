@@ -332,6 +332,8 @@ namespace ICD.Connect.Krang.Cores
 				RemoveDependentSettings(routingGraphSettings.ConnectionSettings, eventArgs.Data);
 				RemoveDependentSettings(routingGraphSettings.DestinationSettings, eventArgs.Data);
 				RemoveDependentSettings(routingGraphSettings.SourceSettings, eventArgs.Data);
+				RemoveDependentSettings(routingGraphSettings.DestinationGroupSettings, eventArgs.Data);
+				RemoveDependentSettings(routingGraphSettings.SourceGroupSettings, eventArgs.Data);
 				RemoveDependentSettings(routingGraphSettings.StaticRouteSettings, eventArgs.Data);
 			}
 
@@ -339,6 +341,7 @@ namespace ICD.Connect.Krang.Cores
 			PartitionManagerSettings partitionManagerSettings = PartitionManagerSettings;
 			if (partitionManagerSettings != null)
 			{
+				RemoveDependentSettings(partitionManagerSettings.CellSettings, eventArgs.Data);
 				RemoveDependentSettings(partitionManagerSettings.PartitionSettings, eventArgs.Data);
 			}
 
