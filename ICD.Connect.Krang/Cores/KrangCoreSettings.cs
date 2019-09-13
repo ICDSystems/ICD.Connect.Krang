@@ -293,6 +293,8 @@ namespace ICD.Connect.Krang.Cores
 			AddSettingsRemoveOnDuplicateId(routing.StaticRouteSettings);
 			AddSettingsRemoveOnDuplicateId(routing.SourceSettings);
 			AddSettingsRemoveOnDuplicateId(routing.DestinationSettings);
+			AddSettingsRemoveOnDuplicateId(routing.SourceGroupSettings);
+			AddSettingsRemoveOnDuplicateId(routing.DestinationGroupSettings);
 		}
 
 		private void UpdatePartitioningFromXml(string xml)
