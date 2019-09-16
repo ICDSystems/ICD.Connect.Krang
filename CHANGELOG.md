@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [14.0.0] - 2019-09-16
+### Added
+ - KrangCore contains SourceGroups and DestinationGroups
+
+### Removed
+ - Moved residential features into ICD.Profound.Residential project
+ - Moved localization settings into the ICD.Connect.Settings project
+
 ## [13.0.0] - 2019-08-15
 ### Changed
  - Substantial changes for Multi-Krang
