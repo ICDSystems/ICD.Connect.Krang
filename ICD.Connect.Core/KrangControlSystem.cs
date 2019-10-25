@@ -37,14 +37,6 @@ namespace ICD.Connect.Core
 			ProgramInfo.RegisterControlSystem(this);
 		}
 
-		/// <summary>
-		/// Destructor.
-		/// </summary>
-		~KrangControlSystem()
-		{
-			m_Bootstrap.Stop();
-		}
-
 		#endregion
 
 		#region Methods
