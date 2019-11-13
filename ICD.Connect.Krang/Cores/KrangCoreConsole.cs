@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Audio.VolumePoints;
@@ -16,6 +17,23 @@ namespace ICD.Connect.Krang.Cores
 {
 	public static class KrangCoreConsole
 	{
+		private static readonly List<string> s_Authors =
+			new List<string>
+			{
+				"Chris Cameron",
+				"Jeff Thompson",
+				"Jack Kanarish",
+				"Drew Tingen",
+				"Brett Fisher",
+				"Brett Heroux",
+				"Chris VanLuvanee",
+				"Austin Noska",
+				"Laura Gomez",
+				"Reazul Hoque",
+				"Greg Gaskill",
+				"Tom Stokes"
+			};
+
 		/// <summary>
 		/// Gets the child console nodes.
 		/// </summary>
@@ -73,6 +91,7 @@ namespace ICD.Connect.Krang.Cores
 				throw new ArgumentNullException("instance");
 
 			yield return new ConsoleCommand("whoami", "Displays info about Krang", () => PrintKrang(), true);
+			yield return new ConsoleCommand("blame", "Whose fault is it?", () => string.Format("It's {0}'s fault!", s_Authors.Random()), true);
 		}
 
 		private static string PrintKrang()
