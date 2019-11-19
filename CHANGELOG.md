@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [14.1.0] - 2019-11-19
 ### Changed
+ - Potential fix for exceptions on program stop
  - Incremented informational version to 1.5
 
 ## [14.0.0] - 2019-09-16
