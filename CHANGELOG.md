@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+ - Incremented informational version to 1.5
+
 ## [14.0.0] - 2019-09-16
 ### Added
  - KrangCore contains SourceGroups and DestinationGroups
