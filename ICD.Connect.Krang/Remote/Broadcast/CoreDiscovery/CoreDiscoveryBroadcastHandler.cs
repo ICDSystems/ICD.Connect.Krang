@@ -78,24 +78,26 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		/// </summary>
 		private void TimeoutCallback()
 		{
+			CoreDiscoveryInfo[] dropped;
+
 			m_DiscoveredSection.Enter();
 
 			try
 			{
 				DateTime cutoff = IcdEnvironment.GetLocalTime() - TimeSpan.FromMilliseconds(TIMEOUT_DURATION);
 
-				CoreDiscoveryInfo[] dropped =
+				dropped =
 					m_Discovered.Where(kvp => kvp.Value.DiscoveryTime <= cutoff)
 					            .Select(kvp => kvp.Value)
 								.ToArray();
-
-				foreach (CoreDiscoveryInfo item in dropped)
-					RemoveCore(item);
 			}
 			finally
 			{
 				m_DiscoveredSection.Leave();
 			}
+
+			foreach (CoreDiscoveryInfo item in dropped)
+				RemoveCore(item);
 		}
 
 		private void LazyLoadRemoteCore(CoreDiscoveryInfo info)
@@ -186,27 +188,17 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 
 			// Ignore local broadcasts
 			if (e.Data.HostSession.Host.IsLocalHost &&
-				e.Data.HostSession.Host.Port == NetworkUtils.GetBroadcastPortForSystem(BroadcastManager.SystemId))
+			    e.Data.HostSession.Host.Port == NetworkUtils.GetBroadcastPortForSystem(BroadcastManager.SystemId))
 				return;
 
 			CoreDiscoveryInfo info = new CoreDiscoveryInfo(e.Data);
+			CoreDiscoveryInfo existing = m_DiscoveredSection.Execute(() => m_Discovered.GetDefault(info.Id, null));
 
-			m_DiscoveredSection.Enter();
+			// Check for conflicts
+			if (existing != null && existing.Conflicts(info))
+				RemoveCore(existing);
 
-			try
-			{
-				CoreDiscoveryInfo existing = m_Discovered.GetDefault(info.Id, null);
-
-				// Check for conflicts
-				if (existing != null && existing.Conflicts(info))
-					RemoveCore(existing);
-
-				LazyLoadRemoteCore(info);
-			}
-			finally
-			{
-				m_DiscoveredSection.Leave();
-			}
+			LazyLoadRemoteCore(info);
 		}
 
 		#endregion
