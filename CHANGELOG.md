@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [14.1.1] - 2019-12-09
+### Changed
+ - Fixed deadlock in core discovery broadcast
+
 ## [14.1.0] - 2019-11-19
 ### Changed
  - Potential fix for exceptions on program stop
