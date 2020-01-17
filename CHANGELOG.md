@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+ - Clarifying MAC address mismatch when validating system key
+
 ## [14.1.1] - 2019-12-09
 ### Changed
  - Fixed deadlock in core discovery broadcast

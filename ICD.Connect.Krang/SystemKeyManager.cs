@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ICD.Common.Licensing;
 using ICD.Common.Licensing.Validation;
+using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Settings.Originators;
@@ -173,7 +175,14 @@ namespace ICD.Connect.Krang
 				return true;
 
 			string macAddress = systemKey.AdditionalAttributes.Get(KrangSystemKeyAttributes.MAC_ADDRESS);
-			return IcdEnvironment.MacAddresses.Any(m => CompareMacAddresses(m, macAddress));
+			IcdHashSet<string> systemMacAddresses = IcdEnvironment.MacAddresses.ToIcdHashSet();
+			bool match = systemMacAddresses.Any(m => CompareMacAddresses(m, macAddress));
+
+			if (!match)
+				Logger.AddEntry(eSeverity.Critical, "System Key MAC address {0} does not match system MAC addresses {1}",
+				                macAddress, StringUtils.ArrayFormat(systemMacAddresses));
+
+			return match;
 		}
 
 		private static bool CompareMacAddresses(string a, string b)
