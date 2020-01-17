@@ -88,8 +88,11 @@ namespace ICD.Connect.Krang.Cores
 			PrintProgramInfo();
 			ValidateProgram();
 
-			if (!ValidateSystemKey())
+			bool validSystemKey = ValidateSystemKey();
+#if LICENSING
+			if (!validSystemKey)
 				return;
+#endif
 
 			NvramMigration.Migrate(m_Logger);
 
@@ -214,7 +217,6 @@ namespace ICD.Connect.Krang.Cores
 		/// <returns></returns>
 		private bool ValidateSystemKey()
 		{
-#if LICENSING
 			string systemKeyPath = IcdFile.Exists(FileOperations.SystemKeyPath)
 				                       ? FileOperations.SystemKeyPath
 				                       : null;
@@ -234,9 +236,6 @@ namespace ICD.Connect.Krang.Cores
 
 			SystemKeyManager.LoadSystemKey(systemKeyPath);
 			return SystemKeyManager.IsValid();
-#else
-			return true;
-#endif
 		}
 
 		#endregion

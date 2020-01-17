@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Changed
+ - Debug builds validate the SystemKey while still allowing the use of invalid SystemKey
  - Clarifying MAC address mismatch when validating system key
 
 ## [14.1.1] - 2019-12-09
