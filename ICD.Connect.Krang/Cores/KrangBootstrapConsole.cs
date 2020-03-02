@@ -63,9 +63,8 @@ namespace ICD.Connect.Krang.Cores
 			yield return new ConsoleCommand("LoadCore", "Loads and applies the XML config.", () => LoadSettings(instance));
 			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML.", () => SaveSettings(instance));
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.", () => RebuildCore(instance));
-			yield return new ConsoleCommand("PrintPlugins", "Prints the loaded plugin assemblies.", () => PrintPlugins());
 			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.", () => PrintTypes());
-			yield return new ConsoleCommand("VersionInfo", "Prints version information for the loaded assemblies.", () => PrintVersionInfo());
+			yield return new ConsoleCommand("PrintVersions", "Prints version information for the loaded assemblies.", () => PrintVersions());
 		}
 
 		private static void LoadSettings(KrangBootstrap instance)
@@ -100,20 +99,22 @@ namespace ICD.Connect.Krang.Cores
 			FileOperations.ApplyCoreSettings(instance.Krang, instance.Krang.CopySettings());
 		}
 
-		private static string PrintPlugins()
+		private static string PrintVersions()
 		{
-			TableBuilder builder = new TableBuilder("Assembly", "Path", "Version", "Date");
+			TableBuilder builder = new TableBuilder("Assembly", "Path", "Info Ver.", "Assembly Ver.", "Date");
 
 			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
 			{
 				string name = assembly.GetName().Name;
 				string path = assembly.GetPath();
-				string version = assembly.GetName().Version.ToString();
+				string infoVersion;
+				assembly.TryGetInformationalVersion(out infoVersion);
+				string assemblyVersion = assembly.GetName().Version.ToString();
 				DateTime date = IcdFile.GetLastWriteTime(path);
 
 				path = IcdPath.GetDirectoryName(path);
 
-				builder.AddRow(name, path, version, date);
+				builder.AddRow(name, path, infoVersion, assemblyVersion, date);
 			}
 
 			return builder.ToString();
@@ -135,28 +136,6 @@ namespace ICD.Connect.Krang.Cores
 				path = IcdPath.GetDirectoryName(path);
 
 				builder.AddRow(factoryName, name, path, version, date);
-			}
-
-			return builder.ToString();
-		}
-		
-		private static string PrintVersionInfo()
-		{
-			TableBuilder builder = new TableBuilder("Assembly", "Path", "Informational Version", "Assembly Version", "Date");
-
-			foreach (Assembly assembly in PluginFactory.GetFactoryAssemblies().OrderBy(a => a.FullName))
-			{
-				string name = assembly.GetName().Name;
-				string path = assembly.GetPath();
-				string version = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
-
-				string infoVersion;
-				assembly.TryGetInformationalVersion(out infoVersion);
-
-				path = IcdPath.GetDirectoryName(path);
-
-				builder.AddRow(name, path, infoVersion, version, date);
 			}
 
 			return builder.ToString();
