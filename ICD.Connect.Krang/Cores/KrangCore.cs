@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Attributes;
@@ -12,9 +13,13 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote;
 using ICD.Connect.Panels.Devices;
+using ICD.Connect.Partitioning;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
+using ICD.Connect.Routing.Connections;
+using ICD.Connect.Routing.Endpoints.Destinations;
+using ICD.Connect.Routing.Groups.Endpoints.Destinations;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
@@ -178,6 +183,63 @@ namespace ICD.Connect.Krang.Cores
 			}
 		}
 
+		private void SetupDestinationGroupsInRooms(IEnumerable<IDestinationGroup> destinationGroups, IEnumerable<IRoom> rooms)
+		{
+			var roomsArray = rooms.ToArray();
+			foreach (IDestinationGroup destinationGroup in destinationGroups)
+			{
+				foreach (IRoom room in roomsArray)
+				{
+					IRoom roomLocalVariable = room;
+					if (destinationGroup
+						.GetItems()
+						.AnyAndAll(destination => roomLocalVariable.Originators.ContainsRecursive(destination.Id)))
+						room.Originators.Add(destinationGroup.Id, eCombineMode.Always);
+				}
+			}
+		}
+
+		private IEnumerable<IDestinationGroup> SetupDestinationGroupsFromDestinationGroupString(IRoutingGraph routingGraph)
+		{
+			IcdHashSet<IDestinationGroup> destinationGroups = new IcdHashSet<IDestinationGroup>();
+
+			foreach (IDestination destination in routingGraph.Destinations.Where(d => !string.IsNullOrEmpty(d.DestinationGroupString)))
+			{
+				IDestinationGroup destinationGroup = LazyLoadDestinationGroupByName(routingGraph, destination.DestinationGroupString);
+				destinationGroups.Add(destinationGroup);
+				destinationGroup.AddItem(destination);
+			}
+
+			return destinationGroups;
+		}
+
+		/// <summary>
+		/// Gets the destination group with the given name
+		/// </summary>
+		/// <param name="routingGraph"></param>
+		/// <param name="name"></param>
+		/// <returns>DestinationGroup</returns>
+		private IDestinationGroup LazyLoadDestinationGroupByName(IRoutingGraph routingGraph, string name)
+		{
+			IDestinationGroup destinationGroup = routingGraph.DestinationGroups.GetChildren().FirstOrDefault(d => string.Equals(d.Name, name, StringComparison.InvariantCultureIgnoreCase));
+
+			if (destinationGroup != null)
+				return destinationGroup;
+
+			destinationGroup = new DestinationGroup
+			{
+				Name = name,
+				Id = GetDestinationGroupId(),
+				ConnectionTypeMask = eConnectionType.Video | eConnectionType.Audio | eConnectionType.Usb,
+				Serialize = true
+			};
+
+			routingGraph.DestinationGroups.AddChild(destinationGroup);
+			Originators.AddChild(destinationGroup);
+
+			return destinationGroup;
+		}
+
 		#endregion
 
 		#region Settings
@@ -275,6 +337,14 @@ namespace ICD.Connect.Krang.Cores
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
 
+
+				// Setup Destination Groups based on DestinationGroupStrings
+				IcdHashSet<IDestinationGroup> modifiedDestinationGroups = new IcdHashSet<IDestinationGroup>();
+				foreach (IRoutingGraph routingGraph in factory.GetOriginators<IRoutingGraph>())
+					modifiedDestinationGroups.AddRange(SetupDestinationGroupsFromDestinationGroupString(routingGraph));
+				SetupDestinationGroupsInRooms(modifiedDestinationGroups, factory.GetOriginators<IRoom>());
+
+
 				ResetDefaultPermissions();
 
 				// Start broadcasting last
@@ -284,6 +354,15 @@ namespace ICD.Connect.Krang.Cores
 			{
 				factory.OnOriginatorLoaded -= FactoryOnOriginatorLoaded;
 			}
+		}
+
+		/// <summary>
+		/// Gets a free ID for the destination group to use
+		/// </summary>
+		/// <returns></returns>
+		private int GetDestinationGroupId()
+		{
+			return IdUtils.GetNewId(Originators.GetChildrenIds(), eSubsystem.Destinations);
 		}
 
 		private void ApplyBroadcastSettings(BroadcastSettings settings)
