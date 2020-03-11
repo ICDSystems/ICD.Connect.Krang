@@ -84,7 +84,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 
 			try
 			{
-				DateTime cutoff = IcdEnvironment.GetLocalTime() - TimeSpan.FromMilliseconds(TIMEOUT_DURATION);
+				DateTime cutoff = IcdEnvironment.GetUtcTime() - TimeSpan.FromMilliseconds(TIMEOUT_DURATION);
 
 				dropped =
 					m_Discovered.Where(kvp => kvp.Value.DiscoveryTime <= cutoff)

@@ -25,7 +25,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			Id = discovery.Id;
 			Name = discovery.Name;
 			Source = data.HostSession;
-			DiscoveryTime = IcdEnvironment.GetLocalTime();
+			DiscoveryTime = IcdEnvironment.GetUtcTime();
 		}
 
 		/// <summary>
