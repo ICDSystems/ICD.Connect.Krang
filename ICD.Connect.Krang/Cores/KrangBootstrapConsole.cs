@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Devices;
+using ICD.Connect.Panels.Devices;
+using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
 #if SIMPLSHARP
@@ -65,6 +69,7 @@ namespace ICD.Connect.Krang.Cores
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.", () => RebuildCore(instance));
 			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.", () => PrintTypes());
 			yield return new ConsoleCommand("PrintVersions", "Prints version information for the loaded assemblies.", () => PrintVersions());
+			yield return new ConsoleCommand("Health", "Prints an overview of the current status of the loaded system.", () => PrintHealth(instance));
 		}
 
 		private static void LoadSettings(KrangBootstrap instance)
@@ -137,6 +142,42 @@ namespace ICD.Connect.Krang.Cores
 
 				builder.AddRow(factoryName, name, path, version, date);
 			}
+
+			return builder.ToString();
+		}
+
+		private static string PrintHealth([NotNull] KrangBootstrap instance)
+		{
+			if (instance == null)
+				throw new ArgumentNullException("instance");
+
+			TableBuilder builder = new TableBuilder("Item", "ID", "Online");
+
+			Action<IDeviceBase> addRow = d =>
+			{
+				string name = string.IsNullOrEmpty(d.CombineName) ? d.Name : d.CombineName;
+				string id = d.Id.ToString();
+				string color = d.IsOnline ? AnsiUtils.COLOR_GREEN : AnsiUtils.COLOR_RED;
+				string online = AnsiUtils.Format(d.IsOnline.ToString(), color); 
+
+				builder.AddRow(name, id, online);
+			};
+
+			builder.AddRow("-Panels-", null, null);
+			foreach (IPanelDevice panel in instance.Krang.Originators.GetChildren<IPanelDevice>())
+				addRow(panel);
+
+			builder.AddEmptyRow();
+
+			builder.AddRow("-Ports-", null, null);
+			foreach (IPort port in instance.Krang.Originators.GetChildren<IPort>())
+				addRow(port);
+
+			builder.AddEmptyRow();
+
+			builder.AddRow("-Devices-", null, null);
+			foreach (IDevice device in instance.Krang.Originators.GetChildren<IDevice>())
+				addRow(device);
 
 			return builder.ToString();
 		}

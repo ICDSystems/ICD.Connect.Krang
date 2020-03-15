@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+ - Added "icd controlsystem health" console command for printing the online states of panels, ports and devices
+
 ### Changed
  - Debug builds validate the SystemKey while still allowing the use of invalid SystemKey
  - Clarifying MAC address mismatch when validating system key
