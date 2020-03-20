@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [14.2.0] - 2020-03-20
 ### Added
  - Added "icd controlsystem health" console command for printing the online states of panels, ports and devices
 
