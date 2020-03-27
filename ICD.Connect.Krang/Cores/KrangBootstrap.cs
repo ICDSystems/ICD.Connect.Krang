@@ -192,7 +192,7 @@ namespace ICD.Connect.Krang.Cores
 #endif
 );
 
-			ProgramUtils.PrintProgramInfoLine("Room Config", FileOperations.IcdConfigPath);
+			ProgramUtils.PrintProgramInfoLine("System Config", FileOperations.SystemConfigPath);
 		}
 
 		/// <summary>
