@@ -20,6 +20,7 @@ using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Header;
 using ICD.Connect.Settings.Localization;
 using ICD.Connect.Settings.Utils;
+using ICD.Connect.Telemetry.MQTT;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Cores
@@ -55,11 +56,13 @@ namespace ICD.Connect.Krang.Cores
 
 		private const string LOCALIZATION_ELEMENT = "Localization";
 		private const string BROADCAST_ELEMENT = "Broadcast";
+		private const string TELEMETRY_ELEMENT = "Telemetry";
 
 		private readonly SettingsCollection m_OriginatorSettings;
 		private readonly ConfigurationHeader m_Header;
 		private readonly LocalizationSettings m_LocalizationSettings;
 		private readonly BroadcastSettings m_BroadcastSettings;
+		private readonly CoreTelemetrySettings m_TelemetrySettings;
 
 		#region Properties
 
@@ -90,6 +93,11 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		public BroadcastSettings BroadcastSettings { get { return m_BroadcastSettings; } }
 
+		/// <summary>
+		/// Gets the core telemetry settings.
+		/// </summary>
+		public CoreTelemetrySettings CoreTelemetrySettings { get { return m_TelemetrySettings; }}
+
 		#endregion
 
 		/// <summary>
@@ -101,6 +109,7 @@ namespace ICD.Connect.Krang.Cores
 			m_Header = new ConfigurationHeader();
 			m_LocalizationSettings = new LocalizationSettings();
 			m_BroadcastSettings = new BroadcastSettings();
+			m_TelemetrySettings = new CoreTelemetrySettings();
 
 			m_OriginatorSettings.OnItemRemoved += SettingsOnItemRemoved;
 		}
@@ -119,6 +128,7 @@ namespace ICD.Connect.Krang.Cores
 
 			LocalizationSettings.ToXml(writer, LOCALIZATION_ELEMENT);
 			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
+			CoreTelemetrySettings.ToXml(writer, TELEMETRY_ELEMENT);
 
 			GetSettings<IThemeSettings>().ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
 			GetSettings<IPanelDeviceSettings>().ToXml(writer, PANELS_ELEMENT, PANEL_ELEMENT);
@@ -150,6 +160,7 @@ namespace ICD.Connect.Krang.Cores
 			UpdateHeaderFromXml(m_Header, xml);
 			UpdateLocalizationSettingsFromXml(xml);
 			UpdateBroadcastSettingsFromXml(xml);
+			UpdateTelemetrySettingsFromXml(xml);
 
 			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
 			IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
@@ -273,6 +284,15 @@ namespace ICD.Connect.Krang.Cores
 			string child;
 			if (XmlUtils.TryGetChildElementAsString(xml, BROADCAST_ELEMENT, out child))
 				m_BroadcastSettings.ParseXml(child);
+		}
+
+		private void UpdateTelemetrySettingsFromXml(string xml)
+		{
+			m_TelemetrySettings.Clear();
+
+			string child;
+			if (XmlUtils.TryGetChildElementAsString(xml, TELEMETRY_ELEMENT, out child))
+				m_TelemetrySettings.ParseXml(child);
 		}
 
 		private void UpdateRoutingFromXml(string xml)

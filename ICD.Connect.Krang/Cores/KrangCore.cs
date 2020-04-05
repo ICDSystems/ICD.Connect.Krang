@@ -26,6 +26,7 @@ using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Originators;
 using ICD.Connect.Settings.Utils;
+using ICD.Connect.Telemetry.MQTT;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Cores
@@ -39,6 +40,9 @@ namespace ICD.Connect.Krang.Cores
 
 		private readonly InterCoreCommunication m_InterCore;
 		private readonly BroadcastSettings m_BroadcastSettings;
+
+		private readonly CoreTelemetry m_CoreTelemetry;
+		private readonly CoreTelemetrySettings m_CoreTelemetrySettings;
 
 		#region Properties
 
@@ -63,6 +67,12 @@ namespace ICD.Connect.Krang.Cores
 		{
 			get { return Originators.GetChildren<PartitionManager>().SingleOrDefault(); }
 		}
+
+		/// <summary>
+		/// Gets the core telemetry instance.
+		/// </summary>
+		[NotNull]
+		public CoreTelemetry CoreTelemetry { get { return m_CoreTelemetry; } }
 
 		[ApiNodeGroup("Themes", "The currently active themes")]
 		private IApiNodeGroup Themes { get; set; }
@@ -99,8 +109,10 @@ namespace ICD.Connect.Krang.Cores
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 
 			m_InterCore = new InterCoreCommunication(this);
-
 			m_BroadcastSettings = new BroadcastSettings();
+
+			m_CoreTelemetry = new CoreTelemetry(this);
+			m_CoreTelemetrySettings = new CoreTelemetrySettings();
 		}
 
 		#endregion
@@ -255,6 +267,7 @@ namespace ICD.Connect.Krang.Cores
 
 			Localization.CopySettings(settings.LocalizationSettings);
 			settings.BroadcastSettings.Update(m_BroadcastSettings);
+			settings.CoreTelemetrySettings.Update(m_CoreTelemetrySettings);
 
 			// Clear the old originators
 			settings.OriginatorSettings.Clear();
@@ -313,6 +326,7 @@ namespace ICD.Connect.Krang.Cores
 
 			Localization.ClearSettings();
 			m_BroadcastSettings.Clear();
+			m_CoreTelemetrySettings.Clear();
 
 			ResetDefaultPermissions();
 		}
@@ -350,6 +364,9 @@ namespace ICD.Connect.Krang.Cores
 
 				// Start broadcasting last
 				ApplyBroadcastSettings(settings.BroadcastSettings);
+
+				// Setup Telemetry
+				ApplyTelemetrySettings(settings.CoreTelemetrySettings);
 			}
 			finally
 			{
@@ -377,6 +394,15 @@ namespace ICD.Connect.Krang.Cores
 				m_InterCore.Start();
 			else
 				m_InterCore.Stop();
+		}
+
+		private void ApplyTelemetrySettings(CoreTelemetrySettings settings)
+		{
+			m_CoreTelemetrySettings.Update(settings);
+
+			m_CoreTelemetry.PathPrefix = settings.PathPrefix;
+			m_CoreTelemetry.Port.CopySettings(settings.PortSettings);
+			m_CoreTelemetry.GenerateTelemetryForSystem();
 		}
 
 		private void LoadOriginatorsSkipExceptions(IDeviceFactory factory)

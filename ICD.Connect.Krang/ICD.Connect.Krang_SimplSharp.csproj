@@ -158,6 +158,10 @@
       <Project>{42FB8CF0-6AE6-4C70-AFDD-DF95F07E077F}</Project>
       <Name>ICD.Connect.Partitioning_SimplSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.IoT\ICD.Connect.Protocol.IoT_SimplSharp.csproj">
+      <Project>{849A1900-1042-41F0-829A-E5B75339F6A1}</Project>
+      <Name>ICD.Connect.Protocol.IoT_SimplSharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Network\ICD.Connect.Protocol.Network_SimplSharp.csproj">
       <Project>{5ED52F05-EA6C-4FC5-8AA0-9B9727F6AECD}</Project>
       <Name>ICD.Connect.Protocol.Network_SimplSharp</Name>
@@ -177,6 +181,10 @@
     <ProjectReference Include="..\..\ICD.Connect.Settings\ICD.Connect.Settings\ICD.Connect.Settings_SimplSharp.csproj">
       <Project>{5B84EB3C-1C3A-4C4D-98C2-69F67CF51D5A}</Project>
       <Name>ICD.Connect.Settings_SimplSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ICD.Connect.Telemetry\ICD.Connect.Telemetry.MQTT\ICD.Connect.Telemetry.MQTT_SimplSharp.csproj">
+      <Project>{4D9BE10A-B4E0-4C53-8532-A4A787D11DBB}</Project>
+      <Name>ICD.Connect.Telemetry.MQTT_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Telemetry\ICD.Connect.Telemetry\ICD.Connect.Telemetry_SimplSharp.csproj">
       <Project>{9512C0A5-F966-4AC6-9668-62C6F343B0CD}</Project>
