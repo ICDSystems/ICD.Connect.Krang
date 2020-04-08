@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Logging.LoggingContexts;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
@@ -32,6 +33,8 @@ namespace ICD.Connect.Krang.Remote
 		private readonly ICore m_LocalCore;
 		private readonly HostSessionInfo m_RemoteHost;
 
+		private readonly ILoggingContext m_Logger;
+
 		/// <summary>
 		/// Constructor.
 		/// </summary>
@@ -39,6 +42,8 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="remoteHost"></param>
 		public RemoteCore(ICore localCore, HostSessionInfo remoteHost)
 		{
+			m_Logger = new ServiceLoggingContext(this);
+
 			m_ProxyBuildCommand = new Dictionary<IProxy, Func<ApiClassInfo, ApiClassInfo>>();
 			m_CriticalSection = new SafeCriticalSection();
 
@@ -267,7 +272,7 @@ namespace ICD.Connect.Krang.Remote
 			}
 			catch (Exception e)
 			{
-				m_LocalCore.Logger.AddEntry(eSeverity.Error, e, "{0} failed to parse response - {1}", this, e.Message);
+				m_Logger.Log(eSeverity.Error, e, "Failed to parse response - {0}", e.Message);
 				throw;
 			}
 		}
@@ -305,7 +310,7 @@ namespace ICD.Connect.Krang.Remote
 
 			string pathText = string.Join("/", path.Reverse().Select(i => i.Name).Where(n => n != null).ToArray());
 
-			m_LocalCore.Logger.AddEntry(severity, "{0} - {1} - {2}", this, message, pathText);
+			m_LocalCore.Logger.Log(severity, "{0} - {1} - {2}", this, message, pathText);
 		}
 
 		/// <summary>

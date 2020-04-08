@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Logging.LoggingContexts;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
@@ -179,7 +180,7 @@ namespace ICD.Connect.Krang.Cores
 			}
 			catch (Exception e)
 			{
-				Log(eSeverity.Error, e, "Failed to dispose {0} - {1}", originator, e.Message);
+				Logger.Log(eSeverity.Error, e, "Failed to dispose {0} - {1}", originator, e.Message);
 			}
 		}
 
@@ -389,8 +390,8 @@ namespace ICD.Connect.Krang.Cores
 				}
 				catch (Exception e)
 				{
-					Log(eSeverity.Error, e, "Failed to instantiate {0} with id {1} - {2}",
-					    typeof(IOriginator).Name, id, e.Message);
+					Logger.Log(eSeverity.Error, e, "Failed to instantiate {0} with id {1} - {2}",
+					           typeof(IOriginator).Name, id, e.Message);
 				}
 			}
 		}
@@ -405,7 +406,7 @@ namespace ICD.Connect.Krang.Cores
 			m_LoadedOriginators.Push(originator.Id);
 			AddOriginator(originator);
 
-			Log(eSeverity.Debug, "{0:0.00}% - Finished loading {1}", factory.PercentComplete * 100, originator);
+			Logger.Log(eSeverity.Debug, "{0:0.00}% - Finished loading {1}", factory.PercentComplete * 100, originator);
 		}
 
 		private void ResetDefaultPermissions()
