@@ -366,7 +366,7 @@ namespace ICD.Connect.Krang.Cores
 				ApplyBroadcastSettings(settings.BroadcastSettings);
 
 				// Setup Telemetry
-				ApplyTelemetrySettings(settings.CoreTelemetrySettings);
+				ApplyTelemetrySettings(settings.CoreTelemetrySettings, factory);
 			}
 			finally
 			{
@@ -396,12 +396,12 @@ namespace ICD.Connect.Krang.Cores
 				m_InterCore.Stop();
 		}
 
-		private void ApplyTelemetrySettings(CoreTelemetrySettings settings)
+		private void ApplyTelemetrySettings(CoreTelemetrySettings settings, IDeviceFactory factory)
 		{
 			m_CoreTelemetrySettings.Update(settings);
 
 			m_CoreTelemetry.PathPrefix = settings.PathPrefix;
-			m_CoreTelemetry.Port.CopySettings(settings.PortSettings);
+			m_CoreTelemetry.Port.ApplySettings(settings.PortSettings, factory);
 			m_CoreTelemetry.GenerateTelemetryForSystem();
 		}
 
