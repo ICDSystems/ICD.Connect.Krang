@@ -26,11 +26,13 @@ using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Originators;
 using ICD.Connect.Settings.Utils;
+using ICD.Connect.Telemetry.Attributes;
 using ICD.Connect.Telemetry.MQTT;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Cores
 {
+	[ExternalTelemetry("Krang Core Telemetry", typeof(KrangCoreExternalTelemetryProvider))]
 	public sealed class KrangCore : AbstractCore<KrangCoreSettings>
 	{
 		/// <summary>
