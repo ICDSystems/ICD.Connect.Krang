@@ -7,7 +7,6 @@ using ICD.Connect.API.Nodes;
 using ICD.Connect.Audio.VolumePoints;
 using ICD.Connect.Conferencing.ConferencePoints;
 using ICD.Connect.Devices;
-using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning.RoomGroups;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
@@ -45,7 +44,6 @@ namespace ICD.Connect.Krang.Cores
 				throw new ArgumentNullException("instance");
 
 			yield return ConsoleNodeGroup.KeyNodeMap("Themes", instance.Originators.GetChildren<ITheme>(), p => (uint)p.Id);
-			yield return ConsoleNodeGroup.KeyNodeMap("Panels", instance.Originators.GetChildren<IPanelDevice>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Ports", instance.Originators.GetChildren<IPort>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Devices", instance.Originators.GetChildren<IDevice>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", instance.Originators.GetChildren<IRoom>(), p => (uint)p.Id);
@@ -71,7 +69,6 @@ namespace ICD.Connect.Krang.Cores
 				throw new ArgumentNullException("instance");
 
 			addRow("Theme Count", instance.Originators.GetChildren<ITheme>().Count());
-			addRow("Panel Count", instance.Originators.GetChildren<IPanelDevice>().Count());
 			addRow("Port Count", instance.Originators.GetChildren<IPort>().Count());
 			addRow("Device Count", instance.Originators.GetChildren<IDevice>().Count());
 			addRow("Room Count", instance.Originators.GetChildren<IRoom>().Count());

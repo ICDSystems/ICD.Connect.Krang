@@ -8,7 +8,6 @@ using ICD.Common.Utils.Xml;
 using ICD.Connect.Audio.VolumePoints;
 using ICD.Connect.Conferencing.ConferencePoints;
 using ICD.Connect.Devices;
-using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.RoomGroups;
 using ICD.Connect.Partitioning.Rooms;
@@ -35,8 +34,7 @@ namespace ICD.Connect.Krang.Cores
 
 		private const string THEMES_ELEMENT = "Themes";
 		private const string THEME_ELEMENT = "Theme";
-		private const string PANELS_ELEMENT = "Panels";
-		private const string PANEL_ELEMENT = "Panel";
+		[Obsolete] private const string PANELS_ELEMENT = "Panels";
 		private const string PORTS_ELEMENT = "Ports";
 		private const string PORT_ELEMENT = "Port";
 		private const string DEVICES_ELEMENT = "Devices";
@@ -131,7 +129,6 @@ namespace ICD.Connect.Krang.Cores
 			CoreTelemetrySettings.ToXml(writer, TELEMETRY_ELEMENT);
 
 			GetSettings<IThemeSettings>().ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
-			GetSettings<IPanelDeviceSettings>().ToXml(writer, PANELS_ELEMENT, PANEL_ELEMENT);
 			GetSettings<IPortSettings>().ToXml(writer, PORTS_ELEMENT, PORT_ELEMENT);
 			GetSettings<IDeviceSettings>().ToXml(writer, DEVICES_ELEMENT, DEVICE_ELEMENT);
 			GetSettings<IRoomSettings>().ToXml(writer, ROOMS_ELEMENT, ROOM_ELEMENT);
@@ -163,7 +160,10 @@ namespace ICD.Connect.Krang.Cores
 			UpdateTelemetrySettingsFromXml(xml);
 
 			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
+// ReSharper disable CSharpWarnings::CS0612
+			// Backwards compatibility
 			IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
+// ReSharper restore CSharpWarnings::CS0612
 			IEnumerable<ISettings> ports = PluginFactory.GetSettingsFromXml(xml, PORTS_ELEMENT);
 			IEnumerable<ISettings> devices = PluginFactory.GetSettingsFromXml(xml, DEVICES_ELEMENT);
 			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
@@ -370,7 +370,6 @@ namespace ICD.Connect.Krang.Cores
 			{
 				roomSettings.Devices.Remove(eventArgs.Data.Id);
 				roomSettings.Ports.Remove(eventArgs.Data.Id);
-				roomSettings.Panels.Remove(eventArgs.Data.Id);
 				roomSettings.Sources.Remove(eventArgs.Data.Id);
 				roomSettings.Destinations.Remove(eventArgs.Data.Id);
 				roomSettings.VolumePoints.Remove(eventArgs.Data.Id);

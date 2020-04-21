@@ -13,7 +13,6 @@ using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Devices;
 using ICD.Connect.Krang.Remote;
-using ICD.Connect.Panels.Devices;
 using ICD.Connect.Partitioning;
 using ICD.Connect.Partitioning.PartitionManagers;
 using ICD.Connect.Partitioning.Rooms;
@@ -82,9 +81,6 @@ namespace ICD.Connect.Krang.Cores
 		[ApiNodeGroup("Devices", "The currently active devices")]
 		private IApiNodeGroup Devices { get; set; }
 
-		[ApiNodeGroup("Panels", "The currently active panels")]
-		private IApiNodeGroup Panels { get; set; }
-
 		[ApiNodeGroup("Ports", "The currently active ports")]
 		private IApiNodeGroup Ports { get; set; }
 
@@ -106,7 +102,6 @@ namespace ICD.Connect.Krang.Cores
 
 			Themes = new ApiOriginatorsNodeGroup<ITheme>(Originators);
 			Devices = new ApiOriginatorsNodeGroup<IDevice>(Originators);
-			Panels = new ApiOriginatorsNodeGroup<IPanelDevice>(Originators);
 			Ports = new ApiOriginatorsNodeGroup<IPort>(Originators);
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 
