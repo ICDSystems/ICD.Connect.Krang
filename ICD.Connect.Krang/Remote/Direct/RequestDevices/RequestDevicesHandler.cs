@@ -40,8 +40,10 @@ namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 			foreach (ISource source in sources)
 			{
 				IRouteSourceControl control =
-					core.Originators.GetChild<IDeviceBase>(source.Device)
-					    .Controls.GetControl<IRouteSourceControl>(source.Control);
+					core.Originators
+					    .GetChild<IDevice>(source.Device)
+					    .Controls
+					    .GetControl<IRouteSourceControl>(source.Control);
 
 				if (!sourceConnections.ContainsKey(source.Id))
 					sourceConnections.Add(source.Id, control.GetOutputs());
@@ -50,8 +52,10 @@ namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 			foreach (IDestination destination in destinations)
 			{
 				IRouteDestinationControl control =
-					core.Originators.GetChild<IDeviceBase>(destination.Device)
-					    .Controls.GetControl<IRouteDestinationControl>(destination.Control);
+					core.Originators
+					    .GetChild<IDevice>(destination.Device)
+					    .Controls
+					    .GetControl<IRouteDestinationControl>(destination.Control);
 
 				if (!destinationConnections.ContainsKey(destination.Id))
 					destinationConnections.Add(destination.Id, control.GetInputs());
