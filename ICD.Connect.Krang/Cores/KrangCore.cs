@@ -40,10 +40,7 @@ namespace ICD.Connect.Krang.Cores
 		private readonly Stack<int> m_LoadedOriginators;
 
 		private readonly InterCoreCommunication m_InterCore;
-		private readonly BroadcastSettings m_BroadcastSettings;
-
 		private readonly CoreTelemetry m_CoreTelemetry;
-		private readonly CoreTelemetrySettings m_CoreTelemetrySettings;
 
 		#region Properties
 
@@ -106,10 +103,7 @@ namespace ICD.Connect.Krang.Cores
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
 
 			m_InterCore = new InterCoreCommunication(this);
-			m_BroadcastSettings = new BroadcastSettings();
-
 			m_CoreTelemetry = new CoreTelemetry(this);
-			m_CoreTelemetrySettings = new CoreTelemetrySettings();
 		}
 
 		#endregion
@@ -262,9 +256,8 @@ namespace ICD.Connect.Krang.Cores
 		{
 			base.CopySettingsFinal(settings);
 
-			Localization.CopySettings(settings.LocalizationSettings);
-			settings.BroadcastSettings.Update(m_BroadcastSettings);
-			settings.CoreTelemetrySettings.Update(m_CoreTelemetrySettings);
+			settings.BroadcastSettings.Update(m_InterCore.CopySettings());
+			settings.TelemetrySettings.Update(m_CoreTelemetry.CopySettings());
 
 			// Clear the old originators
 			settings.OriginatorSettings.Clear();
@@ -318,12 +311,8 @@ namespace ICD.Connect.Krang.Cores
 
 			DisposeOriginators();
 
-			m_InterCore.Stop();
-			m_InterCore.SetBroadcastAddresses(Enumerable.Empty<string>());
-
-			Localization.ClearSettings();
-			m_BroadcastSettings.Clear();
-			m_CoreTelemetrySettings.Clear();
+			m_InterCore.ClearSettings();
+			m_CoreTelemetry.Clear();
 
 			ResetDefaultPermissions();
 		}
@@ -340,15 +329,11 @@ namespace ICD.Connect.Krang.Cores
 
 			try
 			{
-				// Setup localization first
-				Localization.ApplySettings(settings.LocalizationSettings);
-
 				base.ApplySettingsFinal(settings, factory);
 
 				factory.LoadOriginators<IRoutingGraph>();
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
-
 
 				// Setup Destination Groups based on DestinationGroupStrings
 				IcdHashSet<IDestinationGroup> modifiedDestinationGroups = new IcdHashSet<IDestinationGroup>();
@@ -356,14 +341,13 @@ namespace ICD.Connect.Krang.Cores
 					modifiedDestinationGroups.AddRange(SetupDestinationGroupsFromDestinationGroupString(routingGraph));
 				SetupDestinationGroupsInRooms(modifiedDestinationGroups, factory.GetOriginators<IRoom>());
 
-
 				ResetDefaultPermissions();
 
-				// Start broadcasting last
-				ApplyBroadcastSettings(settings.BroadcastSettings);
-
 				// Setup Telemetry
-				ApplyTelemetrySettings(settings.CoreTelemetrySettings, factory);
+				m_CoreTelemetry.ApplySettings(settings.TelemetrySettings);
+
+				// Start broadcasting last
+				m_InterCore.ApplySettings(settings.BroadcastSettings);
 			}
 			finally
 			{
@@ -378,28 +362,6 @@ namespace ICD.Connect.Krang.Cores
 		private int GetDestinationGroupId()
 		{
 			return IdUtils.GetNewId(Originators.GetChildrenIds(), eSubsystem.Destinations);
-		}
-
-		private void ApplyBroadcastSettings(BroadcastSettings settings)
-		{
-			m_BroadcastSettings.Update(settings);
-
-			IEnumerable<string> addresses = m_BroadcastSettings.GetAddresses();
-			m_InterCore.SetBroadcastAddresses(addresses);
-
-			if (m_BroadcastSettings.Enabled)
-				m_InterCore.Start();
-			else
-				m_InterCore.Stop();
-		}
-
-		private void ApplyTelemetrySettings(CoreTelemetrySettings settings, IDeviceFactory factory)
-		{
-			m_CoreTelemetrySettings.Update(settings);
-
-			m_CoreTelemetry.PathPrefix = settings.PathPrefix;
-			m_CoreTelemetry.Port.ApplySettings(settings.PortSettings, factory);
-			m_CoreTelemetry.GenerateTelemetryForSystem();
 		}
 
 		private void LoadOriginatorsSkipExceptions(IDeviceFactory factory)

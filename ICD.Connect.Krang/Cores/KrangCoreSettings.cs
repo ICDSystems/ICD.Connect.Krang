@@ -16,8 +16,6 @@ using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Cores;
-using ICD.Connect.Settings.Header;
-using ICD.Connect.Settings.Localization;
 using ICD.Connect.Settings.Utils;
 using ICD.Connect.Telemetry.MQTT;
 using ICD.Connect.Themes;
@@ -30,8 +28,6 @@ namespace ICD.Connect.Krang.Cores
 	[KrangSettings("Krang", typeof(KrangCore))]
 	public sealed class KrangCoreSettings : AbstractCoreSettings
 	{
-		private const string HEADER_ELEMENT = "Header";
-
 		private const string THEMES_ELEMENT = "Themes";
 		private const string THEME_ELEMENT = "Theme";
 		[Obsolete] private const string PANELS_ELEMENT = "Panels";
@@ -52,39 +48,23 @@ namespace ICD.Connect.Krang.Cores
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
 
-		private const string LOCALIZATION_ELEMENT = "Localization";
 		private const string BROADCAST_ELEMENT = "Broadcast";
 		private const string TELEMETRY_ELEMENT = "Telemetry";
 
-		private readonly SettingsCollection m_OriginatorSettings;
-		private readonly ConfigurationHeader m_Header;
-		private readonly LocalizationSettings m_LocalizationSettings;
 		private readonly BroadcastSettings m_BroadcastSettings;
 		private readonly CoreTelemetrySettings m_TelemetrySettings;
 
 		#region Properties
 
-		public override SettingsCollection OriginatorSettings { get { return m_OriginatorSettings; } }
-
 		private RoutingGraphSettings RoutingGraphSettings
 		{
-			get { return m_OriginatorSettings.OfType<RoutingGraphSettings>().SingleOrDefault(); }
+			get { return OriginatorSettings.OfType<RoutingGraphSettings>().SingleOrDefault(); }
 		}
 
 		private PartitionManagerSettings PartitionManagerSettings
 		{
-			get { return m_OriginatorSettings.OfType<PartitionManagerSettings>().SingleOrDefault(); }
+			get { return OriginatorSettings.OfType<PartitionManagerSettings>().SingleOrDefault(); }
 		}
-
-		/// <summary>
-		/// Gets the header info.
-		/// </summary>
-		public ConfigurationHeader Header { get { return m_Header; } }
-
-		/// <summary>
-		/// Gets the localization configuration.
-		/// </summary>
-		public LocalizationSettings LocalizationSettings { get { return m_LocalizationSettings; } }
 
 		/// <summary>
 		/// Gets the broadcasting configuration.
@@ -94,7 +74,7 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Gets the core telemetry settings.
 		/// </summary>
-		public CoreTelemetrySettings CoreTelemetrySettings { get { return m_TelemetrySettings; }}
+		public CoreTelemetrySettings TelemetrySettings { get { return m_TelemetrySettings; } }
 
 		#endregion
 
@@ -103,13 +83,8 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		public KrangCoreSettings()
 		{
-			m_OriginatorSettings = new SettingsCollection();
-			m_Header = new ConfigurationHeader();
-			m_LocalizationSettings = new LocalizationSettings();
 			m_BroadcastSettings = new BroadcastSettings();
 			m_TelemetrySettings = new CoreTelemetrySettings();
-
-			m_OriginatorSettings.OnItemRemoved += SettingsOnItemRemoved;
 		}
 
 		#region Methods
@@ -122,11 +97,8 @@ namespace ICD.Connect.Krang.Cores
 		{
 			base.WriteElements(writer);
 
-			new ConfigurationHeader(true).ToXml(writer, HEADER_ELEMENT);
-
-			LocalizationSettings.ToXml(writer, LOCALIZATION_ELEMENT);
 			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
-			CoreTelemetrySettings.ToXml(writer, TELEMETRY_ELEMENT);
+			TelemetrySettings.ToXml(writer, TELEMETRY_ELEMENT);
 
 			GetSettings<IThemeSettings>().ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
 			GetSettings<IPortSettings>().ToXml(writer, PORTS_ELEMENT, PORT_ELEMENT);
@@ -154,8 +126,6 @@ namespace ICD.Connect.Krang.Cores
 		{
 			base.ParseXml(xml);
 
-			UpdateHeaderFromXml(m_Header, xml);
-			UpdateLocalizationSettingsFromXml(xml);
 			UpdateBroadcastSettingsFromXml(xml);
 			UpdateTelemetrySettingsFromXml(xml);
 
@@ -191,18 +161,6 @@ namespace ICD.Connect.Krang.Cores
 			UpdatePartitioningFromXml(child);
 		}
 
-		/// <summary>
-		/// Parses and returns only the header portion from the full XML config.
-		/// </summary>
-		/// <param name="configXml"></param>
-		/// <returns></returns>
-		public override ConfigurationHeader GetHeader(string configXml)
-		{
-			ConfigurationHeader header = new ConfigurationHeader(false);
-			UpdateHeaderFromXml(header, configXml);
-			return header;
-		}
-
 		#endregion
 
 		#region Private Methods
@@ -210,7 +168,7 @@ namespace ICD.Connect.Krang.Cores
 		private SettingsCollection GetSettings<T>()
 			where T : ISettings
 		{
-			return new SettingsCollection(m_OriginatorSettings.Where(s => s is T));
+			return new SettingsCollection(OriginatorSettings.Where(s => s is T));
 		}
 
 		/// <summary>
@@ -257,24 +215,6 @@ namespace ICD.Connect.Krang.Cores
 				if (!AddSettingsSkipDuplicateId(item))
 					collection.Remove(item);
 			}
-		}
-
-		private void UpdateHeaderFromXml(ConfigurationHeader header, string xml)
-		{
-			header.Clear();
-
-			string child;
-			if (XmlUtils.TryGetChildElementAsString(xml, HEADER_ELEMENT, out child))
-				header.ParseXml(child);
-		}
-
-		private void UpdateLocalizationSettingsFromXml(string xml)
-		{
-			m_LocalizationSettings.Clear();
-
-			string child;
-			if (XmlUtils.TryGetChildElementAsString(xml, LOCALIZATION_ELEMENT, out child))
-				m_LocalizationSettings.ParseXml(child);
 		}
 
 		private void UpdateBroadcastSettingsFromXml(string xml)
@@ -340,10 +280,9 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="eventArgs"></param>
-		private void SettingsOnItemRemoved(object sender, GenericEventArgs<ISettings> eventArgs)
+		protected override void OriginatorSettingsOnItemRemoved(object sender, GenericEventArgs<ISettings> eventArgs)
 		{
-			// Remove from the core
-			RemoveDependentSettings(m_OriginatorSettings, eventArgs.Data);
+			base.OriginatorSettingsOnItemRemoved(sender, eventArgs);
 
 			// Remove from the routing graph
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
@@ -366,7 +305,7 @@ namespace ICD.Connect.Krang.Cores
 			}
 
 			// Remove from the rooms
-			foreach (IRoomSettings roomSettings in m_OriginatorSettings.OfType<IRoomSettings>())
+			foreach (IRoomSettings roomSettings in OriginatorSettings.OfType<IRoomSettings>())
 			{
 				roomSettings.Devices.Remove(eventArgs.Data.Id);
 				roomSettings.Ports.Remove(eventArgs.Data.Id);
@@ -374,19 +313,6 @@ namespace ICD.Connect.Krang.Cores
 				roomSettings.Destinations.Remove(eventArgs.Data.Id);
 				roomSettings.VolumePoints.Remove(eventArgs.Data.Id);
 			}
-		}
-
-		/// <summary>
-		/// Removes settings from the collection that are dependent on the given settings instance.
-		/// </summary>
-		/// <param name="collection"></param>
-		/// <param name="dependency"></param>
-		private static void RemoveDependentSettings(SettingsCollection collection, ISettings dependency)
-		{
-			ISettings[] remove = collection.Where(s => s.HasDependency(dependency.Id))
-			                               .ToArray();
-			foreach (ISettings item in remove)
-				collection.Remove(item);
 		}
 
 		#endregion
