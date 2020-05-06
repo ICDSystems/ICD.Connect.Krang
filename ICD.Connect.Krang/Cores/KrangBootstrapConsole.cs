@@ -68,7 +68,7 @@ namespace ICD.Connect.Krang.Cores
 			yield return new ConsoleCommand("SaveCore", "Saves the current settings to XML.", () => SaveSettings(instance));
 			yield return new ConsoleCommand("RebuildCore", "Rebuilds the core using the current settings.", () => RebuildCore(instance));
 			yield return new ConsoleCommand("PrintTypes", "Prints the loaded device types.", () => PrintTypes());
-			yield return new ConsoleCommand("PrintVersions", "Prints version information for the loaded assemblies.", () => PrintVersions());
+			yield return new ConsoleCommand("VersionInfo", "Prints version information for the loaded assemblies.", () => PrintVersions());
 			yield return new ConsoleCommand("Health", "Prints an overview of the current status of the loaded system.", () => PrintHealth(instance));
 		}
 
