@@ -160,10 +160,6 @@
       <Project>{42FB8CF0-6AE6-4C70-AFDD-DF95F07E077F}</Project>
       <Name>ICD.Connect.Partitioning_SimplSharp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.IoT\ICD.Connect.Protocol.IoT_SimplSharp.csproj">
-      <Project>{849A1900-1042-41F0-829A-E5B75339F6A1}</Project>
-      <Name>ICD.Connect.Protocol.IoT_SimplSharp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Protocol\ICD.Connect.Protocol.Network\ICD.Connect.Protocol.Network_SimplSharp.csproj">
       <Project>{5ED52F05-EA6C-4FC5-8AA0-9B9727F6AECD}</Project>
       <Name>ICD.Connect.Protocol.Network_SimplSharp</Name>
