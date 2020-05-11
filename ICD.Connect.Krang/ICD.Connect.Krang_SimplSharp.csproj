@@ -75,7 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cores\ApiOriginatorsNodeGroup.cs" />
-    <Compile Include="Cores\BroadcastSettings.cs" />
+    <Compile Include="Cores\InterCoreServiceSettings.cs" />
     <Compile Include="Cores\IKrangCoreExternalTelemetryProvider.cs" />
     <Compile Include="Cores\KrangBootstrapConsole.cs" />
     <Compile Include="Cores\KrangCoreConsole.cs" />
@@ -83,7 +83,8 @@
     <Compile Include="NvramMigration.cs" />
     <Compile Include="Remote\Broadcast\IBroadcastHandler.cs" />
     <Compile Include="Remote\Direct\Disconnect\DisconnectData.cs" />
-    <Compile Include="Remote\InterCoreCommunication.cs" />
+    <Compile Include="Remote\IInterCoreService.cs" />
+    <Compile Include="Remote\InterCoreService.cs" />
     <Compile Include="Remote\RemoteCore.cs" />
     <Compile Include="Cores\KrangBootstrap.cs" />
     <Compile Include="KrangPlugin.cs" />
@@ -180,9 +181,9 @@
       <Project>{5B84EB3C-1C3A-4C4D-98C2-69F67CF51D5A}</Project>
       <Name>ICD.Connect.Settings_SimplSharp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ICD.Connect.Telemetry\ICD.Connect.Telemetry.MQTT\ICD.Connect.Telemetry.MQTT_SimplSharp.csproj">
-      <Project>{4D9BE10A-B4E0-4C53-8532-A4A787D11DBB}</Project>
-      <Name>ICD.Connect.Telemetry.MQTT_SimplSharp</Name>
+    <ProjectReference Include="..\..\ICD.Connect.Telemetry\ICD.Connect.Telemetry.Services\ICD.Connect.Telemetry.Services_SimplSharp.csproj">
+      <Project>{0BED4D4C-3704-431C-B07F-CE78AE29E0F1}</Project>
+      <Name>ICD.Connect.Telemetry.Services_SimplSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ICD.Connect.Telemetry\ICD.Connect.Telemetry\ICD.Connect.Telemetry_SimplSharp.csproj">
       <Project>{9512C0A5-F966-4AC6-9668-62C6F343B0CD}</Project>

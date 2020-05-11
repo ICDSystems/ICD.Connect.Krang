@@ -18,11 +18,13 @@ using ICD.Connect.Krang.Remote.Direct.RouteDevices;
 using ICD.Connect.Krang.Remote.Direct.ShareDevices;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
+using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
+using ICD.Connect.Settings.Services;
 
 namespace ICD.Connect.Krang.Remote
 {
-	public sealed class InterCoreCommunication : IDisposable
+	public sealed class InterCoreService : AbstractService<IInterCoreService, InterCoreServiceSettings>, IInterCoreService
 	{
 		private readonly IcdHashSet<IBroadcastHandler> m_BroadcastHandlers;
 		private readonly IcdHashSet<IMessageHandler> m_MessageHandlers;
@@ -46,14 +48,14 @@ namespace ICD.Connect.Krang.Remote
 		/// Constructor.
 		/// </summary>
 		/// <param name="core"></param>
-		public InterCoreCommunication(ICore core)
+		public InterCoreService()
 		{
-			CoreDiscoveryBroadcastHandler coreDiscovery = new CoreDiscoveryBroadcastHandler(core);
+			CoreDiscoveryBroadcastHandler coreDiscovery = new CoreDiscoveryBroadcastHandler();
 
 			m_BroadcastHandlers = new IcdHashSet<IBroadcastHandler>
 			{
 				coreDiscovery,
-				new OriginatorsChangeBroadcastHandler(core),
+				new OriginatorsChangeBroadcastHandler(),
 				new TielineDiscoveryBroadcastHandler()
 			};
 
@@ -77,10 +79,13 @@ namespace ICD.Connect.Krang.Remote
 		}
 
 		/// <summary>
-		/// Release resources.
+		/// Override to release resources.
 		/// </summary>
-		public void Dispose()
+		/// <param name="disposing"></param>
+		protected override void DisposeFinal(bool disposing)
 		{
+			base.DisposeFinal(disposing);
+
 			Stop();
 
 			foreach (IBroadcastHandler handler in m_BroadcastHandlers)
@@ -160,34 +165,46 @@ namespace ICD.Connect.Krang.Remote
 
 		#region Settings
 
-		public void ApplySettings(BroadcastSettings broadcastSettings)
+		/// <summary>
+		/// Override to apply settings to the instance.
+		/// </summary>
+		/// <param name="settings"/><param name="factory"/>
+		protected override void ApplySettingsFinal(InterCoreServiceSettings settings, IDeviceFactory factory)
 		{
-			IEnumerable<string> addresses = broadcastSettings.GetAddresses();
+			base.ApplySettingsFinal(settings, factory);
+		
+			IEnumerable<string> addresses = settings.GetAddresses();
 			SetBroadcastAddresses(addresses);
 
-			if (broadcastSettings.Enabled)
+			if (settings.Enabled)
 				Start();
 			else
 				Stop();
 		}
 
-		public void ClearSettings()
+		/// <summary>
+		/// Override to clear the instance settings.
+		/// </summary>
+		protected override void ClearSettingsFinal()
 		{
+			base.ClearSettingsFinal();
+
 			Stop();
 			SetBroadcastAddresses(Enumerable.Empty<string>());
 		}
 
-		public BroadcastSettings CopySettings()
+		/// <summary>
+		/// Override to apply properties to the settings instance.
+		/// </summary>
+		/// <param name="settings"></param>
+		protected override void CopySettingsFinal(InterCoreServiceSettings settings)
 		{
-			BroadcastSettings output = new BroadcastSettings
-			{
-				Enabled = IsRunning
-			};
+			base.CopySettingsFinal(settings);
+		
+			settings.Enabled = IsRunning;
 
 			IEnumerable<string> addresses = GetBroadcastAddresses();
-			output.SetAddresses(addresses);
-
-			return output;
+			settings.SetAddresses(addresses);
 		}
 
 		#endregion

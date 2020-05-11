@@ -17,7 +17,7 @@ using ICD.Connect.Settings;
 using ICD.Connect.Settings.Attributes;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Utils;
-using ICD.Connect.Telemetry.MQTT;
+using ICD.Connect.Telemetry.Services;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Cores
@@ -47,12 +47,8 @@ namespace ICD.Connect.Krang.Cores
 
 		private const string ROUTING_ELEMENT = "Routing";
 		private const string PARTITIONING_ELEMENT = "Partitioning";
-
-		private const string BROADCAST_ELEMENT = "Broadcast";
+		private const string INTER_CORE_ELEMENT = "InterCore";
 		private const string TELEMETRY_ELEMENT = "Telemetry";
-
-		private readonly BroadcastSettings m_BroadcastSettings;
-		private readonly CoreTelemetrySettings m_TelemetrySettings;
 
 		#region Properties
 
@@ -69,23 +65,20 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Gets the broadcasting configuration.
 		/// </summary>
-		public BroadcastSettings BroadcastSettings { get { return m_BroadcastSettings; } }
+		public InterCoreServiceSettings InterCoreServiceSettings
+		{
+			get { return OriginatorSettings.OfType<InterCoreServiceSettings>().SingleOrDefault(); }
+		}
 
 		/// <summary>
-		/// Gets the core telemetry settings.
+		/// Gets the telemetry configuration.
 		/// </summary>
-		public CoreTelemetrySettings TelemetrySettings { get { return m_TelemetrySettings; } }
+		public TelemetryServiceSettings TelemetrySettings
+		{
+			get { return OriginatorSettings.OfType<TelemetryServiceSettings>().SingleOrDefault(); }
+		}
 
 		#endregion
-
-		/// <summary>
-		/// Constructor.
-		/// </summary>
-		public KrangCoreSettings()
-		{
-			m_BroadcastSettings = new BroadcastSettings();
-			m_TelemetrySettings = new CoreTelemetrySettings();
-		}
 
 		#region Methods
 
@@ -97,8 +90,13 @@ namespace ICD.Connect.Krang.Cores
 		{
 			base.WriteElements(writer);
 
-			BroadcastSettings.ToXml(writer, BROADCAST_ELEMENT);
-			TelemetrySettings.ToXml(writer, TELEMETRY_ELEMENT);
+			InterCoreServiceSettings interCoreServiceSettings = InterCoreServiceSettings;
+			if (interCoreServiceSettings != null)
+				interCoreServiceSettings.ToXml(writer, INTER_CORE_ELEMENT);
+
+			TelemetryServiceSettings telemetrySettings = TelemetrySettings;
+			if (telemetrySettings != null)
+				telemetrySettings.ToXml(writer, TELEMETRY_ELEMENT);
 
 			GetSettings<IThemeSettings>().ToXml(writer, THEMES_ELEMENT, THEME_ELEMENT);
 			GetSettings<IPortSettings>().ToXml(writer, PORTS_ELEMENT, PORT_ELEMENT);
@@ -106,7 +104,6 @@ namespace ICD.Connect.Krang.Cores
 			GetSettings<IRoomSettings>().ToXml(writer, ROOMS_ELEMENT, ROOM_ELEMENT);
 			GetSettings<IVolumePointSettings>().ToXml(writer, VOLUME_POINTS_ELEMENT, VOLUME_POINT_ELEMENT);
 			GetSettings<IConferencePointSettings>().ToXml(writer, CONFERENCE_POINTS_ELEMENT, CONFERENCE_POINT_ELEMENT);
-
 			GetSettings<IRoomGroupSettings>().ToXml(writer, ROOM_GROUPS_ELEMENT, ROOM_GROUP_ELEMENT);
 
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
@@ -126,8 +123,13 @@ namespace ICD.Connect.Krang.Cores
 		{
 			base.ParseXml(xml);
 
-			UpdateBroadcastSettingsFromXml(xml);
-			UpdateTelemetrySettingsFromXml(xml);
+			string child;
+
+			XmlUtils.TryGetChildElementAsString(xml, INTER_CORE_ELEMENT, out child);
+			UpdateBroadcastFromXml(child);
+
+			XmlUtils.TryGetChildElementAsString(xml, TELEMETRY_ELEMENT, out child);
+			UpdateTelemetryFromXml(child);
 
 			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
 // ReSharper disable CSharpWarnings::CS0612
@@ -151,8 +153,6 @@ namespace ICD.Connect.Krang.Cores
 					  .Concat(roomGroups);
 
 			AddSettingsSkipDuplicateIds(concat);
-
-			string child;
 
 			XmlUtils.TryGetChildElementAsString(xml, ROUTING_ELEMENT, out child);
 			UpdateRoutingFromXml(child);
@@ -217,22 +217,38 @@ namespace ICD.Connect.Krang.Cores
 			}
 		}
 
-		private void UpdateBroadcastSettingsFromXml(string xml)
+		private void UpdateBroadcastFromXml(string xml)
 		{
-			m_BroadcastSettings.Clear();
+			InterCoreServiceSettings interCoreService = new InterCoreServiceSettings
+			{
+				Id = IdUtils.GetNewId(OriginatorSettings.Select(s => s.Id), IdUtils.ID_INTER_CORE)
+			};
 
-			string child;
-			if (XmlUtils.TryGetChildElementAsString(xml, BROADCAST_ELEMENT, out child))
-				m_BroadcastSettings.ParseXml(child);
+			if (xml != null)
+				interCoreService.ParseXml(xml);
+
+			if (!AddSettingsSkipDuplicateId(interCoreService))
+				return;
+
+			// Add broadcasts child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(interCoreService.ProviderSettings);
 		}
 
-		private void UpdateTelemetrySettingsFromXml(string xml)
+		private void UpdateTelemetryFromXml(string xml)
 		{
-			m_TelemetrySettings.Clear();
+			TelemetryServiceSettings telemetry = new TelemetryServiceSettings
+			{
+				Id = IdUtils.GetNewId(OriginatorSettings.Select(s => s.Id), IdUtils.ID_TELEMETRY)
+			};
 
-			string child;
-			if (XmlUtils.TryGetChildElementAsString(xml, TELEMETRY_ELEMENT, out child))
-				m_TelemetrySettings.ParseXml(child);
+			if (xml != null)
+				telemetry.ParseXml(xml);
+
+			if (!AddSettingsSkipDuplicateId(telemetry))
+				return;
+
+			// Add telemetrys child originators so they can be accessed by CoreDeviceFactory
+			AddSettingsRemoveOnDuplicateId(telemetry.ProviderSettings);
 		}
 
 		private void UpdateRoutingFromXml(string xml)
@@ -248,7 +264,7 @@ namespace ICD.Connect.Krang.Cores
 			if (!AddSettingsSkipDuplicateId(routing))
 				return;
 
-			// Add routing's child originators so they can be accessed by CoreDeviceFactory
+			// Add routings child originators so they can be accessed by CoreDeviceFactory
 			AddSettingsRemoveOnDuplicateId(routing.ConnectionSettings);
 			AddSettingsRemoveOnDuplicateId(routing.StaticRouteSettings);
 			AddSettingsRemoveOnDuplicateId(routing.SourceSettings);
@@ -270,7 +286,7 @@ namespace ICD.Connect.Krang.Cores
 			if (!AddSettingsSkipDuplicateId(partitioning))
 				return;
 
-			// Add partitioning's child originators so they can be accessed by CoreDeviceFactory
+			// Add partitionings child originators so they can be accessed by CoreDeviceFactory
 			AddSettingsRemoveOnDuplicateId(partitioning.CellSettings);
 			AddSettingsRemoveOnDuplicateId(partitioning.PartitionSettings);
 		}
@@ -283,6 +299,16 @@ namespace ICD.Connect.Krang.Cores
 		protected override void OriginatorSettingsOnItemRemoved(object sender, GenericEventArgs<ISettings> eventArgs)
 		{
 			base.OriginatorSettingsOnItemRemoved(sender, eventArgs);
+
+			// Remove from broadcast
+			InterCoreServiceSettings interCoreServiceSettings = InterCoreServiceSettings;
+			if (interCoreServiceSettings != null)
+				RemoveDependentSettings(interCoreServiceSettings.ProviderSettings, eventArgs.Data);
+
+			// Remove from telemetry
+			TelemetryServiceSettings telemetrySettings = TelemetrySettings;
+			if (telemetrySettings != null)
+				RemoveDependentSettings(telemetrySettings.ProviderSettings, eventArgs.Data);
 
 			// Remove from the routing graph
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;

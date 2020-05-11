@@ -1,6 +1,7 @@
 ﻿using System;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
+using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Protocol.Ports;
@@ -20,16 +21,14 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		/// <param name="core"></param>
-		public OriginatorsChangeBroadcastHandler(ICore core)
+		public OriginatorsChangeBroadcastHandler()
 		{
-			m_Core = core;
-
 			IBroadcaster broadcaster = new Broadcaster();
 			broadcaster.SetBroadcastData(new OriginatorsChangeData());
 
 			SetBroadcaster(broadcaster);
 
+			m_Core = ServiceProvider.GetService<ICore>();
 			Subscribe(m_Core);
 		}
 

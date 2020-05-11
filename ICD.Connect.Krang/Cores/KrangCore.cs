@@ -24,9 +24,10 @@ using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Originators;
+using ICD.Connect.Settings.Services;
 using ICD.Connect.Settings.Utils;
 using ICD.Connect.Telemetry.Attributes;
-using ICD.Connect.Telemetry.MQTT;
+using ICD.Connect.Telemetry.Services;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Cores
@@ -38,9 +39,6 @@ namespace ICD.Connect.Krang.Cores
 		/// Originator ids are pushed to the stack on load, and popped on clear.
 		/// </summary>
 		private readonly Stack<int> m_LoadedOriginators;
-
-		private readonly InterCoreCommunication m_InterCore;
-		private readonly CoreTelemetry m_CoreTelemetry;
 
 		#region Properties
 
@@ -54,7 +52,10 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		[CanBeNull]
 		[ApiNode("Routing", "The routing features for the core.")]
-		public RoutingGraph RoutingGraph { get { return Originators.GetChildren<RoutingGraph>().SingleOrDefault(); } }
+		public RoutingGraph RoutingGraph
+		{
+			get { return Originators.GetChildren<RoutingGraph>().SingleOrDefault(); }
+		}
 
 		/// <summary>
 		/// Gets the partition manager for the program.
@@ -69,8 +70,22 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Gets the core telemetry instance.
 		/// </summary>
-		[NotNull]
-		public CoreTelemetry CoreTelemetry { get { return m_CoreTelemetry; } }
+		[CanBeNull]
+		[ApiNode("TelemetryService", "The telemetry available for this system.")]
+		public TelemetryService TelemetryService
+		{
+			get { return Originators.GetChildren<TelemetryService>().SingleOrDefault(); }
+		}
+
+		/// <summary>
+		/// Gets the inter-core service.
+		/// </summary>
+		[CanBeNull]
+		[ApiNode("InterCoreService", "The inter-core communication features.")]
+		public InterCoreService InterCoreService
+		{
+			get { return Originators.GetChildren<InterCoreService>().SingleOrDefault(); }
+		}
 
 		[ApiNodeGroup("Themes", "The currently active themes")]
 		private IApiNodeGroup Themes { get; set; }
@@ -101,9 +116,6 @@ namespace ICD.Connect.Krang.Cores
 			Devices = new ApiOriginatorsNodeGroup<IDevice>(Originators);
 			Ports = new ApiOriginatorsNodeGroup<IPort>(Originators);
 			Rooms = new ApiOriginatorsNodeGroup<IRoom>(Originators);
-
-			m_InterCore = new InterCoreCommunication(this);
-			m_CoreTelemetry = new CoreTelemetry(this);
 		}
 
 		#endregion
@@ -115,8 +127,6 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		protected override void DisposeFinal(bool disposing)
 		{
-			m_InterCore.Dispose();
-
 			base.DisposeFinal(disposing);
 
 			DisposeOriginators();
@@ -256,20 +266,44 @@ namespace ICD.Connect.Krang.Cores
 		{
 			base.CopySettingsFinal(settings);
 
-			settings.BroadcastSettings.Update(m_InterCore.CopySettings());
-			settings.TelemetrySettings.Update(m_CoreTelemetry.CopySettings());
-
 			// Clear the old originators
 			settings.OriginatorSettings.Clear();
+
+			// Inter-Core
+			InterCoreService interCore = InterCoreService;
+			InterCoreServiceSettings interCoreSettings =
+				interCore == null || !interCore.Serialize
+					? new InterCoreServiceSettings
+					{
+						Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_INTER_CORE)
+					}
+					: interCore.CopySettings();
+			settings.OriginatorSettings.Add(interCoreSettings);
+
+			settings.OriginatorSettings.AddRange(interCoreSettings.ProviderSettings);
+
+			// Telemetry
+			TelemetryService telemetry = TelemetryService;
+			TelemetryServiceSettings telemetrySettings =
+				telemetry == null || !telemetry.Serialize
+					? new TelemetryServiceSettings
+					{
+						Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_TELEMETRY)
+					}
+					: telemetry.CopySettings();
+			settings.OriginatorSettings.Add(telemetrySettings);
+
+			settings.OriginatorSettings.AddRange(telemetrySettings.ProviderSettings);
 			
 			// Routing
 			RoutingGraph routingGraph = RoutingGraph;
-			RoutingGraphSettings routingSettings = routingGraph == null || !routingGraph.Serialize
-				                                       ? new RoutingGraphSettings
-				                                       {
-														   Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_ROUTING_GRAPH)
-				                                       }
-				                                       : routingGraph.CopySettings();
+			RoutingGraphSettings routingSettings =
+				routingGraph == null || !routingGraph.Serialize
+					? new RoutingGraphSettings
+					{
+						Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_ROUTING_GRAPH)
+					}
+					: routingGraph.CopySettings();
 			settings.OriginatorSettings.Add(routingSettings);
 
 			settings.OriginatorSettings.AddRange(routingSettings.ConnectionSettings);
@@ -281,12 +315,13 @@ namespace ICD.Connect.Krang.Cores
 
 			// Partitioning
 			PartitionManager partitionManager = PartitionManager;
-			PartitionManagerSettings partitionSettings = partitionManager == null || !partitionManager.Serialize
-				                                             ? new PartitionManagerSettings
-				                                             {
-																 Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_PARTITION_MANAGER)
-				                                             }
-				                                             : partitionManager.CopySettings();
+			PartitionManagerSettings partitionSettings =
+				partitionManager == null || !partitionManager.Serialize
+					? new PartitionManagerSettings
+					{
+						Id = IdUtils.GetNewId(Originators.GetChildrenIds(), IdUtils.ID_PARTITION_MANAGER)
+					}
+					: partitionManager.CopySettings();
 			settings.OriginatorSettings.Add(partitionSettings);
 
 			settings.OriginatorSettings.AddRange(partitionSettings.PartitionSettings);
@@ -310,9 +345,6 @@ namespace ICD.Connect.Krang.Cores
 			base.ClearSettingsFinal();
 
 			DisposeOriginators();
-
-			m_InterCore.ClearSettings();
-			m_CoreTelemetry.Clear();
 
 			ResetDefaultPermissions();
 		}
@@ -343,11 +375,8 @@ namespace ICD.Connect.Krang.Cores
 
 				ResetDefaultPermissions();
 
-				// Setup Telemetry
-				m_CoreTelemetry.ApplySettings(settings.TelemetrySettings);
-
-				// Start broadcasting last
-				m_InterCore.ApplySettings(settings.BroadcastSettings);
+				// Finish loading services
+				factory.LoadOriginators<IService>();
 			}
 			finally
 			{

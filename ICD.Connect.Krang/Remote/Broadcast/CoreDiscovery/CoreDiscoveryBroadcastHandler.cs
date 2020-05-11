@@ -38,16 +38,16 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private readonly Dictionary<HostSessionInfo, RemoteCore> m_RemoteCores;
 		private readonly SafeCriticalSection m_DiscoveredSection;
 		private readonly SafeTimer m_TimeoutTimer;
-		private readonly ICore m_Core;
-
+		
 		private ILoggerService Logger { get { return ServiceProvider.GetService<ILoggerService>(); } }
+
+		private ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
 
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public CoreDiscoveryBroadcastHandler(ICore core)
+		public CoreDiscoveryBroadcastHandler()
 		{
-			m_Core = core;
 			m_Discovered = new Dictionary<int, CoreDiscoveryInfo>();
 			m_RemoteCores = new Dictionary<HostSessionInfo, RemoteCore>();
 			m_DiscoveredSection = new SafeCriticalSection();
@@ -119,7 +119,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				if (m_RemoteCores.ContainsKey(info.Source))
 					return;
 
-				RemoteCore remoteCore = new RemoteCore(m_Core, info.Source);
+				RemoteCore remoteCore = new RemoteCore(Core, info.Source);
 				m_RemoteCores.Add(info.Source, remoteCore);
 
 				// Query known originators
@@ -174,7 +174,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		{
 			base.BroadcasterOnBroadcasting(sender, e);
 
-			Broadcaster.SetBroadcastData(CoreDiscoveryData.ForCore(m_Core));
+			Broadcaster.SetBroadcastData(CoreDiscoveryData.ForCore(Core));
 		}
 
 		/// <summary>

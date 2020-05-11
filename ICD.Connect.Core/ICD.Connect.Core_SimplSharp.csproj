@@ -93,21 +93,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
     </Reference>
-    <Reference Include="SSCoreTupleLibrary, Version=1.0.0.15246, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSharpCrestronExtensionsLibrary, Version=1.0.0.13339, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSharpM2MqttLibrary, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSharpReflectionExtensionsLibrary, Version=1.0.0.27813, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSharpThreadingLibrary, Version=1.0.0.15256, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoConcurrentCollectionsLibrary, Version=1.0.0.15309, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoCryptographyExtensions, Version=1.0.0.15306, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoCryptographyLibrary, Version=1.0.0.15280, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoNetLibrary, Version=1.0.0.19651, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoProThreadingLibrary, Version=1.0.0.18874, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoSslStreamLibrary, Version=1.0.0.15455, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoSupportLibrary, Version=1.0.0.15264, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoThreadingLibrary, Version=1.0.0.15326, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoThreadPoolLibrary, Version=1.0.0.15290, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SSMonoX509CertificatesLibrary, Version=1.0.0.15443, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="system" />
     <Reference Include="System.Core" />
     <Reference Include="system.data" />

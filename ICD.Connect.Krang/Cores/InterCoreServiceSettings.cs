@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Xml;
+using ICD.Connect.Krang.Remote;
+using ICD.Connect.Settings.Attributes;
+using ICD.Connect.Settings.Services;
 
 namespace ICD.Connect.Krang.Cores
 {
-	public sealed class BroadcastSettings
+	[KrangSettings("InterCore", typeof(InterCoreService))]
+	public sealed class InterCoreServiceSettings : AbstractServiceSettings
 	{
 		private const string ELEMENT_ENABLED = "Enabled";
 		private const string ELEMENT_ADDRESSES = "Addresses";
@@ -27,36 +30,12 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public BroadcastSettings()
+		public InterCoreServiceSettings()
 		{
 			m_Addresses = new IcdHashSet<string>();
 		}
 
 		#region Methods
-
-		/// <summary>
-		/// Clears the configured data.
-		/// </summary>
-		public void Clear()
-		{
-			Enabled = false;
-
-			SetAddresses(Enumerable.Empty<string>());
-		}
-
-		/// <summary>
-		/// Copies the settings from the given other settings instance.
-		/// </summary>
-		/// <param name="settings"></param>
-		public void Update(BroadcastSettings settings)
-		{
-			if (settings == null)
-				throw new ArgumentNullException("settings");
-
-			Enabled = settings.Enabled;
-
-			SetAddresses(settings.GetAddresses());
-		}
 
 		/// <summary>
 		/// Sets the addresses to be broadcast to.
@@ -85,11 +64,13 @@ namespace ICD.Connect.Krang.Cores
 		#region Serialization
 
 		/// <summary>
-		/// Updates the settings from the given xml element.
+		/// Updates the settings from xml.
 		/// </summary>
 		/// <param name="xml"></param>
-		public void ParseXml(string xml)
+		public override void ParseXml(string xml)
 		{
+			base.ParseXml(xml);
+	
 			Enabled = XmlUtils.TryReadChildElementContentAsBoolean(xml, ELEMENT_ENABLED) ?? false;
 
 			IEnumerable<string> addresses =
@@ -99,22 +80,19 @@ namespace ICD.Connect.Krang.Cores
 		}
 
 		/// <summary>
-		/// Writes the current configuration to the given XML writer.
+		/// Writes the routing settings to xml.
 		/// </summary>
 		/// <param name="writer"></param>
-		/// <param name="element"></param>
-		public void ToXml(IcdXmlTextWriter writer, string element)
+		protected override void WriteElements(IcdXmlTextWriter writer)
 		{
+			base.WriteElements(writer);
+
 			if (writer == null)
 				throw new ArgumentNullException("writer");
 
-			writer.WriteStartElement(element);
-			{
-				writer.WriteElementString(ELEMENT_ENABLED, IcdXmlConvert.ToString(Enabled));
+			writer.WriteElementString(ELEMENT_ENABLED, IcdXmlConvert.ToString(Enabled));
 
-				XmlUtils.WriteListToXml(writer, GetAddresses(), ELEMENT_ADDRESSES, ELEMENT_ADDRESS);
-			}
-			writer.WriteEndElement();
+			XmlUtils.WriteListToXml(writer, GetAddresses(), ELEMENT_ADDRESSES, ELEMENT_ADDRESS);
 		}
 
 		#endregion
