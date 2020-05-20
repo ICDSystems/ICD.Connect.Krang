@@ -6,6 +6,7 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Xml;
 using ICD.Connect.Audio.VolumePoints;
+using ICD.Connect.Calendaring.CalendarPoints;
 using ICD.Connect.Conferencing.ConferencePoints;
 using ICD.Connect.Devices;
 using ICD.Connect.Partitioning.PartitionManagers;
@@ -41,6 +42,8 @@ namespace ICD.Connect.Krang.Cores
 		private const string VOLUME_POINT_ELEMENT = "VolumePoint";
 		private const string CONFERENCE_POINTS_ELEMENT = "ConferencePoints";
 		private const string CONFERENCE_POINT_ELEMENT = "ConferencePoint";
+		private const string CALENDAR_POINTS_ELEMENT = "CalendarPoints";
+		private const string CALENDAR_POINT_ELEMENT = "CalendarPoint";
 
 		private const string ROOM_GROUPS_ELEMENT = "RoomGroups";
 		private const string ROOM_GROUP_ELEMENT = "RoomGroup";
@@ -104,6 +107,7 @@ namespace ICD.Connect.Krang.Cores
 			GetSettings<IRoomSettings>().ToXml(writer, ROOMS_ELEMENT, ROOM_ELEMENT);
 			GetSettings<IVolumePointSettings>().ToXml(writer, VOLUME_POINTS_ELEMENT, VOLUME_POINT_ELEMENT);
 			GetSettings<IConferencePointSettings>().ToXml(writer, CONFERENCE_POINTS_ELEMENT, CONFERENCE_POINT_ELEMENT);
+			GetSettings<ICalendarPointSettings>().ToXml(writer, CALENDAR_POINTS_ELEMENT, CALENDAR_POINT_ELEMENT);
 			GetSettings<IRoomGroupSettings>().ToXml(writer, ROOM_GROUPS_ELEMENT, ROOM_GROUP_ELEMENT);
 
 			RoutingGraphSettings routingGraphSettings = RoutingGraphSettings;
@@ -141,6 +145,7 @@ namespace ICD.Connect.Krang.Cores
 			IEnumerable<ISettings> rooms = PluginFactory.GetSettingsFromXml(xml, ROOMS_ELEMENT);
 			IEnumerable<ISettings> volumePoints = PluginFactory.GetSettingsFromXml(xml, VOLUME_POINTS_ELEMENT);
 			IEnumerable<ISettings> conferencePoints = PluginFactory.GetSettingsFromXml(xml, CONFERENCE_POINTS_ELEMENT);
+			IEnumerable<ISettings> calendarPoints = PluginFactory.GetSettingsFromXml(xml, CALENDAR_POINTS_ELEMENT);
 			IEnumerable<ISettings> roomGroups = PluginFactory.GetSettingsFromXml(xml, ROOM_GROUPS_ELEMENT);
 
 			IEnumerable<ISettings> concat =
@@ -150,6 +155,7 @@ namespace ICD.Connect.Krang.Cores
 					  .Concat(rooms)
 					  .Concat(volumePoints)
 					  .Concat(conferencePoints)
+					  .Concat(calendarPoints)
 					  .Concat(roomGroups);
 
 			AddSettingsSkipDuplicateIds(concat);
