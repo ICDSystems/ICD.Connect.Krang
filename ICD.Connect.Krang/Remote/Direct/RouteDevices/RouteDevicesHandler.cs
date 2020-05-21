@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
-using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
@@ -10,14 +9,11 @@ using ICD.Connect.Routing.EventArguments;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.PathFinding;
 using ICD.Connect.Routing.RoutingGraphs;
-using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 {
 	public sealed class RouteDevicesHandler : AbstractMessageHandler
 	{
-		private readonly ICore m_Core;
-
 		private readonly Dictionary<Guid, Message> m_PendingMessages;
 		private readonly SafeCriticalSection m_PendingMessagesSection;
 
@@ -36,8 +32,7 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			m_PendingMessages = new Dictionary<Guid, Message>();
 			m_PendingMessagesSection = new SafeCriticalSection();
 
-			m_Core = ServiceProvider.GetService<ICore>();
-			m_Core.Originators.OnChildrenChanged += OriginatorsOnChildrenChanged;
+			Core.Originators.OnChildrenChanged += OriginatorsOnChildrenChanged;
 		}
 
 		/// <summary>
@@ -71,7 +66,7 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 		private IRoutingGraph GetRoutingGraph()
 		{
 			IRoutingGraph output;
-			m_Core.TryGetRoutingGraph(out output);
+			Core.TryGetRoutingGraph(out output);
 			return output;
 		}
 

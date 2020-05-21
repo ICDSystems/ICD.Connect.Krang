@@ -3,6 +3,7 @@ using ICD.Common.Utils.Services;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Protocol.Network.Direct;
+using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Broadcast
 {
@@ -17,6 +18,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		/// Gets the current broadcaster.
 		/// </summary>
 		public IBroadcaster Broadcaster { get { return m_Broadcaster; } }
+
+		protected ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
 
 		/// <summary>
 		/// Release resources.

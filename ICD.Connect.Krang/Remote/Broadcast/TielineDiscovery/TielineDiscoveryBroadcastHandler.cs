@@ -15,21 +15,16 @@ using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
 using ICD.Connect.Routing.Mock.Source;
 using ICD.Connect.Routing.RoutingGraphs;
-using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 {
 	public sealed class TielineDiscoveryBroadcastHandler : AbstractBroadcastHandler<TielineDiscoveryData>
 	{
-		private readonly ICore m_Core;
-
 		/// <summary>
 		/// Constructor.
 		/// </summary>
 		public TielineDiscoveryBroadcastHandler()
 		{
-			m_Core = ServiceProvider.GetService<ICore>();
-
 			SetBroadcaster(new RecurringBroadcaster<TielineDiscoveryData>());
 		}
 
@@ -38,7 +33,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 			base.BroadcasterOnBroadcasting(sender, e);
 
 			int[] remoteSwitchers =
-				m_Core.Originators
+				Core.Originators
 				      .GetChildren<RemoteSwitcher>(d => !d.HasHostInfo)
 				      .Select(d => d.Id)
 				      .ToArray();
@@ -64,8 +59,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 
 				int deviceId = tielines.Select(c => c.Source.Device == id1 ? c.Destination.Device : c.Source.Device)
 				                       .Where(c =>
-				                              !(m_Core.Originators.GetChild(c) is MockSourceDevice) &&
-				                              !(m_Core.Originators.GetChild(c) is MockDestinationDevice))
+				                              !(Core.Originators.GetChild(c) is MockSourceDevice) &&
+				                              !(Core.Originators.GetChild(c) is MockDestinationDevice))
 				                       .Unanimous(-1);
 
 				tielines = tielines.Where(c => c.Source.Device == deviceId || c.Destination.Device == deviceId).ToList();
@@ -97,16 +92,16 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 
 			foreach (KeyValuePair<int, int> pair in data.DeviceIds)
 			{
-				if (!m_Core.Originators.ContainsChild(pair.Key) || m_Core.Originators.GetChild(pair.Key) is RemoteSwitcher)
+				if (!Core.Originators.ContainsChild(pair.Key) || Core.Originators.GetChild(pair.Key) is RemoteSwitcher)
 					continue;
-				if (!m_Core.Originators.ContainsChild(pair.Value))
+				if (!Core.Originators.ContainsChild(pair.Value))
 				{
 					RemoteSwitcher switcher = new RemoteSwitcher {Id = pair.Value, HostInfo = e.Data.HostSession};
-					m_Core.Originators.AddChild(switcher);
+					Core.Originators.AddChild(switcher);
 				}
 				else
 				{
-					RemoteSwitcher switcher = m_Core.Originators.GetChild(pair.Value) as RemoteSwitcher;
+					RemoteSwitcher switcher = Core.Originators.GetChild(pair.Value) as RemoteSwitcher;
 					if (switcher != null)
 						switcher.HostInfo = e.Data.HostSession;
 				}
@@ -143,7 +138,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 		private IRoutingGraph GetRoutingGraph()
 		{
 			IRoutingGraph output;
-			m_Core.TryGetRoutingGraph(out output);
+			Core.TryGetRoutingGraph(out output);
 			return output;
 		}
 	}

@@ -16,8 +16,6 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 		/// </summary>
 		public event EventHandler<GenericEventArgs<HostSessionInfo>> OnRemoteOriginatorsChanged;
 
-		private readonly ICore m_Core;
-
 		/// <summary>
 		/// Constructor.
 		/// </summary>
@@ -28,8 +26,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 
 			SetBroadcaster(broadcaster);
 
-			m_Core = ServiceProvider.GetService<ICore>();
-			Subscribe(m_Core);
+			Subscribe(Core);
 		}
 
 		/// <summary>
@@ -41,7 +38,7 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 
 			base.Dispose();
 
-			Unsubscribe(m_Core);
+			Unsubscribe(Core);
 		}
 
 		protected override void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs eventArgs)
@@ -57,15 +54,15 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 
 		private void Subscribe(ICore core)
 		{
-			core.Originators.OnChildrenChanged += OriginatorsOnOnChildrenChanged;
+			core.Originators.OnChildrenChanged += OriginatorsOnChildrenChanged;
 		}
 
 		private void Unsubscribe(ICore core)
 		{
-			core.Originators.OnChildrenChanged -= OriginatorsOnOnChildrenChanged;
+			core.Originators.OnChildrenChanged -= OriginatorsOnChildrenChanged;
 		}
 
-		private void OriginatorsOnOnChildrenChanged(object sender, EventArgs eventArgs)
+		private void OriginatorsOnChildrenChanged(object sender, EventArgs eventArgs)
 		{
 			Broadcaster.Broadcast();
 		}

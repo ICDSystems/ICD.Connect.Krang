@@ -16,7 +16,6 @@ using ICD.Connect.Routing.Endpoints.Destinations;
 using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.RoutingGraphs;
-using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
@@ -54,8 +53,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 		private bool m_TriggeredUpdateAllowed = true;
 		private bool m_TriggeredUpdateQueued;
 
-		private readonly ICore m_Core;
-
 		/// <summary>
 		/// Gets the message type that this handler is expecting.
 		/// </summary>
@@ -66,8 +63,6 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			m_SourceCosts = new Dictionary<int, Row>();
 			m_DestinationCosts = new Dictionary<int, Row>();
 			m_CostsCriticalSection = new SafeCriticalSection();
-
-			m_Core = ServiceProvider.GetService<ICore>();
 
 			m_RegularUpdateTimer = new SafeTimer(SendRegularUpdate, UPDATE_TIME, UPDATE_TIME);
 		}
@@ -82,7 +77,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			// validate that message is from a direct neighbor
 			RemoteSwitcher switcher =
-				m_Core.Originators.GetChildren<RemoteSwitcher>()
+				Core.Originators.GetChildren<RemoteSwitcher>()
 				      .FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.From);
 			if (switcher == null)
 				return null;
@@ -113,7 +108,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 			HostSessionInfo hostInfo = ServiceProvider.GetService<DirectMessageManager>().GetHostSessionInfo();
 
 			IRoutingGraph routingGraph;
-			if (!m_Core.TryGetRoutingGraph(out routingGraph))
+			if (!Core.TryGetRoutingGraph(out routingGraph))
 				return;
 
 			m_CostsCriticalSection.Enter();
@@ -123,14 +118,14 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				// fill with local sources/destinations with cost 0 and no timeout
 				if (m_SourceCosts.Count == 0)
 				{
-					m_SourceCosts.AddRange(m_Core.GetRoutingGraph()
+					m_SourceCosts.AddRange(Core.GetRoutingGraph()
 					                             .Sources.Where(s => !s.Remote)
 					                             .ToDictionary(s => s.Id, s => new Row {Cost = 0, RouteTo = hostInfo}));
 				}
 
 				if (m_DestinationCosts.Count == 0)
 				{
-					m_DestinationCosts.AddRange(m_Core.GetRoutingGraph()
+					m_DestinationCosts.AddRange(Core.GetRoutingGraph()
 					                                  .Destinations.Where(d => !d.Remote)
 					                                  .ToDictionary(d => d.Id, d => new Row {Cost = 0, RouteTo = hostInfo}));
 				}
@@ -154,8 +149,8 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 				foreach (KeyValuePair<int, double> entry in costs)
 				{
 					// Make sure source/dest is valid
-					if (((table == m_SourceCosts && !m_Core.GetRoutingGraph().Sources.ContainsChild(entry.Key)) ||
-					     (table == m_DestinationCosts && !m_Core.GetRoutingGraph().Destinations.ContainsChild(entry.Key))) &&
+					if (((table == m_SourceCosts && !Core.GetRoutingGraph().Sources.ContainsChild(entry.Key)) ||
+					     (table == m_DestinationCosts && !Core.GetRoutingGraph().Destinations.ContainsChild(entry.Key))) &&
 					    entry.Value < MAX_COST)
 					{
 						missing.Add(entry.Key);
@@ -249,7 +244,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 						                                "All sources and destinations from {0} have timed out, resetting remote switcher to discovery mode",
 						                                table[id].RouteTo);
 						       RemoteSwitcher switcher =
-							       m_Core.Originators.GetChildren<RemoteSwitcher>()
+							       Core.Originators.GetChildren<RemoteSwitcher>()
 							             .FirstOrDefault(rs => rs.HasHostInfo && rs.HostInfo == table[id].RouteTo);
 						       if (switcher != null)
 							       switcher.HostInfo = default(HostSessionInfo);
@@ -290,10 +285,10 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		private void RemoveSource(int id)
 		{
-			ISource source = m_Core.GetRoutingGraph().Sources.GetChild(id);
+			ISource source = Core.GetRoutingGraph().Sources.GetChild(id);
 			ServiceProvider.TryGetService<ILoggerService>()
 			               .AddEntry(eSeverity.Error, "Removing remote {0} due to timeout", source);
-			IEnumerable<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren();
+			IEnumerable<Connection> connections = Core.GetRoutingGraph().Connections.GetChildren();
 
 			// list of connections minus the ones connected to the source
 			List<Connection> connectionsLeft = connections.Where(c => !source.Contains(c.Source))
@@ -301,22 +296,22 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			// remove device if no connections left to it
 			if (connectionsLeft.All(c => c.Source.Device != source.Device) &&
-			    m_Core.Originators.ContainsChild(source.Device))
+			    Core.Originators.ContainsChild(source.Device))
 			{
-				IOriginator device = m_Core.Originators.GetChild(source.Device);
-				m_Core.Originators.RemoveChild(device);
+				IOriginator device = Core.Originators.GetChild(source.Device);
+				Core.Originators.RemoveChild(device);
 			}
 
-			m_Core.GetRoutingGraph().Connections.SetChildren(connectionsLeft);
-			m_Core.GetRoutingGraph().Sources.RemoveChild(source);
+			Core.GetRoutingGraph().Connections.SetChildren(connectionsLeft);
+			Core.GetRoutingGraph().Sources.RemoveChild(source);
 		}
 
 		private void RemoveDestination(int id)
 		{
-			IDestination destination = m_Core.GetRoutingGraph().Destinations.GetChild(id);
+			IDestination destination = Core.GetRoutingGraph().Destinations.GetChild(id);
 			ServiceProvider.TryGetService<ILoggerService>()
 			               .AddEntry(eSeverity.Error, "Removing remote {0} due to timeout", destination);
-			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
+			List<Connection> connections = Core.GetRoutingGraph().Connections.GetChildren().ToList();
 
 			// list of connections minus the ones connected to the destination
 			List<Connection> connectionsLeft =
@@ -324,14 +319,14 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 			// remove device if no connections left to it
 			if (connectionsLeft.All(c => c.Destination.Device != destination.Device) &&
-			    m_Core.Originators.ContainsChild(destination.Device))
+			    Core.Originators.ContainsChild(destination.Device))
 			{
-				IOriginator device = m_Core.Originators.GetChild(destination.Device);
-				m_Core.Originators.RemoveChild(device);
+				IOriginator device = Core.Originators.GetChild(destination.Device);
+				Core.Originators.RemoveChild(device);
 			}
 
-			m_Core.GetRoutingGraph().Connections.SetChildren(connectionsLeft);
-			m_Core.GetRoutingGraph().Destinations.RemoveChild(destination);
+			Core.GetRoutingGraph().Connections.SetChildren(connectionsLeft);
+			Core.GetRoutingGraph().Destinations.RemoveChild(destination);
 		}
 
 		private double CalculateSourceCost(int s)
@@ -342,15 +337,15 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		private void ReplaceSourceConnections(IEnumerable<KeyValuePair<int, Row>> changes)
 		{
-			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
+			List<Connection> connections = Core.GetRoutingGraph().Connections.GetChildren().ToList();
 			foreach (KeyValuePair<int, Row> entry in changes)
 			{
-				ISource source = m_Core.GetRoutingGraph().Sources.GetChild(entry.Key);
+				ISource source = Core.GetRoutingGraph().Sources.GetChild(entry.Key);
 
 				// Workaround for compiler warning
 				KeyValuePair<int, Row> entry1 = entry;
 
-				RemoteSwitcher switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
+				RemoteSwitcher switcher = Core.Originators.GetChildren<RemoteSwitcher>()
 				                                .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry1.Value.RouteTo);
 				if (switcher == null)
 					continue;
@@ -373,21 +368,21 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 					                                                         c.Destination.Address),
 					                                        c.ConnectionType)));
 			}
-			m_Core.GetRoutingGraph().Connections.SetChildren(connections);
+			Core.GetRoutingGraph().Connections.SetChildren(connections);
 		}
 
 		private void ReplaceDestinationConnections(IEnumerable<KeyValuePair<int, Row>> changes)
 		{
-			List<Connection> connections = m_Core.GetRoutingGraph().Connections.GetChildren().ToList();
+			List<Connection> connections = Core.GetRoutingGraph().Connections.GetChildren().ToList();
 			foreach (KeyValuePair<int, Row> entry in changes)
 			{
-				IDestination destination = m_Core.GetRoutingGraph().Destinations.GetChild(entry.Key);
+				IDestination destination = Core.GetRoutingGraph().Destinations.GetChild(entry.Key);
 
 				// Workaround for compiler warning
 				KeyValuePair<int, Row> entry1 = entry;
 
 				RemoteSwitcher switcher =
-					m_Core.Originators.GetChildren<RemoteSwitcher>()
+					Core.Originators.GetChildren<RemoteSwitcher>()
 					      .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == entry1.Value.RouteTo);
 				if (switcher == null)
 					continue;
@@ -408,7 +403,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 					                                        c.Destination,
 					                                        c.ConnectionType)));
 			}
-			m_Core.GetRoutingGraph().Connections.SetChildren(connections);
+			Core.GetRoutingGraph().Connections.SetChildren(connections);
 		}
 
 		#region Output Processing
@@ -495,7 +490,7 @@ namespace ICD.Connect.Krang.Remote.Direct.CostUpdate
 
 		private IEnumerable<HostSessionInfo> GetHosts()
 		{
-			return m_Core.Originators.GetChildren<RemoteSwitcher>().Where(rs => rs.HasHostInfo).Select(rs => rs.HostInfo);
+			return Core.Originators.GetChildren<RemoteSwitcher>().Where(rs => rs.HasHostInfo).Select(rs => rs.HostInfo);
 		}
 
 		protected override void Dispose(bool disposing)

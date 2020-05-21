@@ -47,7 +47,6 @@ namespace ICD.Connect.Krang.Remote
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		/// <param name="core"></param>
 		public InterCoreService()
 		{
 			CoreDiscoveryBroadcastHandler coreDiscovery = new CoreDiscoveryBroadcastHandler();

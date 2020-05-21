@@ -4,16 +4,15 @@ using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
-using ICD.Connect.Krang.Cores;
 using ICD.Connect.Krang.Remote.Direct.RouteDevices;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Routing;
 using ICD.Connect.Routing.Connections;
 using ICD.Connect.Routing.Controls;
 using ICD.Connect.Routing.EventArguments;
+using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.RoutingGraphs;
 using ICD.Connect.Routing.Utils;
-using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Devices
 {
@@ -41,8 +40,6 @@ namespace ICD.Connect.Krang.Devices
 		/// </summary>
 		public override event EventHandler<RouteChangeEventArgs> OnRouteChange;
 
-		private readonly KrangCore m_Krang;
-
 		private RoutingGraph m_CachedRoutingGraph;
 
 		/// <summary>
@@ -50,7 +47,7 @@ namespace ICD.Connect.Krang.Devices
 		/// </summary>
 		public RoutingGraph RoutingGraph
 		{
-			get { return m_CachedRoutingGraph = m_CachedRoutingGraph ?? m_Krang.RoutingGraph; }
+			get { return m_CachedRoutingGraph = m_CachedRoutingGraph ?? (RoutingGraph)Parent.Core.GetRoutingGraph(); }
 		}
 
 		/// <summary>
@@ -65,7 +62,6 @@ namespace ICD.Connect.Krang.Devices
 		public RemoteSwitcherControl(RemoteSwitcher parent)
 			: base(parent, 0)
 		{
-			m_Krang = ServiceProvider.GetService<ICore>() as KrangCore;
 			m_Cache = new SwitcherCache();
 
 			Subscribe(m_Cache);

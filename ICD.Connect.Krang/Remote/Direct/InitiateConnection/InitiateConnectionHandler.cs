@@ -3,7 +3,6 @@ using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Krang.Devices;
 using ICD.Connect.Protocol.Network.Direct;
-using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Direct.InitiateConnection
 {
@@ -20,8 +19,7 @@ namespace ICD.Connect.Krang.Remote.Direct.InitiateConnection
 			if (data == null)
 				return null;
 
-			ICore core = ServiceProvider.GetService<ICore>();
-			RemoteSwitcher switcher = (RemoteSwitcher)core.Originators.GetChild(data.DeviceId);
+			RemoteSwitcher switcher = (RemoteSwitcher)Core.Originators.GetChild(data.DeviceId);
 			switcher.HostInfo = message.From;
 			ServiceProvider.TryGetService<ILoggerService>()
 			               .AddEntry(eSeverity.Informational, "Remote Krang discovered for device id {0} at {1}",

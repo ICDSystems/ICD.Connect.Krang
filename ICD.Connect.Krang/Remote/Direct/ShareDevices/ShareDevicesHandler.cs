@@ -14,23 +14,15 @@ using ICD.Connect.Routing.Endpoints.Sources;
 using ICD.Connect.Routing.Extensions;
 using ICD.Connect.Routing.Mock.Destination;
 using ICD.Connect.Routing.Mock.Source;
-using ICD.Connect.Settings.Cores;
 
 namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 {
 	public sealed class ShareDevicesHandler : AbstractMessageHandler
 	{
-		private readonly ICore m_Core;
-
 		/// <summary>
 		/// Gets the message type that this handler is expecting.
 		/// </summary>
 		public override Type MessageType { get { return typeof(ShareDevicesData); } }
-
-		public ShareDevicesHandler()
-		{
-			m_Core = ServiceProvider.GetService<ICore>();
-		}
 
 		public override Message HandleMessage(Message message)
 		{
@@ -38,7 +30,7 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 			if (data == null)
 				return null;
 
-			RemoteSwitcher switcher = m_Core.Originators.GetChildren<RemoteSwitcher>()
+			RemoteSwitcher switcher = Core.Originators.GetChildren<RemoteSwitcher>()
 			                                .SingleOrDefault(rs => rs.HasHostInfo && rs.HostInfo == message.From);
 			if (switcher == null)
 				return null;
@@ -52,7 +44,7 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 		private void AddSources(Message message, ShareDevicesData data, RemoteSwitcher switcher)
 		{
 			List<ISource> newSources =
-				data.Sources.Where(source => m_Core.GetRoutingGraph().Sources.AddChild(source)).ToList();
+				data.Sources.Where(source => Core.GetRoutingGraph().Sources.AddChild(source)).ToList();
 			foreach (ISource source in newSources)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
@@ -64,8 +56,8 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 			foreach (ISource source in data.Sources.Distinct())
 			{
 				// Get the device or create it if it doesn't exist
-				IDevice sourceDevice = m_Core.Originators.ContainsChild(source.Device)
-					                       ? m_Core.Originators.GetChild<IDevice>(source.Device)
+				IDevice sourceDevice = Core.Originators.ContainsChild(source.Device)
+					                       ? Core.Originators.GetChild<IDevice>(source.Device)
 					                       : null;
 
 				if (sourceDevice == null)
@@ -79,11 +71,11 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 					newSourceDevice.AddSourceControl(source.Control);
 
 					sourceDevice = newSourceDevice;
-					m_Core.Originators.AddChild(sourceDevice);
+					Core.Originators.AddChild(sourceDevice);
 				}
 
 				// Add connections to the remote switcher
-				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
+				List<Connection> connections = Core.GetRoutingGraph().Connections.ToList();
 				foreach (ConnectorInfo connector in data.SourceConnections[source.Id])
 				{
 					// Workaround for compiler warning
@@ -108,7 +100,7 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 					}
 				}
 
-				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
+				Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				// Set outputs on MockSource if applicable
 				MockSourceDevice mockSource = sourceDevice as MockSourceDevice;
@@ -128,7 +120,7 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 		private void AddDestinations(Message message, ShareDevicesData data, RemoteSwitcher switcher)
 		{
 			List<IDestination> newDestinations =
-				data.Destinations.Where(destination => m_Core.GetRoutingGraph().Destinations.AddChild(destination)).ToList();
+				data.Destinations.Where(destination => Core.GetRoutingGraph().Destinations.AddChild(destination)).ToList();
 			foreach (IDestination destination in newDestinations)
 			{
 				ServiceProvider.TryGetService<ILoggerService>()
@@ -140,8 +132,8 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 			foreach (IDestination destination in data.Destinations.Distinct())
 			{
 				// Get the device or create it if it doesn't exist
-				IDevice destinationDevice = m_Core.Originators.ContainsChild(destination.Device)
-					                            ? m_Core.Originators.GetChild<IDevice>(destination.Device)
+				IDevice destinationDevice = Core.Originators.ContainsChild(destination.Device)
+					                            ? Core.Originators.GetChild<IDevice>(destination.Device)
 					                            : null;
 
 				if (destinationDevice == null)
@@ -155,11 +147,11 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 					newDestinationDevice.AddDestinationControl(destination.Control);
 
 					destinationDevice = newDestinationDevice;
-					m_Core.Originators.AddChild(destinationDevice);
+					Core.Originators.AddChild(destinationDevice);
 				}
 
 				// Add connections to the remote switcher
-				List<Connection> connections = m_Core.GetRoutingGraph().Connections.ToList();
+				List<Connection> connections = Core.GetRoutingGraph().Connections.ToList();
 				foreach (ConnectorInfo connector in data.DestinationConnections[destination.Id])
 				{
 					// Workaround for compiler warning
@@ -183,7 +175,7 @@ namespace ICD.Connect.Krang.Remote.Direct.ShareDevices
 					}
 				}
 
-				m_Core.GetRoutingGraph().Connections.SetChildren(connections);
+				Core.GetRoutingGraph().Connections.SetChildren(connections);
 
 				// Set inputs on MockDestination if applicable
 				MockDestinationDevice mockDestination = destinationDevice as MockDestinationDevice;

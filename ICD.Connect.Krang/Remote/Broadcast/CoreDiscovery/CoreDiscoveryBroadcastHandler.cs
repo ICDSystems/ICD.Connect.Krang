@@ -41,8 +41,6 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		
 		private ILoggerService Logger { get { return ServiceProvider.GetService<ILoggerService>(); } }
 
-		private ICore Core { get { return ServiceProvider.GetService<ICore>(); } }
-
 		/// <summary>
 		/// Constructor.
 		/// </summary>
