@@ -7,6 +7,8 @@ using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Timers;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Protocol.Network.Utils;
@@ -196,6 +198,69 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 				RemoveCore(existing);
 
 			LazyLoadRemoteCore(info);
+		}
+
+		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public override string ConsoleName { get { return "CoreDiscovery"; } }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public override string ConsoleHelp { get { return "Tracks remote cores"; } }
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			foreach (IConsoleNodeBase node in GetBaseConsoleNodes())
+				yield return node;
+
+			List<RemoteCore> remoteCores = m_DiscoveredSection.Execute(() => m_RemoteCores.Values.ToList(m_RemoteCores.Count));
+			yield return ConsoleNodeGroup.IndexNodeMap("RemoteCores", remoteCores);
+		}
+
+		private IEnumerable<IConsoleNodeBase> GetBaseConsoleNodes()
+		{
+			return base.GetConsoleNodes();
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public override IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			foreach (IConsoleCommand command in GetBaseConsoleCommands())
+				yield return command;
+
+			yield return new ConsoleCommand("PrintDiscoveredCores", "Prints discovered cores and their info", () => PrintDiscoveredCores());
+		}
+
+		private IEnumerable<IConsoleCommand> GetBaseConsoleCommands()
+		{
+			return base.GetConsoleCommands();
+		}
+
+		private string PrintDiscoveredCores()
+		{
+			List<CoreDiscoveryInfo> discovered =
+				m_DiscoveredSection.Execute(() => m_Discovered.Values.ToList(m_Discovered.Count));
+
+			TableBuilder table = new TableBuilder("Id", "Name", "GUID", "Host", "DiscoveryTime");
+
+			foreach (CoreDiscoveryInfo core in discovered)
+				table.AddRow(core.Id, core.Name, core.Source.Session, core.Source.Host, core.DiscoveryTime);
+
+			return table.ToString();
+
 		}
 
 		#endregion

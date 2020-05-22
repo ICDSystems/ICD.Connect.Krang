@@ -1,9 +1,10 @@
 using System;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 
 namespace ICD.Connect.Krang.Remote.Broadcast
 {
-	public interface IBroadcastHandler : IDisposable
+	public interface IBroadcastHandler : IDisposable, IConsoleNode
 	{
 		/// <summary>
 		/// Gets the current broadcaster.

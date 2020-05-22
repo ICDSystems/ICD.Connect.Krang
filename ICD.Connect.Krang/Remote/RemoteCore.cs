@@ -7,7 +7,9 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
+using ICD.Connect.API.Commands;
 using ICD.Connect.API.Info;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.API.Proxies;
 using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Direct;
@@ -21,7 +23,7 @@ namespace ICD.Connect.Krang.Remote
 	/// <summary>
 	/// RemoteCore simply represents a core instance that lives remotely.
 	/// </summary>
-	public sealed class RemoteCore : IDisposable
+	public sealed class RemoteCore : IDisposable, IConsoleNode
 	{
 		private const long MESSAGE_TIMEOUT = 60 * 1000;
 
@@ -447,6 +449,49 @@ namespace ICD.Connect.Krang.Remote
 			ApiClassInfo command = buildCommand(eventArgs.Data);
 
 			SendCommand(command);
+		}
+
+		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public string ConsoleName { get { return m_RemoteHost.ToString(); } }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public string ConsoleHelp { get { return "Represents a remote core"; } }
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			yield break;
+		}
+
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+			addRow("GUID", m_RemoteHost.Session);
+			addRow("Host", m_RemoteHost.Host);
+			addRow("Proxies", m_CriticalSection.Execute(() => m_ProxyBuildCommand.Count));
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			yield break;
 		}
 
 		#endregion

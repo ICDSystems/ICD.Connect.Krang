@@ -67,5 +67,22 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 		}
 
 		#endregion
+
+		#region Console
+
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public override string ConsoleName { get { return "OriginatorsChanged"; } }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public override string ConsoleHelp { get
+		{
+			return "Handles messages from remote cores that their originators changed";
+		} }
+
+		#endregion
 	}
 }

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using ICD.Common.Utils.Services;
+using ICD.Connect.API.Commands;
+using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Broadcast.Broadcasters;
 using ICD.Connect.Protocol.Network.Direct;
@@ -95,5 +98,45 @@ namespace ICD.Connect.Krang.Remote.Broadcast
 		protected virtual void BroadcasterOnBroadcastReceived(object sender, BroadcastEventArgs eventArgs)
 		{
 		}
+
+		#region Console
+
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public abstract string ConsoleName { get; }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public abstract string ConsoleHelp { get; }
+
+		/// <summary>
+		/// Gets the child console nodes.
+		/// </summary>
+		/// <returns></returns>
+		public virtual IEnumerable<IConsoleNodeBase> GetConsoleNodes()
+		{
+			yield break;
+		}
+
+		/// <summary>
+		/// Calls the delegate for each console status item.
+		/// </summary>
+		/// <param name="addRow"></param>
+		public virtual void BuildConsoleStatus(AddStatusRowDelegate addRow)
+		{
+		}
+
+		/// <summary>
+		/// Gets the child console commands.
+		/// </summary>
+		/// <returns></returns>
+		public virtual IEnumerable<IConsoleCommand> GetConsoleCommands()
+		{
+			yield break;
+		}
+
+		#endregion
 	}
 }

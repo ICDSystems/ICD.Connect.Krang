@@ -141,5 +141,19 @@ namespace ICD.Connect.Krang.Remote.Broadcast.TielineDiscovery
 			Core.TryGetRoutingGraph(out output);
 			return output;
 		}
+
+		#region Console
+
+		/// <summary>
+		/// Gets the name of the node.
+		/// </summary>
+		public override string ConsoleName { get { return "TielineDiscovery"; } }
+
+		/// <summary>
+		/// Gets the help information for the node.
+		/// </summary>
+		public override string ConsoleHelp { get { return "Deals with tieline between different cores"; } }
+
+		#endregion
 	}
 }
