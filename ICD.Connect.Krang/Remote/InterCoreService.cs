@@ -19,7 +19,6 @@ using ICD.Connect.Krang.Remote.Direct.ShareDevices;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
-using ICD.Connect.Settings.Cores;
 using ICD.Connect.Settings.Services;
 
 namespace ICD.Connect.Krang.Remote
