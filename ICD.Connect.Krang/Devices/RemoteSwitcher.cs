@@ -1,6 +1,7 @@
 ﻿using System;
 using ICD.Common.Utils.Services;
 using ICD.Connect.Devices;
+using ICD.Connect.Devices.Controls;
 using ICD.Connect.Krang.Remote.Direct.Disconnect;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
@@ -10,31 +11,30 @@ namespace ICD.Connect.Krang.Devices
 {
 	public sealed class RemoteSwitcher : AbstractDevice<RemoteSwitcherSettings>
 	{
-		private readonly RemoteSwitcherControl m_SwitcherControl;
-
 		#region Properties
 
 		public HostSessionInfo HostInfo { get; set; }
 
 		public bool HasHostInfo { get { return HostInfo != default(HostSessionInfo); } }
 
-		public RemoteSwitcherControl SwitcherControl { get { return m_SwitcherControl; } }
+		public RemoteSwitcherControl SwitcherControl { get { return Controls.GetControl<RemoteSwitcherControl>(); } }
 
 		#endregion
 
-		#region Constructor
+		#region Private Methods
 
-		public RemoteSwitcher()
+		/// <summary>
+		/// Release resources.
+		/// </summary>
+		protected override void DisposeFinal(bool disposing)
 		{
-			Name = "Remote Switcher";
+			if (!HasHostInfo)
+				return;
 
-			m_SwitcherControl = new RemoteSwitcherControl(this);
-			Controls.Add(m_SwitcherControl);
+			DirectMessageManager dm = ServiceProvider.GetService<DirectMessageManager>();
+			dm.Send(HostInfo, Message.FromData(new DisconnectData()));
+			base.DisposeFinal(disposing);
 		}
-
-		#endregion
-
-		#region Methods
 
 		protected override bool GetIsOnlineStatus()
 		{
@@ -45,6 +45,9 @@ namespace ICD.Connect.Krang.Devices
 
 		#region Settings
 
+		/// <summary>
+		/// Override to clear the instance settings.
+		/// </summary>
 		protected override void ClearSettingsFinal()
 		{
 			base.ClearSettingsFinal();
@@ -52,6 +55,10 @@ namespace ICD.Connect.Krang.Devices
 			HostInfo = default(HostSessionInfo);
 		}
 
+		/// <summary>
+		/// Override to apply properties to the settings instance.
+		/// </summary>
+		/// <param name="settings"></param>
 		protected override void CopySettingsFinal(RemoteSwitcherSettings settings)
 		{
 			base.CopySettingsFinal(settings);
@@ -59,6 +66,11 @@ namespace ICD.Connect.Krang.Devices
 			settings.Address = HostInfo.Host;
 		}
 
+		/// <summary>
+		/// Override to apply settings to the instance.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="factory"></param>
 		protected override void ApplySettingsFinal(RemoteSwitcherSettings settings, IDeviceFactory factory)
 		{
 			base.ApplySettingsFinal(settings, factory);
@@ -66,16 +78,19 @@ namespace ICD.Connect.Krang.Devices
 			HostInfo = new HostSessionInfo(settings.Address, new Guid());
 		}
 
-		#endregion
-
-		protected override void DisposeFinal(bool disposing)
+		/// <summary>
+		/// Override to add controls to the device.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="factory"></param>
+		/// <param name="addControl"></param>
+		protected override void AddControls(RemoteSwitcherSettings settings, IDeviceFactory factory, Action<IDeviceControl> addControl)
 		{
-			if (!HasHostInfo)
-				return;
+			base.AddControls(settings, factory, addControl);
 
-			DirectMessageManager dm = ServiceProvider.GetService<DirectMessageManager>();
-			dm.Send(HostInfo, Message.FromData(new DisconnectData()));
-			base.DisposeFinal(disposing);
+			addControl(new RemoteSwitcherControl(this));
 		}
+
+		#endregion
 	}
 }
