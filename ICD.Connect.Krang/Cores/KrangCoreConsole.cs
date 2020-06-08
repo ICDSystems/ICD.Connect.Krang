@@ -5,8 +5,10 @@ using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Audio.VolumePoints;
+using ICD.Connect.Calendaring.CalendarPoints;
 using ICD.Connect.Conferencing.ConferencePoints;
 using ICD.Connect.Devices;
+using ICD.Connect.Partitioning.Commercial.OccupancyPoints;
 using ICD.Connect.Partitioning.RoomGroups;
 using ICD.Connect.Partitioning.Rooms;
 using ICD.Connect.Protocol.Ports;
@@ -49,6 +51,8 @@ namespace ICD.Connect.Krang.Cores
 			yield return ConsoleNodeGroup.KeyNodeMap("Rooms", instance.Originators.GetChildren<IRoom>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("VolumePoints", instance.Originators.GetChildren<IVolumePoint>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("ConferencePoints", instance.Originators.GetChildren<IConferencePoint>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("CalendarPoints", instance.Originators.GetChildren<ICalendarPoint>(), p => (uint)p.Id);
+			yield return ConsoleNodeGroup.KeyNodeMap("OccupancyPoints", instance.Originators.GetChildren<IOccupancyPoint>(), p => (uint)p.Id);
 			yield return ConsoleNodeGroup.KeyNodeMap("RoomGroups", instance.Originators.GetChildren<IRoomGroup>(), p => (uint) p.Id);
 
 			if (instance.RoutingGraph != null)
