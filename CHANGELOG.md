@@ -6,11 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [15.0.0] - 2020-06-19
 ### Added
  - Added runtime generation of DestinationGroups based on DestinationGroupString on Destinations
+ - Added CalendarPoints to the krang config
+ - Added OccupancyPoints to the krang config
 
 ### Changed
  - Using new logging context
+ - References to "Room Config" changed to "System Config"
+ - Telemetry and Multi-Krang restructured into Services and ServiceProviders
 
 ## [14.2.1] - 2020-05-06
 ### Changed
