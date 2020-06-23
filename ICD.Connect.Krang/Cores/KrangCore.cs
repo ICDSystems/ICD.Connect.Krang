@@ -217,9 +217,9 @@ namespace ICD.Connect.Krang.Cores
 		{
 			IcdHashSet<IDestinationGroup> destinationGroups = new IcdHashSet<IDestinationGroup>();
 
-			foreach (IDestination destination in routingGraph.Destinations.Where(d => !string.IsNullOrEmpty(d.DestinationGroupString)))
+			foreach (IDestination destination in routingGraph.Destinations.Where(d => !string.IsNullOrEmpty(d.Group)))
 			{
-				IDestinationGroup destinationGroup = LazyLoadDestinationGroupByName(routingGraph, destination.DestinationGroupString);
+				IDestinationGroup destinationGroup = LazyLoadDestinationGroupByName(routingGraph, destination.Group);
 				destinationGroups.Add(destinationGroup);
 				destinationGroup.AddItem(destination);
 			}
