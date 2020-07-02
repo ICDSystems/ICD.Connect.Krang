@@ -25,7 +25,6 @@ namespace ICD.Connect.Krang.Cores
 		private readonly KrangCore m_Core;
 
 		private ILoggerService m_Logger;
-		private DirectMessageManager m_DirectMessageManager;
 		private ActionSchedulerService m_ActionSchedulerService;
 
 		#region Properties
@@ -54,7 +53,7 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Gets the direct message manager instance.
 		/// </summary>
-		public DirectMessageManager DirectMessageManager { get { return m_DirectMessageManager; } }
+		public DirectMessageManager DirectMessageManager { get; private set; }
 
 		/// <summary>
 		/// Gets the system key manager instance.
@@ -113,7 +112,7 @@ namespace ICD.Connect.Krang.Cores
 		{
 			try
 			{
-				m_DirectMessageManager.Dispose();
+				DirectMessageManager.Dispose();
 				BroadcastManager.Dispose();
 
 				Clear();
@@ -164,8 +163,8 @@ namespace ICD.Connect.Krang.Cores
 			m_Logger = logger;
 			ServiceProvider.TryAddService<ILoggerService>(logger);
 
-			m_DirectMessageManager = new DirectMessageManager();
-			ServiceProvider.TryAddService(m_DirectMessageManager);
+			DirectMessageManager = new DirectMessageManager();
+			ServiceProvider.TryAddService(DirectMessageManager);
 
 			BroadcastManager = new BroadcastManager();
 			ServiceProvider.TryAddService(BroadcastManager);
