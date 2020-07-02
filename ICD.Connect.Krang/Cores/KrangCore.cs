@@ -152,7 +152,21 @@ namespace ICD.Connect.Krang.Cores
 			Dictionary<int, IOriginator> originators = Originators.ToDictionary(o => o.Id);
 			IcdHashSet<IOriginator> disposed = new IcdHashSet<IOriginator>();
 
-			// First empty all of the rooms
+			// First dispose the telemetry service so we don't push telemetry during teardown
+			if (TelemetryService != null)
+			{
+				TelemetryService.Providers
+				                .ForEach(p =>
+				                         {
+					                         TryDisposeOriginator(p);
+					                         disposed.Add(p);
+				                         });
+
+				TryDisposeOriginator(TelemetryService);
+				disposed.Add(TelemetryService);
+			}
+
+			// Then empty all of the rooms
 			foreach (IRoom room in originators.Values.OfType<IRoom>())
 				room.Originators.Clear();
 
@@ -162,7 +176,7 @@ namespace ICD.Connect.Krang.Cores
 				int id = m_LoadedOriginators.Pop();
 
 				IOriginator originator;
-				if (!originators.TryGetValue(id, out originator))
+				if (!originators.TryGetValue(id, out originator) || disposed.Contains(originator))
 					continue;
 
 				TryDisposeOriginator(originator);
