@@ -1,16 +1,17 @@
 using System.Linq;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Extensions;
+using ICD.Connect.Telemetry.Attributes;
 using ICD.Connect.Telemetry.Providers.External;
 using ICD.Connect.Themes;
 
 namespace ICD.Connect.Krang.Cores
 {
-	public sealed class KrangCoreExternalTelemetryProvider : AbstractExternalTelemetryProvider<KrangCore>,
-	                                                         IKrangCoreExternalTelemetryProvider
+	public sealed class KrangCoreExternalTelemetryProvider : AbstractExternalTelemetryProvider<KrangCore>
 	{
 		#region Properties
 
+		[PropertyTelemetry("ThemeName", null, null)]
 		public string ThemeName
 		{
 			get
@@ -20,6 +21,7 @@ namespace ICD.Connect.Krang.Cores
 			}
 		}
 
+		[PropertyTelemetry("ThemeVersion", null, null)]
 		public string ThemeVersion
 		{
 			get
@@ -29,6 +31,7 @@ namespace ICD.Connect.Krang.Cores
 			}
 		}
 
+		[PropertyTelemetry("ThemeInformationalVersion", null, null)]
 		public string ThemeInformationalVersion
 		{
 			get

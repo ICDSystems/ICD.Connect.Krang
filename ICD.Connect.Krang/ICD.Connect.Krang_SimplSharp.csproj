@@ -76,7 +76,6 @@
   <ItemGroup>
     <Compile Include="Cores\ApiOriginatorsNodeGroup.cs" />
     <Compile Include="Cores\InterCoreServiceSettings.cs" />
-    <Compile Include="Cores\IKrangCoreExternalTelemetryProvider.cs" />
     <Compile Include="Cores\KrangBootstrapConsole.cs" />
     <Compile Include="Cores\KrangCoreConsole.cs" />
     <Compile Include="Cores\KrangCoreExternalTelemetryProvider.cs" />
