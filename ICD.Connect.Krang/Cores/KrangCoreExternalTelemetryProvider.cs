@@ -1,5 +1,8 @@
+using System;
 using System.Linq;
 using ICD.Common.Properties;
+using ICD.Common.Utils;
+using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Telemetry.Attributes;
 using ICD.Connect.Telemetry.Providers.External;
@@ -9,6 +12,11 @@ namespace ICD.Connect.Krang.Cores
 {
 	public sealed class KrangCoreExternalTelemetryProvider : AbstractExternalTelemetryProvider<KrangCore>
 	{
+		[EventTelemetry("ProgramStatusChanged")]
+		public event EventHandler<GenericEventArgs<IcdEnvironment.eProgramStatusEventType>> OnProgramStatusChanged; 
+
+		private IcdEnvironment.eProgramStatusEventType m_ProgramStatus;
+
 		#region Properties
 
 		[PropertyTelemetry("ThemeName", null, null)]
@@ -46,7 +54,32 @@ namespace ICD.Connect.Krang.Cores
 			}
 		}
 
+		[PropertyTelemetry("ProgramStatus", null, "ProgramStatusChanged")]
+		public IcdEnvironment.eProgramStatusEventType ProgramStatus
+		{
+			get { return m_ProgramStatus; }
+			set
+			{
+				if (value == m_ProgramStatus)
+					return;
+				
+				m_ProgramStatus = value;
+
+				OnProgramStatusChanged.Raise(this, new GenericEventArgs<IcdEnvironment.eProgramStatusEventType>(m_ProgramStatus));
+			}
+		}
+
 		#endregion
+
+		/// <summary>
+		/// Constructor.
+		/// </summary>
+		public KrangCoreExternalTelemetryProvider()
+		{
+			IcdEnvironment.OnProgramStatusEvent += IcdEnvironmentOnProgramStatusEvent;
+
+			ProgramStatus = IcdEnvironment.eProgramStatusEventType.Resumed;
+		}
 
 		#region Private Methods
 
@@ -63,5 +96,10 @@ namespace ICD.Connect.Krang.Cores
 		}
 
 		#endregion
+
+		private void IcdEnvironmentOnProgramStatusEvent(IcdEnvironment.eProgramStatusEventType type)
+		{
+			ProgramStatus = type;
+		}
 	}
 }
