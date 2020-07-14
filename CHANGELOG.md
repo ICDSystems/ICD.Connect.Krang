@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [15.1.0] - 2020-07-14
+### Added
+ - Added telemetry for program status
+
+### Changed
+ - Simplified external telemetry providers
+ - Telemetry is disposed before disposing the rest of the system
+
 ## [15.0.0] - 2020-06-19
 ### Added
  - Added runtime generation of DestinationGroups based on DestinationGroupString on Destinations
