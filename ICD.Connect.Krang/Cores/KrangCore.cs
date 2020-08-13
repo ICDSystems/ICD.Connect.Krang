@@ -377,6 +377,9 @@ namespace ICD.Connect.Krang.Cores
 			{
 				base.ApplySettingsFinal(settings, factory);
 
+				// Load services
+				factory.LoadOriginators<IService>();
+
 				factory.LoadOriginators<IRoutingGraph>();
 				factory.LoadOriginators<IPartitionManager>();
 				LoadOriginatorsSkipExceptions(factory);
@@ -388,9 +391,6 @@ namespace ICD.Connect.Krang.Cores
 				SetupDestinationGroupsInRooms(modifiedDestinationGroups, factory.GetOriginators<IRoom>());
 
 				ResetDefaultPermissions();
-
-				// Finish loading services
-				factory.LoadOriginators<IService>();
 			}
 			finally
 			{
