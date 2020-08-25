@@ -3,7 +3,7 @@ using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Cores;
-using ICD.Connect.Settings.SPlusShims.GlobalEvents;
+using ICD.Connect.Settings.CrestronSPlus.SPlusShims.GlobalEvents;
 
 namespace ICD.Connect.Krang.CrestronSPlus
 {
@@ -32,6 +32,7 @@ namespace ICD.Connect.Krang.CrestronSPlus
 			}
 		}
 
+		[PublicAPI("S+")]
 		public static void Start()
 		{
 			try
