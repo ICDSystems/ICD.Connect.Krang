@@ -10,7 +10,16 @@ namespace ICD.Connect.Krang
 	public static class NvramMigration
 	{
 		private const string NVRAM_FILE = "NVRAM_DEPRECATED";
-		private const string NVRAM = "NVRAM";
+
+		private static string Nvram
+		{
+			get
+			{
+				return IcdEnvironment.RuntimeEnvironment == IcdEnvironment.eRuntimeEnvironment.SimplSharpProMono
+					       ? "nvram"
+					       : "NVRAM";
+			}
+		}
 
 		/// <summary>
 		/// Migrates the contents of NVRAM to the USER directory.
@@ -22,8 +31,7 @@ namespace ICD.Connect.Krang
 			if (IcdDirectory.Exists(PathUtils.ProgramConfigPath))
 				return;
 
-
-			string nvramProgramConfigPath = PathUtils.Join(PathUtils.RootPath, NVRAM, PathUtils.ProgramConfigDirectory);
+			string nvramProgramConfigPath = PathUtils.Join(PathUtils.RootPath, Nvram, PathUtils.ProgramConfigDirectory);
 			if (!IcdDirectory.Exists(nvramProgramConfigPath))
 				return;
 
@@ -37,7 +45,7 @@ namespace ICD.Connect.Krang
 				return;
 
 
-			string nvramCommonConfigPath = PathUtils.Join(PathUtils.RootPath, NVRAM, PathUtils.CommonConfigDirectory);
+			string nvramCommonConfigPath = PathUtils.Join(PathUtils.RootPath, Nvram, PathUtils.CommonConfigDirectory);
 			if (IcdDirectory.Exists(nvramCommonConfigPath))
 			{
 				string newCommonConfigPath = PathUtils.CommonConfigPath;
@@ -130,7 +138,7 @@ namespace ICD.Connect.Krang
 		/// </summary>
 		private static void CreateNvramDeprecatedFile()
 		{
-			string directory = IcdPath.Combine(PathUtils.RootPath, NVRAM);
+			string directory = IcdPath.Combine(PathUtils.RootPath, Nvram);
 			if (!IcdDirectory.Exists(directory))
 				return;
 
