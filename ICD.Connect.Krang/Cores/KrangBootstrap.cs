@@ -99,6 +99,7 @@ namespace ICD.Connect.Krang.Cores
 			try
 			{
 				m_Core.LoadSettings();
+				m_Core.RunSettings();
 			}
 			catch (Exception e)
 			{

@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils.Collections;
+using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API.Attributes;
@@ -334,6 +335,17 @@ namespace ICD.Connect.Krang.Cores
 			PermissionsManager permissionsManager = ServiceProvider.TryGetService<PermissionsManager>();
 			if (permissionsManager != null)
 				permissionsManager.SetDefaultPermissions(GetPermissions());
+		}
+
+		/// <summary>
+		/// Run Settings - called after all settings are applied
+		/// </summary>
+		protected override void RunSettingsFinal()
+		{
+			base.RunSettingsFinal();
+
+			foreach (int id in m_LoadedOriginators.ToList(m_LoadedOriginators.Count))
+				Originators[id].RunSettings();
 		}
 
 		#endregion
