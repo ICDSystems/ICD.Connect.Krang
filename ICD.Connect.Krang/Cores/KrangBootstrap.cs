@@ -83,7 +83,7 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Load the core configuration.
 		/// </summary>
-		public void Start()
+		public void Start(Action postLoadAction)
 		{
 			PrintProgramInfo();
 			ValidateProgram();
@@ -99,11 +99,30 @@ namespace ICD.Connect.Krang.Cores
 			try
 			{
 				m_Core.LoadSettings();
-				m_Core.RunSettings();
 			}
 			catch (Exception e)
 			{
 				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program initialization");
+				return;
+			}
+
+			try
+			{
+				if (postLoadAction != null)
+					postLoadAction();
+			}
+			catch (Exception e)
+			{
+				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program post-load action");
+			}
+
+			try
+			{
+				m_Core.StartSettings();
+			}
+			catch (Exception e)
+			{
+				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program post-load start");
 			}
 		}
 

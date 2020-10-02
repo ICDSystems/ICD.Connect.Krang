@@ -340,12 +340,13 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Run Settings - called after all settings are applied
 		/// </summary>
-		protected override void RunSettingsFinal()
+		protected override void StartSettingsFinal()
 		{
-			base.RunSettingsFinal();
-
+			base.StartSettingsFinal();
+			Log(eSeverity.Debug, "Beginning StartSettings()");
 			foreach (int id in m_LoadedOriginators.ToList(m_LoadedOriginators.Count))
-				Originators[id].RunSettings();
+				Originators[id].StartSettings();
+			Log(eSeverity.Debug, "Finished StartSettings()");
 		}
 
 		#endregion
