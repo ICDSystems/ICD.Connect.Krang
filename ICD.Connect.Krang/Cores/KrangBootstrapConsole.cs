@@ -78,10 +78,10 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 #if LICENSING
-			if (instance.SystemKeyManager.IsValid())
+			if (!instance.SystemKeyManager.IsValid())
+				return;
 #endif
-				instance.Krang.LoadSettings();
-				instance.Krang.StartSettings();
+				instance.Krang.LoadSettings(null);
 		}
 
 		private static void SaveSettings(KrangBootstrap instance)
@@ -103,7 +103,7 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 
-			FileOperations.ApplyCoreSettings(instance.Krang, instance.Krang.CopySettings());
+			FileOperations.LoadCoreSettings(instance.Krang, instance.Krang.CopySettings(), null);
 		}
 
 		private static string PrintVersions()

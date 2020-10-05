@@ -338,15 +338,16 @@ namespace ICD.Connect.Krang.Cores
 		}
 
 		/// <summary>
-		/// Run Settings - called after all settings are applied
+		/// Override to add actions on StartSettings
+		/// This should be used to start communications with devices and perform initial actions
 		/// </summary>
 		protected override void StartSettingsFinal()
 		{
 			base.StartSettingsFinal();
-			Log(eSeverity.Debug, "Beginning StartSettings()");
+
+			// Start child originators in the order they were loaded
 			foreach (int id in m_LoadedOriginators.ToList(m_LoadedOriginators.Count))
 				Originators[id].StartSettings();
-			Log(eSeverity.Debug, "Finished StartSettings()");
 		}
 
 		#endregion
