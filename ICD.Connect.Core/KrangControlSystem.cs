@@ -61,12 +61,15 @@ namespace ICD.Connect.Core
 		/// <returns></returns>
 		private object Start(object unused)
 		{
-			m_Bootstrap.Start();
-
-			SystemMonitor.ProgramInitialization.ProgramInitializationComplete = true;
-			IcdEnvironment.SetProgramInitializationComplete();
+			m_Bootstrap.Start(PostLoadAction);
 
 			return null;
+		}
+
+		private void PostLoadAction()
+		{
+			SystemMonitor.ProgramInitialization.ProgramInitializationComplete = true;
+			IcdEnvironment.SetProgramInitializationComplete();
 		}
 
 		/// <summary>
