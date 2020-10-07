@@ -13,6 +13,7 @@ using ICD.Connect.Panels.Devices;
 using ICD.Connect.Protocol.Ports;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Cores;
+using ICD.Connect.Settings.Originators;
 #if SIMPLSHARP
 using Crestron.SimplSharp.Reflection;
 #else
@@ -77,9 +78,10 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 #if LICENSING
-			if (instance.SystemKeyManager.IsValid())
+			if (!instance.SystemKeyManager.IsValid())
+				return;
 #endif
-				instance.Krang.LoadSettings();
+				instance.Krang.LoadSettings(null);
 		}
 
 		private static void SaveSettings(KrangBootstrap instance)
@@ -101,7 +103,7 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 
-			FileOperations.ApplyCoreSettings(instance.Krang, instance.Krang.CopySettings());
+			FileOperations.LoadCoreSettings(instance.Krang, instance.Krang.CopySettings(), null);
 		}
 
 		private static string PrintVersions()
@@ -151,31 +153,36 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 
-			TableBuilder builder = new TableBuilder("Item", "ID", "Online");
+			TableBuilder builder = new TableBuilder("Item", "ID", "Online", "LifetimeState");
 
 			Action<IDeviceBase> addRow = d =>
 			{
 				string name = string.IsNullOrEmpty(d.CombineName) ? d.Name : d.CombineName;
 				string id = d.Id.ToString();
-				string color = d.IsOnline ? AnsiUtils.COLOR_GREEN : AnsiUtils.COLOR_RED;
-				string online = AnsiUtils.Format(d.IsOnline.ToString(), color); 
+				string onlineColor = d.IsOnline ? AnsiUtils.COLOR_GREEN : AnsiUtils.COLOR_RED;
+				string online = AnsiUtils.Format(d.IsOnline.ToString(), onlineColor);
+				string stateColor = d.LifecycleState == eLifecycleState.Started
+					                    ? AnsiUtils.COLOR_GREEN
+					                    : d.LifecycleState == eLifecycleState.Disposed
+										? AnsiUtils.COLOR_RED : AnsiUtils.COLOR_YELLOW;
+				string state = AnsiUtils.Format(d.LifecycleState.ToString(), stateColor);
 
-				builder.AddRow(name, id, online);
+				builder.AddRow(name, id, online, state);
 			};
 
-			builder.AddRow("-Panels-", null, null);
+			builder.AddRow("-Panels-", null, null, null);
 			foreach (IPanelDevice panel in instance.Krang.Originators.GetChildren<IPanelDevice>())
 				addRow(panel);
 
 			builder.AddEmptyRow();
 
-			builder.AddRow("-Ports-", null, null);
+			builder.AddRow("-Ports-", null, null, null);
 			foreach (IPort port in instance.Krang.Originators.GetChildren<IPort>())
 				addRow(port);
 
 			builder.AddEmptyRow();
 
-			builder.AddRow("-Devices-", null, null);
+			builder.AddRow("-Devices-", null, null, null);
 			foreach (IDevice device in instance.Krang.Originators.GetChildren<IDevice>())
 				addRow(device);
 

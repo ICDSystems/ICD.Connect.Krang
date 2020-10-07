@@ -38,7 +38,7 @@ namespace ICD.Connect.Core
 			s_Bootstrap = new KrangBootstrap();
 			Console.CancelKeyPress += (a, b) => s_Bootstrap.Stop();
 
-			s_Bootstrap.Start();
+			s_Bootstrap.Start(null);
 
 			IcdEnvironment.SetProgramInitializationComplete();
 

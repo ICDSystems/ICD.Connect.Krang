@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Logging;
 using ICD.Common.Logging.Loggers;
 using ICD.Common.Permissions;
+using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
@@ -80,7 +81,7 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Load the core configuration.
 		/// </summary>
-		public void Start()
+		public void Start([CanBeNull] Action postApplyAction)
 		{
 			PrintProgramInfo();
 			ValidateProgram();
@@ -97,7 +98,7 @@ namespace ICD.Connect.Krang.Cores
 
 			try
 			{
-				m_Core.LoadSettings();
+				m_Core.LoadSettings(postApplyAction);
 			}
 			catch (Exception e)
 			{
