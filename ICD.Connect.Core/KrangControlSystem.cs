@@ -47,7 +47,8 @@ namespace ICD.Connect.Core
 		/// </summary>
 		public override void InitializeSystem()
 		{
-			m_StartHandle = new Thread(Start, null) {Priority = Thread.eThreadPriority.LowestPriority};
+			m_StartHandle = new Thread(Start, null, Thread.eThreadStartOptions.CreateSuspended) {Priority = Thread.eThreadPriority.LowestPriority};
+			m_StartHandle.Start();
 		}
 
 		#endregion
