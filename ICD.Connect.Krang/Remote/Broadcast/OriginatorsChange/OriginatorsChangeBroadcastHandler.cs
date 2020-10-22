@@ -53,15 +53,15 @@ namespace ICD.Connect.Krang.Remote.Broadcast.OriginatorsChange
 
 		private void Subscribe(ICore core)
 		{
-			core.Originators.OnChildrenChanged += OriginatorsOnChildrenChanged;
+			core.Originators.OnCollectionChanged += OriginatorsOnCollectionChanged;
 		}
 
 		private void Unsubscribe(ICore core)
 		{
-			core.Originators.OnChildrenChanged -= OriginatorsOnChildrenChanged;
+			core.Originators.OnCollectionChanged -= OriginatorsOnCollectionChanged;
 		}
 
-		private void OriginatorsOnChildrenChanged(object sender, EventArgs eventArgs)
+		private void OriginatorsOnCollectionChanged(object sender, EventArgs eventArgs)
 		{
 			Broadcaster.Broadcast();
 		}

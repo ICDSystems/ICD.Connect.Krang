@@ -32,7 +32,7 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			m_PendingMessages = new Dictionary<Guid, Message>();
 			m_PendingMessagesSection = new SafeCriticalSection();
 
-			Core.Originators.OnChildrenChanged += OriginatorsOnChildrenChanged;
+			Core.Originators.OnCollectionChanged += OriginatorsOnCollectionChanged;
 		}
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace ICD.Connect.Krang.Remote.Direct.RouteDevices
 			SetRoutingGraph(null);
 		}
 
-		private void OriginatorsOnChildrenChanged(object sender, EventArgs eventArgs)
+		private void OriginatorsOnCollectionChanged(object sender, EventArgs eventArgs)
 		{
 			IRoutingGraph graph = GetRoutingGraph();
 			SetRoutingGraph(graph);
