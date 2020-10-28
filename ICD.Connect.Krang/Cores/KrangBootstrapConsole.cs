@@ -117,9 +117,9 @@ namespace ICD.Connect.Krang.Cores
 				string infoVersion;
 				assembly.TryGetInformationalVersion(out infoVersion);
 				string assemblyVersion = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
+				string date = path == null ? null : IcdFile.GetLastWriteTime(path).ToString();
 
-				path = IcdPath.GetDirectoryName(path);
+				path = path == null ? null : IcdPath.GetDirectoryName(path);
 
 				builder.AddRow(name, path, infoVersion, assemblyVersion, date);
 			}
@@ -138,9 +138,9 @@ namespace ICD.Connect.Krang.Cores
 				string name = assembly.GetName().Name;
 				string path = assembly.GetPath();
 				string version = assembly.GetName().Version.ToString();
-				DateTime date = IcdFile.GetLastWriteTime(path);
+				string date = path == null ? null : IcdFile.GetLastWriteTime(path).ToString();
 
-				path = IcdPath.GetDirectoryName(path);
+				path = path == null ? null : IcdPath.GetDirectoryName(path);
 
 				builder.AddRow(factoryName, name, path, version, date);
 			}
