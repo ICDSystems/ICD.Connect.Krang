@@ -26,12 +26,11 @@
     <None Remove="SIMPLSharpLogs\**" />
   </ItemGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="ICD.Connect.Krang.projectinfo" />
     <None Remove="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ICD.Connect.Settings\ICD.Connect.Settings.CrestronSPlus\ICD.Connect.Settings.CrestronSPlus_NetStandard.csproj" />
     <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_NetStandard.csproj" />
   </ItemGroup>
 
