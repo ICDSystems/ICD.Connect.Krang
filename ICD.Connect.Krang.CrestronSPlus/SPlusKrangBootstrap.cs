@@ -4,6 +4,7 @@ using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.Krang.Cores;
 using ICD.Connect.Settings.CrestronSPlus.SPlusShims.GlobalEvents;
+using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.CrestronSPlus
 {
@@ -22,8 +23,7 @@ namespace ICD.Connect.Krang.CrestronSPlus
 			try
 			{
 				s_Bootstrap = new KrangBootstrap();
-				s_Bootstrap.Krang.OnSettingsApplied += KrangOnSettingsApplied;
-				s_Bootstrap.Krang.OnSettingsCleared += KrangOnSettingsCleared;
+				s_Bootstrap.Krang.OnLifecycleStateChanged += KrangOnLifecycleStateChanged;
 			}
 			catch (Exception e)
 			{
@@ -32,29 +32,32 @@ namespace ICD.Connect.Krang.CrestronSPlus
 			}
 		}
 
+		private static void KrangOnLifecycleStateChanged(object sender, LifecycleStateEventArgs args)
+		{
+			switch (args.Data)
+			{
+				case eLifecycleState.Started:
+					OnKrangLoaded.Raise(null);
+					SPlusGlobalEvents.RaiseEvent(new EnvironmentLoadedEventInfo());
+					break;
+				case eLifecycleState.Cleared:
+					OnKrangCleared.Raise(null);
+					SPlusGlobalEvents.RaiseEvent(new EnvironmentUnloadedEventInfo());
+					break;
+			}
+		}
+
 		[PublicAPI("S+")]
 		public static void Start()
 		{
 			try
 			{
-				s_Bootstrap.Start();
+				s_Bootstrap.Start(null);
 			}
 			catch (Exception e)
 			{
 				IcdErrorLog.Exception(e.GetBaseException(), "Exception starting Krang - {0}", e.GetBaseException().Message);
 			}
-		}
-
-		private static void KrangOnSettingsApplied(object sender, EventArgs eventArgs)
-		{
-			OnKrangLoaded.Raise(null);
-			SPlusGlobalEvents.RaiseEvent(new EnvironmentLoadedEventInfo());
-		}
-
-		private static void KrangOnSettingsCleared(object sender, EventArgs eventArgs)
-		{
-			OnKrangCleared.Raise(null);
-			SPlusGlobalEvents.RaiseEvent(new EnvironmentUnloadedEventInfo());
 		}
 	}
 }
