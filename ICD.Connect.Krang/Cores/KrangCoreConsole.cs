@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
@@ -72,6 +73,7 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 
+			addRow("Environment", IcdEnvironment.RuntimeEnvironment);
 			addRow("Theme Count", instance.Originators.GetChildren<ITheme>().Count());
 			addRow("Port Count", instance.Originators.GetChildren<IPort>().Count());
 			addRow("Device Count", instance.Originators.GetChildren<IDevice>().Count());
