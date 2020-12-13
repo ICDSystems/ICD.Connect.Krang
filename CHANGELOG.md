@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed Krang SPlus Bootstrap to use Lifecycle State
  - Added Environment to core status
 
+### Changed
+ - Changed InterCore service to start communications on StartSettings instead of ApplySettings
+
 ## [15.2.1] - 2020-09-24
 ### Changed
  - Fixed NVRAM path for 4-series processors

@@ -41,6 +41,8 @@ namespace ICD.Connect.Krang.Remote
 			get { return ServiceProvider.TryGetService<DirectMessageManager>(); }
 		}
 
+		public bool Enabled { get; private set; }
+
 		public bool IsRunning { get; private set; }
 
 		#endregion
@@ -176,10 +178,7 @@ namespace ICD.Connect.Krang.Remote
 			IEnumerable<string> addresses = settings.GetAddresses();
 			SetBroadcastAddresses(addresses);
 
-			if (settings.Enabled)
-				Start();
-			else
-				Stop();
+			Enabled = settings.Enabled;
 		}
 
 		/// <summary>
@@ -201,10 +200,24 @@ namespace ICD.Connect.Krang.Remote
 		{
 			base.CopySettingsFinal(settings);
 		
-			settings.Enabled = IsRunning;
+			settings.Enabled = Enabled;
 
 			IEnumerable<string> addresses = GetBroadcastAddresses();
 			settings.SetAddresses(addresses);
+		}
+
+		/// <summary>
+		/// Override to add actions on StartSettings
+		/// This should be used to start communications with devices and perform initial actions
+		/// </summary>
+		protected override void StartSettingsFinal()
+		{
+			base.StartSettingsFinal();
+
+			if (Enabled)
+				Start();
+			else
+				Stop();
 		}
 
 		#endregion
