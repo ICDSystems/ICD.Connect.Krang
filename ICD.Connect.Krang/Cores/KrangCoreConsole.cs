@@ -73,7 +73,12 @@ namespace ICD.Connect.Krang.Cores
 			if (instance == null)
 				throw new ArgumentNullException("instance");
 
-			addRow("Environment", IcdEnvironment.RuntimeEnvironment);
+			addRow("Framework", IcdEnvironment.Framework);
+			if (IcdEnvironment.Framework == IcdEnvironment.eFramework.Crestron)
+			{
+				addRow("CrestronSeries", IcdEnvironment.CrestronSeries);
+				addRow("CrestronRuntimeEnvironment", IcdEnvironment.CrestronRuntimeEnvironment);
+			}
 			addRow("Theme Count", instance.Originators.GetChildren<ITheme>().Count());
 			addRow("Port Count", instance.Originators.GetChildren<IPort>().Count());
 			addRow("Device Count", instance.Originators.GetChildren<IDevice>().Count());

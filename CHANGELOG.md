@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
  - Changed InterCore service to start communications on StartSettings instead of ApplySettings
+ - Changed IcdEnvironment to use new properties
 
 ## [15.2.1] - 2020-09-24
 ### Changed

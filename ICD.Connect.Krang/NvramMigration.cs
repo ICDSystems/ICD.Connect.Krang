@@ -15,7 +15,7 @@ namespace ICD.Connect.Krang
 		{
 			get
 			{
-				return IcdEnvironment.RuntimeEnvironment == IcdEnvironment.eRuntimeEnvironment.SimplSharpProMono
+				return IcdEnvironment.CrestronSeries == IcdEnvironment.eCrestronSeries.FourSeries
 					       ? "nvram"
 					       : "NVRAM";
 			}
