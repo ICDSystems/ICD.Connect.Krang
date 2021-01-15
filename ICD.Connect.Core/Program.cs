@@ -1,60 +1,75 @@
 ﻿#if !SIMPLSHARP
 using System;
-using ICD.Connect.API;
-using ICD.Connect.Krang.Cores;
-using CommandLine;
-using ICD.Common.Properties;
 using ICD.Common.Utils;
+using ICD.Connect.Krang.Cores;
+using Topshelf;
+using Topshelf.StartParameters;
 
 namespace ICD.Connect.Core
 {
-	[UsedImplicitly]
 	internal sealed class Options
 	{
-		[Option('p', "program", Default=(uint)1, Required=false, HelpText="Specifies the program number.")]
-		public uint Program { get; set; }
+		public uint Program { get; set; } = 1;
 	}
 
 	internal static class Program
 	{
-		private static KrangBootstrap s_Bootstrap;
-
 		/// <summary>
-		/// Program entry point.
+		/// Run as service.
 		/// </summary>
-		/// <param name="args"></param>
-		private static void Main(string[] args)
+		public static void Main()
 		{
-			Parser.Default
-			      .ParseArguments<Options>(args)
-			      .WithParsed(Main);
+			Options options = new Options();
+
+			TopshelfExitCode rc = HostFactory.Run(x =>
+			{
+				x.EnableStartParameters();
+
+				x.WithStartParameter("program", p =>
+				{
+					uint program;
+					options.Program = uint.TryParse(p, out program) ? program : 1;
+				});
+
+				x.Service<KrangBootstrap>(s =>
+				{
+					s.ConstructUsing(n => Construct(options));
+					s.WhenStarted(Start);
+					s.WhenStopped(Stop);
+				});
+
+				x.RunAsNetworkService();
+
+				x.SetDisplayName("ICD.Connect.Core");
+				x.SetServiceName("ICD.Connect.Core");
+				x.SetDescription("ICD Systems Core Application");
+
+				x.SetStartTimeout(TimeSpan.FromMinutes(10));
+				x.SetStopTimeout(TimeSpan.FromMinutes(10));
+
+				x.StartAutomatically();
+			});
+
+			int exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
+			Environment.ExitCode = exitCode;
 		}
 
-		private static void Main(Options options)
+		private static KrangBootstrap Construct(Options options)
 		{
 			ProgramUtils.ProgramNumber = options.Program;
 
-			// Instantiate the bootstrap after the program options have been assigned
-			s_Bootstrap = new KrangBootstrap();
-			Console.CancelKeyPress += (a, b) => s_Bootstrap.Stop();
+			return new KrangBootstrap();
+		}
 
-			s_Bootstrap.Start(null);
-
+		private static void Start(KrangBootstrap service)
+		{
+			service.Start(null);
 			IcdEnvironment.SetProgramInitializationComplete();
+		}
 
-			while (true)
-			{
-				string command = Console.ReadLine();
-				if (command == null)
-					continue;
-
-				if (command.Equals("exit", StringComparison.OrdinalIgnoreCase))
-					break;
-
-				ApiConsole.ExecuteCommand(command);
-			}
-
-			s_Bootstrap.Stop();
+		private static void Stop(KrangBootstrap service)
+		{
+			service.Stop();
 		}
 	}
 }

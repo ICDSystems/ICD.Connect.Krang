@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+#if !SIMPLSHARP
+using System.Threading;
+#endif
 using ICD.Common.Logging;
 using ICD.Common.Logging.Loggers;
+using ICD.Common.Logging.LoggingContexts;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
@@ -23,10 +27,15 @@ namespace ICD.Connect.Krang.Cores
 	[ApiClass("ControlSystem", null)]
 	public sealed class KrangBootstrap : IConsoleNode
 	{
-		private readonly KrangCore m_Core;
+		private readonly ILoggingContext m_Logger;
 
-		private ILoggerService m_Logger;
-		private ActionSchedulerService m_ActionSchedulerService;
+#if !SIMPLSHARP
+		// ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
+		private readonly Thread m_ConsoleThread;
+		// ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
+#endif
+
+		private KrangCore m_Core;
 
 		#region Properties
 
@@ -71,9 +80,15 @@ namespace ICD.Connect.Krang.Cores
 			ApiHandler.ControlSystem = this;
 			ApiConsole.RegisterChild(this);
 
-			AddServices();
+			m_Logger = new ServiceLoggingContext(this);
 
-			m_Core = new KrangCore {Serialize = true};
+#if !SIMPLSHARP
+			m_ConsoleThread = new Thread(ConsoleWorker)
+			{
+				IsBackground = true
+			};
+			m_ConsoleThread.Start();
+#endif
 		}
 
 		#region Methods
@@ -83,6 +98,12 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		public void Start([CanBeNull] Action postApplyAction)
 		{
+			Stop();
+
+			AddServices();
+
+			m_Core = new KrangCore { Serialize = true };
+
 			PrintProgramInfo();
 			ValidateProgram();
 
@@ -100,7 +121,7 @@ namespace ICD.Connect.Krang.Cores
 			}
 			catch (Exception e)
 			{
-				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program initialization");
+				m_Logger.Log(eSeverity.Error, e, "Exception in program initialization");
 			}
 		}
 
@@ -111,14 +132,31 @@ namespace ICD.Connect.Krang.Cores
 		{
 			try
 			{
-				DirectMessageManager.Dispose();
-				BroadcastManager.Dispose();
+				if (DirectMessageManager != null)
+					DirectMessageManager.Dispose();
+				DirectMessageManager = null;
 
-				Clear();
+				if (BroadcastManager != null)
+					BroadcastManager.Dispose();
+				BroadcastManager = null;
+
+				if (m_Core != null)
+					m_Core.Dispose();
+				m_Core = null;
+
+				// Avoid disposing the logging service
+				foreach (object service in ServiceProvider.GetServices().Where(s => !(s is ILoggerService)))
+				{
+					ServiceProvider.RemoveService(service);
+
+					IDisposable disposable = service as IDisposable;
+					if (disposable != null)
+						disposable.Dispose();
+				}
 			}
 			catch (Exception e)
 			{
-				m_Logger.AddEntry(eSeverity.Error, e, "Exception in program stop");
+				m_Logger.Log(eSeverity.Error, e, "Exception in program stop");
 			}
 		}
 
@@ -126,55 +164,30 @@ namespace ICD.Connect.Krang.Cores
 
 		#region Private Methods
 
-		/// <summary>
-		/// Disposes all of the instantiated objects.
-		/// </summary>
-		private void Clear()
-		{
-			if (m_Core != null)
-				m_Core.Dispose();
-
-			// Avoid disposing the logging service
-			foreach (object service in ServiceProvider.GetServices().Where(s => !(s is ILoggerService)))
-			{
-				ServiceProvider.RemoveService(service);
-
-				IDisposable disposable = service as IDisposable;
-				if (disposable != null)
-					disposable.Dispose();
-			}
-		}
-
 		private void AddServices()
 		{
-			// Create and add default logger
-			LoggingCore logger = new LoggingCore
-			{
-				SeverityLevel =
+			ServiceProvider
+				.GetOrAddService<ILoggerService>(() =>
+				{
+					LoggingCore service = new LoggingCore
+					{
+						SeverityLevel =
 #if DEBUG
-					eSeverity.Debug
+							eSeverity.Debug
 #else
- 					eSeverity.Notice
+							eSeverity.Notice
 #endif
-			};
-			logger.AddLogger(new IcdErrorLogger());
+					};
+					service.AddLogger(new IcdErrorLogger());
+					return service;
+				});
 
-			m_Logger = logger;
-			ServiceProvider.TryAddService<ILoggerService>(logger);
+			ServiceProvider.GetOrAddService<IActionSchedulerService>(() => new ActionSchedulerService());
+			ServiceProvider.GetOrAddService(() => new PermissionsManager());
 
-			DirectMessageManager = new DirectMessageManager();
-			ServiceProvider.TryAddService(DirectMessageManager);
-
-			BroadcastManager = new BroadcastManager();
-			ServiceProvider.TryAddService(BroadcastManager);
-
-			ServiceProvider.TryAddService(new PermissionsManager());
-
-			SystemKeyManager = new SystemKeyManager();
-			ServiceProvider.AddService(SystemKeyManager);
-
-			m_ActionSchedulerService = new ActionSchedulerService();
-			ServiceProvider.TryAddService<IActionSchedulerService>(m_ActionSchedulerService);
+			DirectMessageManager = ServiceProvider.GetOrAddService(() => new DirectMessageManager());
+			BroadcastManager = ServiceProvider.GetOrAddService(() => new BroadcastManager());
+			SystemKeyManager = ServiceProvider.GetOrAddService(() => new SystemKeyManager());
 		}
 
 		private void PrintProgramInfo()
@@ -199,9 +212,9 @@ namespace ICD.Connect.Krang.Cores
 			// Check for cpz files that are unextracted, indicating a problem
 			if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
 			{
-				m_Logger.AddEntry(eSeverity.Warning,
-				                  "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY." +
-				                  " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
+				m_Logger.Log(eSeverity.Warning,
+				             "A CPZ FILE STILL EXISTS IN THE PROGRAM DIRECTORY." +
+				             " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
 			}
 #endif
 		}
@@ -218,11 +231,13 @@ namespace ICD.Connect.Krang.Cores
 
 			// Backwards compatibility
 // ReSharper disable CSharpWarnings::CS0618
+#pragma warning disable CS0618 // Type or member is obsolete
 			if (systemKeyPath == null)
 				systemKeyPath = IcdFile.Exists(FileOperations.LicensePath)
-					                ? FileOperations.LicensePath
+									? FileOperations.LicensePath
 					                : null;
 // ReSharper restore CSharpWarnings::CS0618
+#pragma warning restore CS0618 // Type or member is obsolete
 
 			// Revert back to the system key path for logging
 			systemKeyPath = systemKeyPath ?? FileOperations.SystemKeyPath;
@@ -232,6 +247,29 @@ namespace ICD.Connect.Krang.Cores
 			SystemKeyManager.LoadSystemKey(systemKeyPath);
 			return SystemKeyManager.IsValid();
 		}
+
+#if !SIMPLSHARP
+		/// <summary>
+		/// Handles user input while running from command line.
+		/// </summary>
+		private static void ConsoleWorker()
+		{
+			while (true)
+			{
+				string command = Console.ReadLine();
+				if (command == null)
+					continue;
+
+				if (command.Equals("exit", StringComparison.OrdinalIgnoreCase))
+				{
+					Environment.Exit(0);
+					return;
+				}
+
+				ApiConsole.ExecuteCommand(command);
+			}
+		}
+#endif
 
 		#endregion
 
