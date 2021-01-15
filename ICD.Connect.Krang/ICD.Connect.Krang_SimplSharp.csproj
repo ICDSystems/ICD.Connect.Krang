@@ -79,7 +79,6 @@
     <Compile Include="Cores\KrangBootstrapConsole.cs" />
     <Compile Include="Cores\KrangCoreConsole.cs" />
     <Compile Include="Cores\KrangCoreExternalTelemetryProvider.cs" />
-    <Compile Include="NvramMigration.cs" />
     <Compile Include="Remote\Broadcast\IBroadcastHandler.cs" />
     <Compile Include="Remote\Direct\Disconnect\DisconnectData.cs" />
     <Compile Include="Remote\IInterCoreService.cs" />

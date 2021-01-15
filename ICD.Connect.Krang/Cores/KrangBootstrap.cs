@@ -94,8 +94,6 @@ namespace ICD.Connect.Krang.Cores
 				return;
 #endif
 
-			NvramMigration.Migrate(m_Logger);
-
 			try
 			{
 				m_Core.LoadSettings(postApplyAction);
