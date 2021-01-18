@@ -71,7 +71,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		#region Methods
 
 		/// <summary>
-		/// Handles the message receieved from the remote core.
+		/// Handles the message received from the remote core.
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns>Returns an AbstractMessage as a reply, or null for no reply</returns>
@@ -91,8 +91,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			}
 
 			ApiRequestor requestor = LazyLoadRequestor(message.From);
-
-			ApiHandler.HandleRequest(requestor, data.Command);
+			data.Command.HandleRequest(requestor);
 
 			// The results are added into the original command tree, so we can just send it back again
 			data.IsResponse = true;
@@ -140,7 +139,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 				m_Requestors.RemoveKey(remoteEndpoint);
 
 				// Remove the requestor from the API
-				ApiHandler.UnsubscribeAll(requestor);
+				ApiFeedbackCache.UnsubscribeAll(requestor);
 			}
 			finally
 			{
