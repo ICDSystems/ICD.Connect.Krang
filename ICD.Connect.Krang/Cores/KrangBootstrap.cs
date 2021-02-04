@@ -180,6 +180,9 @@ namespace ICD.Connect.Krang.Cores
 #endif
 					};
 					service.AddLogger(new IcdErrorLogger());
+#if RELEASE && !SIMPLSHARP
+					service.AddLogger(new EventLogLogger("ICD.Connect.Core-" + ProgramUtils.ProgramNumber));
+#endif
 					return service;
 				});
 

@@ -2,6 +2,7 @@
 using System;
 using ICD.Common.Utils;
 using ICD.Connect.Krang.Cores;
+using Microsoft.Win32;
 using Topshelf;
 using Topshelf.StartParameters;
 
@@ -48,6 +49,8 @@ namespace ICD.Connect.Core
 				x.SetStopTimeout(TimeSpan.FromMinutes(10));
 
 				x.StartAutomatically();
+
+				x.BeforeInstall(() => BeforeInstall(options));
 			});
 
 			int exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
@@ -70,6 +73,14 @@ namespace ICD.Connect.Core
 		private static void Stop(KrangBootstrap service)
 		{
 			service.Stop();
+		}
+
+		private static void BeforeInstall(Options options)
+		{
+			// Create registry key for event logging
+			string key = @"SYSTEM\CurrentControlSet\Services\EventLog\Application\ICD.Connect.Core-" + options.Program;
+			if (Registry.LocalMachine.OpenSubKey(key, true) == null)
+				Registry.LocalMachine.CreateSubKey(key);
 		}
 	}
 }
