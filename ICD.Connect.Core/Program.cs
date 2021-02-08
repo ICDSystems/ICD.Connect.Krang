@@ -61,7 +61,8 @@ namespace ICD.Connect.Core
 		{
 			ProgramUtils.ProgramNumber = options.Program;
 
-			return new KrangBootstrap();
+			bool isInteractive = IsConsoleApp();
+			return new KrangBootstrap(isInteractive);
 		}
 
 		private static void Start(KrangBootstrap service)
@@ -81,6 +82,20 @@ namespace ICD.Connect.Core
 			string key = @"SYSTEM\CurrentControlSet\Services\EventLog\Application\ICD.Connect.Core-" + options.Program;
 			if (Registry.LocalMachine.OpenSubKey(key, true) == null)
 				Registry.LocalMachine.CreateSubKey(key);
+		}
+
+		private static bool IsConsoleApp()
+		{
+			try
+			{
+				// Hack
+				int unused = Console.WindowHeight;
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 	}
 }

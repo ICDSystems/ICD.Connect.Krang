@@ -76,7 +76,7 @@ namespace ICD.Connect.Krang.Cores
 		/// <summary>
 		/// Constructor.
 		/// </summary>
-		public KrangBootstrap()
+		public KrangBootstrap(bool isInteractive)
 		{
 			ApiClassInfo.Root = this;
 			ApiConsole.RegisterChild(this);
@@ -88,7 +88,9 @@ namespace ICD.Connect.Krang.Cores
 			{
 				IsBackground = true
 			};
-			m_ConsoleThread.Start();
+
+			if (isInteractive)
+				m_ConsoleThread.Start();
 #endif
 		}
 
