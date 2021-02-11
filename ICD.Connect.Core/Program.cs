@@ -79,9 +79,20 @@ namespace ICD.Connect.Core
 		private static void BeforeInstall(Options options)
 		{
 			// Create registry key for event logging
-			string key = @"SYSTEM\CurrentControlSet\Services\EventLog\Application\ICD.Connect.Core-" + options.Program;
-			if (Registry.LocalMachine.OpenSubKey(key, true) == null)
-				Registry.LocalMachine.CreateSubKey(key);
+			string key = string.Format(@"SYSTEM\CurrentControlSet\Services\EventLog\Application\ICD.Connect.Core-{0}", 1);
+			RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(key, true) ?? Registry.LocalMachine.CreateSubKey(key);
+			if (registryKey == null)
+				throw new ApplicationException("Failed to create registry key");
+
+			// Setup the event log message file
+			// Hack - Just using the regular .Net Runtime messages
+			string eventMessageFilePath = @"C:\Windows\System32\mscoree.dll";
+			if (registryKey.GetValue("EventMessageFile") == null)
+				registryKey.SetValue("EventMessageFile", eventMessageFilePath, RegistryValueKind.String);
+
+			// Also copied from .Net Runtime
+			if (registryKey.GetValue("TypesSupported") == null)
+				registryKey.SetValue("TypesSupported", 0x07, RegistryValueKind.DWord);
 		}
 
 		private static bool IsConsoleApp()
