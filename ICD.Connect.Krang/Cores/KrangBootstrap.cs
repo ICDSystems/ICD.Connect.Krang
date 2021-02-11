@@ -182,7 +182,10 @@ namespace ICD.Connect.Krang.Cores
 #endif
 					};
 					service.AddLogger(new IcdErrorLogger());
-#if RELEASE && !SIMPLSHARP
+#if STANDARD
+					service.AddLogger(new FileLogger());
+#endif
+#if STANDARD && RELEASE
 					service.AddLogger(new EventLogLogger("ICD.Connect.Core-" + ProgramUtils.ProgramNumber));
 #endif
 					return service;
