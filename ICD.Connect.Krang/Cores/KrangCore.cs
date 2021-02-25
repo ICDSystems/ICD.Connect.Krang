@@ -254,10 +254,13 @@ namespace ICD.Connect.Krang.Cores
 			if (destinationGroup != null)
 				return destinationGroup;
 
+			int id = GetDestinationGroupId();
+
 			destinationGroup = new DestinationGroup
 			{
 				Name = name,
-				Id = GetDestinationGroupId(),
+				Id = id,
+				Uuid = OriginatorUtils.GenerateUuid(Core, id),
 				ConnectionTypeMask = eConnectionType.Video | eConnectionType.Audio | eConnectionType.Usb,
 				Serialize = true
 			};
