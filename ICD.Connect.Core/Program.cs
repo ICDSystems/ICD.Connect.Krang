@@ -39,7 +39,7 @@ namespace ICD.Connect.Core
 					s.WhenStopped(Stop);
 				});
 
-				x.RunAsNetworkService();
+				x.RunAsLocalSystem();
 
 				x.SetDisplayName("ICD.Connect.Core");
 				x.SetServiceName("ICD.Connect.Core");
