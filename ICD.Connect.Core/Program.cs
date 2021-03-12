@@ -25,6 +25,7 @@ namespace ICD.Connect.Core
 			TopshelfExitCode rc = HostFactory.Run(x =>
 			{
 				x.EnableStartParameters();
+				x.EnableSessionChanged();
 
 				x.WithStartParameter("program", p =>
 				{
@@ -37,6 +38,7 @@ namespace ICD.Connect.Core
 					s.ConstructUsing(n => Construct(options));
 					s.WhenStarted(Start);
 					s.WhenStopped(Stop);
+					s.WhenSessionChanged(HandleSessionChange);
 				});
 
 				x.RunAsLocalSystem();
@@ -53,8 +55,7 @@ namespace ICD.Connect.Core
 				x.BeforeInstall(() => BeforeInstall(options));
 			});
 
-			int exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
-			Environment.ExitCode = exitCode;
+			Environment.ExitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
 		}
 
 		private static KrangBootstrap Construct(Options options)
@@ -67,13 +68,20 @@ namespace ICD.Connect.Core
 
 		private static void Start(KrangBootstrap service)
 		{
+			IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Resumed);
 			service.Start(null);
 			IcdEnvironment.SetProgramInitializationComplete();
 		}
 
 		private static void Stop(KrangBootstrap service)
 		{
+			IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Stopping);
 			service.Stop();
+		}
+
+		private static void HandleSessionChange(KrangBootstrap service, HostControl host, SessionChangedArguments args)
+		{
+			IcdEnvironment.HandleSessionChange(args.SessionId, (IcdEnvironment.eSessionChangeEventType)args.ReasonCode);
 		}
 
 		private static void BeforeInstall(Options options)
@@ -86,7 +94,7 @@ namespace ICD.Connect.Core
 
 			// Setup the event log message file
 			// Hack - Just using the regular .Net Runtime messages
-			string eventMessageFilePath = @"C:\Windows\System32\mscoree.dll";
+			const string eventMessageFilePath = @"C:\Windows\System32\mscoree.dll";
 			if (registryKey.GetValue("EventMessageFile") == null)
 				registryKey.SetValue("EventMessageFile", eventMessageFilePath, RegistryValueKind.String);
 
