@@ -38,7 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="Topshelf" Version="4.3.0" />
+    <PackageReference Include="Topshelf" Version="4.3.1-develop.253" />
     <PackageReference Include="TopShelf.StartParameters" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
