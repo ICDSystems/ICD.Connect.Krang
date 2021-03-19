@@ -51,7 +51,7 @@
     <ProjectReference Include="..\..\ICD.Connect.Themes\ICD.Connect.Themes\ICD.Connect.Themes_NetStandard.csproj" />
   </ItemGroup>
 
-  <Target Name="ArchivePlugin" AfterTargets="AfterBuild">
+  <Target Name="ArchivePlugin" AfterTargets="AfterBuild" Condition="'$(OS)' == 'Windows_NT'">
     <Delete Files="$(TargetDir)$(AssemblyName).kpz" />
     <ZipDirectory DestinationFile="$(TargetDir)..\$(AssemblyName).kpz"
                   SourceDirectory="$(TargetDir)"
