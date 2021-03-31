@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Added a firmware column to the controlsystem health console table
  - Generated destination groups are now given uuids
+ - NetStandard program subscribes to Windows Service device added and removed events and raises them for the environment
 
 ## [15.3.0] - 2021-01-14
 ### Added

@@ -1,6 +1,9 @@
 ﻿#if !SIMPLSHARP
 using System;
+using System.Runtime.InteropServices;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Services;
+using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.Krang.Cores;
 using Microsoft.Win32;
 using Topshelf;
@@ -15,6 +18,13 @@ namespace ICD.Connect.Core
 
 	internal static class Program
 	{
+		private const string SERVICE_NAME = "ICD.Connect.Core";
+
+		private static IntPtr s_DeviceNotifyHandle;
+		private static IntPtr s_DeviceEventHandle;
+		private static Win32.ServiceControlHandlerEx s_ServiceControlCallback;
+
+
 		/// <summary>
 		/// Run as service.
 		/// </summary>
@@ -44,7 +54,7 @@ namespace ICD.Connect.Core
 				x.RunAsLocalSystem();
 
 				x.SetDisplayName("ICD.Connect.Core");
-				x.SetServiceName("ICD.Connect.Core");
+				x.SetServiceName(SERVICE_NAME);
 				x.SetDescription("ICD Systems Core Application");
 
 				x.SetStartTimeout(TimeSpan.FromMinutes(10));
@@ -70,6 +80,7 @@ namespace ICD.Connect.Core
 		{
 			IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Resumed);
 			service.Start(null);
+			RegisterDeviceNotification();
 			IcdEnvironment.SetProgramInitializationComplete();
 		}
 
@@ -77,6 +88,7 @@ namespace ICD.Connect.Core
 		{
 			IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Stopping);
 			service.Stop();
+			UnregisterHandles();
 		}
 
 		private static void HandleSessionChange(KrangBootstrap service, HostControl host, SessionChangedArguments args)
@@ -115,6 +127,121 @@ namespace ICD.Connect.Core
 			{
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// Register for device notification from Windows
+		/// </summary>
+		private static void RegisterDeviceNotification()
+		{
+			if (IsConsoleApp())
+				return;
+
+			ILoggerService logger = ServiceProvider.GetService<ILoggerService>();
+
+			s_ServiceControlCallback = ServiceControlHandler;
+
+			IntPtr serviceHandle = Win32.RegisterServiceCtrlHandlerEx(SERVICE_NAME, s_ServiceControlCallback, IntPtr.Zero);
+
+			if (serviceHandle == IntPtr.Zero)
+			{
+				logger.AddEntry(eSeverity.Error, "Service Handler Zero");
+				return;
+			}
+
+			Win32.DevBroadcastDeviceInterface deviceInterface = new Win32.DevBroadcastDeviceInterface();
+			int size = Marshal.SizeOf(deviceInterface);
+			deviceInterface.dbcc_size = size;
+			deviceInterface.dbcc_devicetype = Win32.DBT_DEVICE_TYPE_DEVICE_INTERFACE;
+			
+			IntPtr buffer;
+			buffer = Marshal.AllocHGlobal(size);
+			Marshal.StructureToPtr(deviceInterface, buffer, true);
+			
+			s_DeviceEventHandle = Win32.RegisterDeviceNotification(serviceHandle, buffer, Win32.DEVICE_NOTIFY_SERVICE_HANDLE | Win32.DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
+			if (s_DeviceEventHandle == IntPtr.Zero)
+				logger.AddEntry(eSeverity.Error, "DeviceEvent Handle Zero - Device Connect/Disconnect Events Not Available");
+		}
+
+		/// <summary>
+		/// Unregister for device notifications from Windows
+		/// </summary>
+		private static void UnregisterHandles()
+		{
+			if (s_DeviceNotifyHandle != IntPtr.Zero)
+			{
+				Win32.UnregisterDeviceNotification(s_DeviceNotifyHandle);
+				s_DeviceNotifyHandle = IntPtr.Zero;
+			}
+		}
+
+		/// <summary>
+		/// Callback from Windows service for device notifications
+		/// </summary>
+		/// <param name="control"></param>
+		/// <param name="eventType"></param>
+		/// <param name="eventData"></param>
+		/// <param name="context"></param>
+		/// <returns></returns>
+		private static int ServiceControlHandler(int control, int eventType, IntPtr eventData, IntPtr context)
+		{
+			if (control == Win32.SERVICE_CONTROL_STOP || control == Win32.SERVICE_CONTROL_SHUTDOWN)
+			{
+				UnregisterHandles();
+				Win32.UnregisterDeviceNotification(s_DeviceEventHandle);
+			}
+			else if (control == Win32.SERVICE_CONTROL_DEVICE_EVENT)
+			{
+				switch (eventType)
+				{
+					case Win32.DBT_DEVICE_ARRIVAL:
+						IcdEnvironment.RaiseSystemDeviceAddedEvent();
+						break;
+					case Win32.DBT_DEVICE_REMOVE_COMPLETE:
+						IcdEnvironment.RaiseSystemDeviceRemovedEvent();
+						break;
+				}
+			}
+
+			return 0;
+		}
+	}
+
+	public static class Win32
+	{
+		public const int DEVICE_NOTIFY_SERVICE_HANDLE = 1;
+		public const int DEVICE_NOTIFY_ALL_INTERFACE_CLASSES = 4;
+
+		public const int SERVICE_CONTROL_STOP = 1;
+		public const int SERVICE_CONTROL_DEVICE_EVENT = 11;
+		public const int SERVICE_CONTROL_SHUTDOWN = 5;
+
+		public const int DBT_DEVICE_TYPE_DEVICE_INTERFACE = 5;
+
+		public const int DBT_DEVICE_ARRIVAL = 0x8000;
+		public const int DBT_DEVICE_REMOVE_COMPLETE = 0x8004;
+
+		public delegate int ServiceControlHandlerEx(int control, int eventType, IntPtr eventData, IntPtr context);
+
+		[DllImport("advapi32.dll", SetLastError = true)]
+		public static extern IntPtr RegisterServiceCtrlHandlerEx(string lpServiceName, ServiceControlHandlerEx callbackEx, IntPtr context);
+
+		[DllImport("user32.dll", SetLastError = true)]
+		public static extern IntPtr RegisterDeviceNotification(IntPtr intPtr, IntPtr notificationFilter, Int32 flags);
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern uint UnregisterDeviceNotification(IntPtr hHandle);
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		public struct DevBroadcastDeviceInterface
+		{
+			public int dbcc_size;
+			public int dbcc_devicetype;
+			public int dbcc_reserved;
+			[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U1, SizeConst = 16)]
+			public byte[] dbcc_classguid;
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
+			public char[] dbcc_name;
 		}
 	}
 }
