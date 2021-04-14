@@ -17,8 +17,8 @@ using ICD.Common.Utils.Services.Scheduler;
 using ICD.Connect.API;
 using ICD.Connect.API.Attributes;
 using ICD.Connect.API.Commands;
-using ICD.Connect.API.Info;
 using ICD.Connect.API.Nodes;
+using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
@@ -78,7 +78,7 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		public KrangBootstrap(bool isInteractive)
 		{
-			ApiClassInfo.Root = this;
+			RemoteApiCommandHandler.ControlSystem = this;
 			ApiConsole.RegisterChild(this);
 
 			m_Logger = new ServiceLoggingContext(this);

@@ -24,7 +24,6 @@ namespace ICD.Connect.Core
 		private static IntPtr s_DeviceEventHandle;
 		private static Win32.ServiceControlHandlerEx s_ServiceControlCallback;
 
-
 		/// <summary>
 		/// Run as service.
 		/// </summary>

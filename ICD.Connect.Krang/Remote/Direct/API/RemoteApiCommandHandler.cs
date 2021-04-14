@@ -4,6 +4,7 @@ using ICD.Common.Utils.Collections;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Connect.API;
+using ICD.Connect.API.Attributes;
 using ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Protocol.Ports;
@@ -15,6 +16,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 	/// <summary>
 	/// The RemoteApiCommandHandler manages the communication between remote cores and the local API.
 	/// </summary>
+	[ApiClass("ICD", "The API root")]
 	public sealed class RemoteApiCommandHandler : AbstractMessageHandler
 	{
 		/// <summary>
@@ -30,6 +32,12 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 		/// Gets the message type that this handler is expecting.
 		/// </summary>
 		public override Type MessageType { get { return typeof(ApiMessageData); } }
+
+		/// <summary>
+		/// Gets/sets the ControlSystem node of the API.
+		/// </summary>
+		[ApiNode("ControlSystem", "The running application")]
+		public static object ControlSystem { get; set; }
 
 		/// <summary>
 		/// Constructor.
@@ -91,7 +99,7 @@ namespace ICD.Connect.Krang.Remote.Direct.API
 			}
 
 			ApiRequestor requestor = LazyLoadRequestor(message.From);
-			data.Command.HandleRequest(requestor);
+			data.Command.HandleRequest(this, requestor);
 
 			// The results are added into the original command tree, so we can just send it back again
 			data.IsResponse = true;
