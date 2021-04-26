@@ -1,6 +1,7 @@
 ﻿#if !SIMPLSHARP
 using System;
-using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -18,11 +19,26 @@ namespace ICD.Connect.Core
 
 	internal static class Program
 	{
-		private const string SERVICE_NAME = "ICD.Connect.Core";
+		private const string SERVICE_NAME = "ICD.Connect";
+		private const string SERVICE_DESCRIPTION = "ICD Systems IoT Management Service";
 
-		private static IntPtr s_DeviceNotifyHandle;
-		private static IntPtr s_DeviceEventHandle;
-		private static Win32.ServiceControlHandlerEx s_ServiceControlCallback;
+		private static CancellationTokenSource s_MainTaskCancellationTokenSource;
+
+		private static HostControl s_HostControl;
+
+		// ReSharper disable NotAccessedField.Local
+		private static Task s_MainTask;
+		// ReSharper restore NotAccessedField.Local
+
+		/// <summary>
+		/// Static constructor.
+		/// </summary>
+		static Program()
+		{
+			Win32.OnServiceControlStopShutdown += Win32OnServiceControlStopShutdown;
+			Win32.OnSystemDeviceAdded += Win32OnSystemDeviceAdded;
+			Win32.OnSystemDeviceRemoved += Win32OnSystemDeviceRemoved;
+		}
 
 		/// <summary>
 		/// Run as service.
@@ -31,10 +47,18 @@ namespace ICD.Connect.Core
 		{
 			Options options = new Options();
 
-			TopshelfExitCode rc = HostFactory.Run(x =>
+			TopshelfExitCode code = HostFactory.Run(x =>
 			{
 				x.EnableStartParameters();
 				x.EnableSessionChanged();
+				x.EnableShutdown();
+
+				//x.EnableServiceRecovery(rc =>
+				//{
+				//	rc.OnCrashOnly();
+				//	rc.RestartService(0);
+				//	rc.SetResetPeriod(1);
+				//});
 
 				x.WithStartParameter("program", p =>
 				{
@@ -50,11 +74,17 @@ namespace ICD.Connect.Core
 					s.WhenSessionChanged(HandleSessionChange);
 				});
 
+				x.OnException(e =>
+				{
+					ServiceProvider.TryGetService<ILoggerService>()
+					               ?.AddEntry(eSeverity.Error, e, "Unhandled exception - {0}", e.Message);
+				});
+
 				x.RunAsLocalSystem();
 
-				x.SetDisplayName("ICD.Connect.Core");
 				x.SetServiceName(SERVICE_NAME);
-				x.SetDescription("ICD Systems Core Application");
+				x.SetDisplayName(SERVICE_NAME);
+				x.SetDescription(SERVICE_DESCRIPTION);
 
 				x.SetStartTimeout(TimeSpan.FromMinutes(10));
 				x.SetStopTimeout(TimeSpan.FromMinutes(10));
@@ -62,11 +92,20 @@ namespace ICD.Connect.Core
 				x.StartAutomatically();
 
 				x.BeforeInstall(() => BeforeInstall(options));
+
+				x.DependsOnEventLog();
 			});
 
-			Environment.ExitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
+			Environment.ExitCode = (int)Convert.ChangeType(code, code.GetTypeCode());
 		}
 
+		#region Service
+
+		/// <summary>
+		/// Creates the service instance.
+		/// </summary>
+		/// <param name="options"></param>
+		/// <returns></returns>
 		private static KrangBootstrap Construct(Options options)
 		{
 			ProgramUtils.ProgramNumber = options.Program;
@@ -75,30 +114,75 @@ namespace ICD.Connect.Core
 			return new KrangBootstrap(isInteractive);
 		}
 
-		private static void Start(KrangBootstrap service)
+		/// <summary>
+		/// Starts the service.
+		/// </summary>
+		/// <param name="service"></param>
+		/// <param name="hostControl"></param>
+		/// <returns></returns>
+		private static bool Start(KrangBootstrap service, HostControl hostControl)
 		{
-			IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Resumed);
-			service.Start(null);
-			RegisterDeviceNotification();
-			IcdEnvironment.SetProgramInitializationComplete();
+			s_HostControl = hostControl;
+
+			if (!IsConsoleApp())
+				Win32.RegisterDeviceNotifications(SERVICE_NAME);
+
+			s_MainTaskCancellationTokenSource = new CancellationTokenSource();
+
+			s_MainTask =
+				Task.Factory.StartNew(() =>
+				{
+					try
+					{
+						IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Resumed);
+						service.Start(null);
+						IcdEnvironment.SetProgramInitializationComplete();
+					}
+					catch
+					{
+						hostControl.Stop();
+					}
+				},
+				s_MainTaskCancellationTokenSource.Token);
+
+			return true;
 		}
 
-		private static void Stop(KrangBootstrap service)
+		/// <summary>
+		/// Stops the service.
+		/// </summary>
+		/// <param name="service"></param>
+		/// <param name="hostControl"></param>
+		/// <returns></returns>
+		private static bool Stop(KrangBootstrap service, HostControl hostControl)
 		{
-			IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Stopping);
-			service.Stop();
-			UnregisterHandles();
+			ServiceProvider.TryGetService<ILoggerService>()?.AddEntry(eSeverity.Informational, "Program.Stop");
+
+			s_MainTaskCancellationTokenSource?.Cancel();
+
+			try
+			{
+				Win32.UnregisterDeviceNotifications();
+				IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Stopping);
+				service.Stop();
+			}
+			catch
+			{
+				// Don't tell hostControl to stop - ends up calling this method recursively
+				//hostControl.Stop();
+			}
+
+			return true;
 		}
 
-		private static void HandleSessionChange(KrangBootstrap service, HostControl host, SessionChangedArguments args)
-		{
-			IcdEnvironment.HandleSessionChange(args.SessionId, (IcdEnvironment.eSessionChangeEventType)args.ReasonCode);
-		}
-
+		/// <summary>
+		/// Called before the service is installed.
+		/// </summary>
+		/// <param name="options"></param>
 		private static void BeforeInstall(Options options)
 		{
 			// Create registry key for event logging
-			string key = string.Format(@"SYSTEM\CurrentControlSet\Services\EventLog\Application\ICD.Connect.Core-{0}", 1);
+			string key = string.Format(@"SYSTEM\CurrentControlSet\Services\EventLog\Application\ICD.Connect.Core-{0}", options.Program);
 			RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(key, true) ?? Registry.LocalMachine.CreateSubKey(key);
 			if (registryKey == null)
 				throw new ApplicationException("Failed to create registry key");
@@ -114,6 +198,15 @@ namespace ICD.Connect.Core
 				registryKey.SetValue("TypesSupported", 0x07, RegistryValueKind.DWord);
 		}
 
+		#endregion
+
+		#region Private Methods
+
+		/// <summary>
+		/// Returns true if the application is being run from an interactive console,
+		/// false if the application is being run as a headless service.
+		/// </summary>
+		/// <returns></returns>
 		private static bool IsConsoleApp()
 		{
 			try
@@ -128,120 +221,52 @@ namespace ICD.Connect.Core
 			}
 		}
 
+		#endregion
+
+		#region System Callbacks
+
 		/// <summary>
-		/// Register for device notification from Windows
+		/// Called when the session changes (log out, log in, etc).
 		/// </summary>
-		private static void RegisterDeviceNotification()
+		/// <param name="service"></param>
+		/// <param name="host"></param>
+		/// <param name="args"></param>
+		private static void HandleSessionChange(KrangBootstrap service, HostControl host, SessionChangedArguments args)
 		{
-			if (IsConsoleApp())
-				return;
-
-			ILoggerService logger = ServiceProvider.GetService<ILoggerService>();
-
-			s_ServiceControlCallback = ServiceControlHandler;
-
-			IntPtr serviceHandle = Win32.RegisterServiceCtrlHandlerEx(SERVICE_NAME, s_ServiceControlCallback, IntPtr.Zero);
-
-			if (serviceHandle == IntPtr.Zero)
-			{
-				logger.AddEntry(eSeverity.Error, "Service Handler Zero");
-				return;
-			}
-
-			Win32.DevBroadcastDeviceInterface deviceInterface = new Win32.DevBroadcastDeviceInterface();
-			int size = Marshal.SizeOf(deviceInterface);
-			deviceInterface.dbcc_size = size;
-			deviceInterface.dbcc_devicetype = Win32.DBT_DEVICE_TYPE_DEVICE_INTERFACE;
-			
-			IntPtr buffer;
-			buffer = Marshal.AllocHGlobal(size);
-			Marshal.StructureToPtr(deviceInterface, buffer, true);
-			
-			s_DeviceEventHandle = Win32.RegisterDeviceNotification(serviceHandle, buffer, Win32.DEVICE_NOTIFY_SERVICE_HANDLE | Win32.DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
-			if (s_DeviceEventHandle == IntPtr.Zero)
-				logger.AddEntry(eSeverity.Error, "DeviceEvent Handle Zero - Device Connect/Disconnect Events Not Available");
+			IcdEnvironment.HandleSessionChange(args.SessionId, (IcdEnvironment.eSessionChangeEventType)args.ReasonCode);
 		}
 
 		/// <summary>
-		/// Unregister for device notifications from Windows
+		/// Called when the service is signaled to stop or shutdown.
 		/// </summary>
-		private static void UnregisterHandles()
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private static void Win32OnServiceControlStopShutdown(object sender, EventArgs e)
 		{
-			if (s_DeviceNotifyHandle != IntPtr.Zero)
-			{
-				Win32.UnregisterDeviceNotification(s_DeviceNotifyHandle);
-				s_DeviceNotifyHandle = IntPtr.Zero;
-			}
+			s_HostControl?.Stop();
 		}
 
 		/// <summary>
-		/// Callback from Windows service for device notifications
+		/// Called when a device is connected to the system.
 		/// </summary>
-		/// <param name="control"></param>
-		/// <param name="eventType"></param>
-		/// <param name="eventData"></param>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private static int ServiceControlHandler(int control, int eventType, IntPtr eventData, IntPtr context)
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private static void Win32OnSystemDeviceAdded(object sender, EventArgs e)
 		{
-			if (control == Win32.SERVICE_CONTROL_STOP || control == Win32.SERVICE_CONTROL_SHUTDOWN)
-			{
-				UnregisterHandles();
-				Win32.UnregisterDeviceNotification(s_DeviceEventHandle);
-			}
-			else if (control == Win32.SERVICE_CONTROL_DEVICE_EVENT)
-			{
-				switch (eventType)
-				{
-					case Win32.DBT_DEVICE_ARRIVAL:
-						IcdEnvironment.RaiseSystemDeviceAddedEvent();
-						break;
-					case Win32.DBT_DEVICE_REMOVE_COMPLETE:
-						IcdEnvironment.RaiseSystemDeviceRemovedEvent();
-						break;
-				}
-			}
-
-			return 0;
+			IcdEnvironment.RaiseSystemDeviceAddedEvent();
 		}
-	}
 
-	public static class Win32
-	{
-		public const int DEVICE_NOTIFY_SERVICE_HANDLE = 1;
-		public const int DEVICE_NOTIFY_ALL_INTERFACE_CLASSES = 4;
-
-		public const int SERVICE_CONTROL_STOP = 1;
-		public const int SERVICE_CONTROL_DEVICE_EVENT = 11;
-		public const int SERVICE_CONTROL_SHUTDOWN = 5;
-
-		public const int DBT_DEVICE_TYPE_DEVICE_INTERFACE = 5;
-
-		public const int DBT_DEVICE_ARRIVAL = 0x8000;
-		public const int DBT_DEVICE_REMOVE_COMPLETE = 0x8004;
-
-		public delegate int ServiceControlHandlerEx(int control, int eventType, IntPtr eventData, IntPtr context);
-
-		[DllImport("advapi32.dll", SetLastError = true)]
-		public static extern IntPtr RegisterServiceCtrlHandlerEx(string lpServiceName, ServiceControlHandlerEx callbackEx, IntPtr context);
-
-		[DllImport("user32.dll", SetLastError = true)]
-		public static extern IntPtr RegisterDeviceNotification(IntPtr intPtr, IntPtr notificationFilter, Int32 flags);
-
-		[DllImport("user32.dll", CharSet = CharSet.Auto)]
-		public static extern uint UnregisterDeviceNotification(IntPtr hHandle);
-
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		public struct DevBroadcastDeviceInterface
+		/// <summary>
+		/// Called when a device is disconnected from the system.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private static void Win32OnSystemDeviceRemoved(object sender, EventArgs e)
 		{
-			public int dbcc_size;
-			public int dbcc_devicetype;
-			public int dbcc_reserved;
-			[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U1, SizeConst = 16)]
-			public byte[] dbcc_classguid;
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
-			public char[] dbcc_name;
+			IcdEnvironment.RaiseSystemDeviceRemovedEvent();
 		}
+
+		#endregion
 	}
 }
 #endif
