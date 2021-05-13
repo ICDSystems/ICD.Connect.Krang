@@ -22,7 +22,7 @@ namespace ICD.Connect.Krang.CrestronSPlus
 		{
 			try
 			{
-				s_Bootstrap = new KrangBootstrap(false);
+				s_Bootstrap = new KrangBootstrap();
 				s_Bootstrap.Krang.OnLifecycleStateChanged += KrangOnLifecycleStateChanged;
 			}
 			catch (Exception e)

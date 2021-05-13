@@ -26,7 +26,7 @@ namespace ICD.Connect.Core
 		/// </summary>
 		public KrangControlSystem()
 		{
-			m_Bootstrap = new KrangBootstrap(false);
+			m_Bootstrap = new KrangBootstrap();
 			IcdEnvironment.OnProgramStatusEvent += IcdEnvironmentOnProgramStatusEvent;
 
 			Thread.MaxNumberOfUserThreads = 200;

@@ -110,8 +110,7 @@ namespace ICD.Connect.Core
 		{
 			ProgramUtils.ProgramNumber = options.Program;
 
-			bool isInteractive = IsConsoleApp();
-			return new KrangBootstrap(isInteractive);
+			return new KrangBootstrap();
 		}
 
 		/// <summary>
@@ -124,7 +123,7 @@ namespace ICD.Connect.Core
 		{
 			s_HostControl = hostControl;
 
-			if (!IsConsoleApp())
+			if (!IcdConsole.IsConsoleApp)
 				Win32.RegisterDeviceNotifications(SERVICE_NAME);
 
 			s_MainTaskCancellationTokenSource = new CancellationTokenSource();
@@ -196,29 +195,6 @@ namespace ICD.Connect.Core
 			// Also copied from .Net Runtime
 			if (registryKey.GetValue("TypesSupported") == null)
 				registryKey.SetValue("TypesSupported", 0x07, RegistryValueKind.DWord);
-		}
-
-		#endregion
-
-		#region Private Methods
-
-		/// <summary>
-		/// Returns true if the application is being run from an interactive console,
-		/// false if the application is being run as a headless service.
-		/// </summary>
-		/// <returns></returns>
-		private static bool IsConsoleApp()
-		{
-			try
-			{
-				// Hack
-				int unused = Console.WindowHeight;
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
 		}
 
 		#endregion
