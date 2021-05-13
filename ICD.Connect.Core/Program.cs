@@ -45,6 +45,9 @@ namespace ICD.Connect.Core
 		/// </summary>
 		public static void Main()
 		{
+			if (IcdConsole.IsConsoleApp)
+				AnsiUtils.EnableAnsiColor();
+
 			Options options = new Options();
 
 			TopshelfExitCode code = HostFactory.Run(x =>
