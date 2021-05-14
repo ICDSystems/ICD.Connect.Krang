@@ -6,10 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Changed
+## [16.0.0] - 2021-05-14
+### Added
+ - ICD.Connect.Core runs as a windows service
  - Added a firmware column to the controlsystem health console table
- - Generated destination groups are now given uuids
  - NetStandard program subscribes to Windows Service device added and removed events and raises them for the environment
+ - NetStandard release builds log to the Windows Event Logger
+ - NetStandard builds log to file
+
+### Changed
+ - Generated destination groups are now given uuids
+ - No longer capturing console input when running as a service
+
+### Removed
+ - Removed old NVRAM migration code
 
 ## [15.3.0] - 2021-01-14
 ### Added
