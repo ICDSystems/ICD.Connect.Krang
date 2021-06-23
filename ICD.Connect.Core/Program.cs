@@ -99,6 +99,8 @@ namespace ICD.Connect.Core
 				x.DependsOnEventLog();
 			});
 
+			ServiceProvider.TryGetService<ILoggerService>()?.Flush();
+
 			Environment.ExitCode = (int)Convert.ChangeType(code, code.GetTypeCode());
 		}
 
@@ -140,8 +142,9 @@ namespace ICD.Connect.Core
 						service.Start(null);
 						IcdEnvironment.SetProgramInitializationComplete();
 					}
-					catch
+					catch (Exception e)
 					{
+						ServiceProvider.TryGetService<ILoggerService>()?.AddEntry(eSeverity.Error, e, "Failed to start service - {0}", e.Message);
 						hostControl.Stop();
 					}
 				},
@@ -158,8 +161,6 @@ namespace ICD.Connect.Core
 		/// <returns></returns>
 		private static bool Stop(KrangBootstrap service, HostControl hostControl)
 		{
-			ServiceProvider.TryGetService<ILoggerService>()?.AddEntry(eSeverity.Informational, "Program.Stop");
-
 			s_MainTaskCancellationTokenSource?.Cancel();
 
 			try
@@ -168,8 +169,9 @@ namespace ICD.Connect.Core
 				IcdEnvironment.SetProgramStatus(IcdEnvironment.eProgramStatusEventType.Stopping);
 				service.Stop();
 			}
-			catch
+			catch (Exception e)
 			{
+				ServiceProvider.TryGetService<ILoggerService>()?.AddEntry(eSeverity.Error, e, "Failed to stop service - {0}", e.Message);
 				// Don't tell hostControl to stop - ends up calling this method recursively
 				//hostControl.Stop();
 			}
