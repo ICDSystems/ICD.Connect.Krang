@@ -135,8 +135,11 @@ namespace ICD.Connect.Krang.Cores
 			XmlUtils.TryGetChildElementAsString(xml, TELEMETRY_ELEMENT, out child);
 			UpdateTelemetryFromXml(child);
 
-			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT);
-// ReSharper disable CSharpWarnings::CS0612
+			IEnumerable<ISettings> themes = PluginFactory.GetSettingsFromXml(xml, THEMES_ELEMENT).ToArray();
+			// Add theme child originators so they can be accessed by CoreDeviceFactory
+			themes.Cast<IThemeSettings>().Select(t => t.UiBindingSettings).ForEach(s => AddSettingsRemoveOnDuplicateId(s));
+
+			// ReSharper disable CSharpWarnings::CS0612
 			// Backwards compatibility
 			IEnumerable<ISettings> panels = PluginFactory.GetSettingsFromXml(xml, PANELS_ELEMENT);
 // ReSharper restore CSharpWarnings::CS0612
@@ -148,15 +151,14 @@ namespace ICD.Connect.Krang.Cores
 			IEnumerable<ISettings> calendarPoints = PluginFactory.GetSettingsFromXml(xml, CALENDAR_POINTS_ELEMENT);
 			IEnumerable<ISettings> roomGroups = PluginFactory.GetSettingsFromXml(xml, ROOM_GROUPS_ELEMENT);
 
-			IEnumerable<ISettings> concat =
-				themes.Concat(panels)
-					  .Concat(ports)
-					  .Concat(devices)
-					  .Concat(rooms)
-					  .Concat(volumePoints)
-					  .Concat(conferencePoints)
-					  .Concat(calendarPoints)
-					  .Concat(roomGroups);
+			IEnumerable<ISettings> concat = themes.Concat(panels)
+			                                      .Concat(ports)
+			                                      .Concat(devices)
+			                                      .Concat(rooms)
+			                                      .Concat(volumePoints)
+			                                      .Concat(conferencePoints)
+			                                      .Concat(calendarPoints)
+			                                      .Concat(roomGroups);
 
 			AddSettingsSkipDuplicateIds(concat);
 
@@ -253,7 +255,7 @@ namespace ICD.Connect.Krang.Cores
 			if (!AddSettingsSkipDuplicateId(telemetry))
 				return;
 
-			// Add telemetrys child originators so they can be accessed by CoreDeviceFactory
+			// Add telemetry child originators so they can be accessed by CoreDeviceFactory
 			AddSettingsRemoveOnDuplicateId(telemetry.ProviderSettings);
 		}
 
@@ -270,7 +272,7 @@ namespace ICD.Connect.Krang.Cores
 			if (!AddSettingsSkipDuplicateId(routing))
 				return;
 
-			// Add routings child originators so they can be accessed by CoreDeviceFactory
+			// Add routing child originators so they can be accessed by CoreDeviceFactory
 			AddSettingsRemoveOnDuplicateId(routing.ConnectionSettings);
 			AddSettingsRemoveOnDuplicateId(routing.StaticRouteSettings);
 			AddSettingsRemoveOnDuplicateId(routing.SourceSettings);
