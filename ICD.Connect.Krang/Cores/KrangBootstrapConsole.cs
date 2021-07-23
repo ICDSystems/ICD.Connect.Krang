@@ -187,7 +187,7 @@ namespace ICD.Connect.Krang.Cores
 			builder.AddEmptyRow();
 
 			builder.AddRow("-Devices-", null, null, null, null);
-			foreach (IDevice device in instance.Krang.Originators.GetChildren<IDevice>())
+			foreach (IDevice device in instance.Krang.Originators.GetChildren<IDevice>().Where(d => !(d is IPanelDevice)))
 				addRow(device);
 
 			return builder.ToString();
