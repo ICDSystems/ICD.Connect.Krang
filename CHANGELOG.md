@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [16.1.0] - 2021-08-03
+### Added
+ - Flush logging service on program stop
+ - Add theme child originators to the core
+
+### Changed
+ - Health console command - panels removed from devices section
+
 ## [16.0.0] - 2021-05-14
 ### Added
  - ICD.Connect.Core runs as a windows service
