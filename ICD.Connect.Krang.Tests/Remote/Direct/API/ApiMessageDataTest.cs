@@ -1,5 +1,10 @@
-﻿using ICD.Connect.Krang.Remote.Direct.API;
+﻿#if NETFRAMEWORK
+extern alias RealNewtonsoft;
+using RealNewtonsoft.Newtonsoft.Json;
+#else
 using Newtonsoft.Json;
+#endif
+using ICD.Connect.Krang.Remote.Direct.API;
 using NUnit.Framework;
 
 namespace ICD.Connect.Krang.Tests.Remote.Direct.API

@@ -1,7 +1,12 @@
-﻿using System.Collections.Generic;
+﻿#if NETFRAMEWORK
+extern alias RealNewtonsoft;
+using RealNewtonsoft.Newtonsoft.Json;
+#else
+using Newtonsoft.Json;
+#endif
+using System.Collections.Generic;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Json;
-using Newtonsoft.Json;
 
 namespace ICD.Connect.Krang.Remote.Direct.RequestDevices
 {
