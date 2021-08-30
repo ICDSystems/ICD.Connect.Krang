@@ -15,7 +15,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <OutputPath>binNetCoreApp\$(Configuration)\</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   

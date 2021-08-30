@@ -13,19 +13,19 @@
     <EazfuscatorCompatibilityVersion>2018.2</EazfuscatorCompatibilityVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>binNetCoreApp\$(Configuration)\</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>binNetCoreApp\$(Configuration)\</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>LICENSING;RELEASE;TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="binNetCoreApp\**" />
+    <Compile Remove="bin\**" />
     <Compile Remove="SIMPLSharpLogs\**" />
-    <EmbeddedResource Remove="binNetCoreApp\**" />
+    <EmbeddedResource Remove="bin\**" />
     <EmbeddedResource Remove="SIMPLSharpLogs\**" />
-    <None Remove="binNetCoreApp\**" />
+    <None Remove="bin\**" />
     <None Remove="SIMPLSharpLogs\**" />
   </ItemGroup>
   <ItemGroup>
