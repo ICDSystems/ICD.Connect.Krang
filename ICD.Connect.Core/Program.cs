@@ -1,4 +1,4 @@
-﻿#if !SIMPLSHARP
+﻿#if NETCOREAPP
 using System;
 using System.Threading;
 using System.Threading.Tasks;

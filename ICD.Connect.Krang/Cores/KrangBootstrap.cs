@@ -30,7 +30,7 @@ namespace ICD.Connect.Krang.Cores
 	{
 		private readonly ILoggingContext m_Logger;
 
-#if !SIMPLSHARP
+#if NETSTANDARD
 		// ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
 		private readonly Thread m_ConsoleThread;
 		// ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
@@ -83,7 +83,7 @@ namespace ICD.Connect.Krang.Cores
 
 			m_Logger = new ServiceLoggingContext(this);
 
-#if !SIMPLSHARP
+#if NETSTANDARD
 			m_ConsoleThread = new Thread(ConsoleWorker)
 			{
 				IsBackground = true
@@ -182,10 +182,10 @@ namespace ICD.Connect.Krang.Cores
 #endif
 					};
 					service.AddLogger(new IcdErrorLogger());
-#if STANDARD
+#if NETSTANDARD
 					service.AddLogger(new FileLogger());
 #endif
-#if STANDARD && RELEASE
+#if NETSTANDARD && RELEASE
 					service.AddLogger(new EventLogLogger("ICD.Connect.Core-" + ProgramUtils.ProgramNumber));
 #endif
 					return service;
@@ -217,7 +217,7 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		private void ValidateProgram()
 		{
-#if SIMPLSHARP
+#if !NETSTANDARD
 			// Check for cpz files that are unextracted, indicating a problem
 			if (IcdDirectory.GetFiles(PathUtils.ProgramPath, "*.cpz").Length != 0)
 			{
@@ -257,7 +257,7 @@ namespace ICD.Connect.Krang.Cores
 			return SystemKeyManager.IsValid();
 		}
 
-#if !SIMPLSHARP
+#if NETSTANDARD
 		/// <summary>
 		/// Handles user input while running from command line.
 		/// </summary>

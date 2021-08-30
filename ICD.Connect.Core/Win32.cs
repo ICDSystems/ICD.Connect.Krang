@@ -1,4 +1,4 @@
-﻿#if !SIMPLSHARP
+﻿#if NETCOREAPP
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;

@@ -1,5 +1,5 @@
-﻿using ICD.Connect.Krang.Cores;
-#if SIMPLSHARP
+﻿#if !NETCOREAPP
+using ICD.Connect.Krang.Cores;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.Diagnostics;

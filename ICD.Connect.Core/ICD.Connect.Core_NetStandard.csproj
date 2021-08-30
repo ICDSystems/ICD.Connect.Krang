@@ -2,24 +2,32 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Condition=" '$(EAZFUSCATOR_NET_HOME)' != '' and Exists('$(EAZFUSCATOR_NET_HOME)\Integration\MSBuild\Eazfuscator.NET.targets') " Project="$(EAZFUSCATOR_NET_HOME)\Integration\MSBuild\Eazfuscator.NET.targets" />
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <RootNamespace>ICD.Connect.Core</RootNamespace>
     <AssemblyName>ICD.Connect.Core</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Deterministic>true</Deterministic>
-    <StartupObject>ICD.Connect.Core.Program</StartupObject>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
     <EazfuscatorIntegration>MSBuild</EazfuscatorIntegration>
     <EazfuscatorActiveConfiguration>Release</EazfuscatorActiveConfiguration>
     <EazfuscatorCompatibilityVersion>2018.2</EazfuscatorCompatibilityVersion>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <OutputType>Exe</OutputType>
+    <StartupObject>ICD.Connect.Core.Program</StartupObject>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;STANDARD</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>binNetCoreApp\$(Configuration)\</OutputPath>
-    <DefineConstants>TRACE;STANDARD</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -38,10 +46,14 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.Library" Version="2.14.182" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.Program" Version="2.14.182" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.ProgramLibrary" Version="2.14.182" />
     <PackageReference Include="Topshelf" Version="4.3.1-develop.253" />
     <PackageReference Include="TopShelf.StartParameters" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Condition="'$(TargetFramework)' == 'net472'" Include="..\..\ICD.Connect.Misc\ICD.Connect.Misc.CrestronPro\ICD.Connect.Misc.CrestronPro_NetStandard.csproj" />
     <ProjectReference Include="..\ICD.Connect.Krang\ICD.Connect.Krang_NetStandard.csproj" />
   </ItemGroup>
 
