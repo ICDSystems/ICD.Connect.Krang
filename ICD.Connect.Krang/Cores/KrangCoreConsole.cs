@@ -74,7 +74,7 @@ namespace ICD.Connect.Krang.Cores
 				throw new ArgumentNullException("instance");
 
 			addRow("Framework", IcdEnvironment.Framework);
-			if (IcdEnvironment.Framework == IcdEnvironment.eFramework.Crestron)
+			if (IcdEnvironment.Framework != IcdEnvironment.eFramework.Standard)
 			{
 				addRow("CrestronSeries", IcdEnvironment.CrestronSeries);
 				addRow("CrestronRuntimeEnvironment", IcdEnvironment.CrestronRuntimeEnvironment);
