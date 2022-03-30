@@ -4,6 +4,7 @@ using System.Linq;
 using ICD.Common.Logging.LoggingContexts;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Json;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Connect.API;
@@ -142,7 +143,7 @@ namespace ICD.Connect.Krang.Remote
 		/// <param name="message"></param>
 		private void HandleMessageTimeout(Message message)
 		{
-			//IcdConsole.PrintLine(eConsoleColor.Magenta, JsonUtils.Format(message));
+			IcdConsole.PrintLine(eConsoleColor.Magenta, JsonUtils.Format(message));
 		}
 
 		/// <summary>
