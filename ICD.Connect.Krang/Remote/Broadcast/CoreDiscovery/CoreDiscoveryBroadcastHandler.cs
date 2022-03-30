@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ICD.Common.Utils;
 using ICD.Common.Utils.EventArguments;
 using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
-using ICD.Common.Utils.Timers;
 using ICD.Connect.API.Commands;
 using ICD.Connect.API.Nodes;
 using ICD.Connect.Protocol.Network.Broadcast;
@@ -22,8 +20,6 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 	public sealed class CoreDiscoveryBroadcastHandler : AbstractBroadcastHandler<CoreDiscoveryData>
 	{
 		private const long DEFAULT_INTERVAL = 30 * 1000;
-		private const long TIMEOUT_INTERVAL = DEFAULT_INTERVAL / 5;
-		private const long TIMEOUT_DURATION = DEFAULT_INTERVAL * 5;
 
 		/// <summary>
 		/// Raised when a remote core is discovered.
@@ -38,7 +34,6 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 		private readonly Dictionary<int, CoreDiscoveryInfo> m_Discovered;
 		private readonly Dictionary<HostSessionInfo, RemoteCore> m_RemoteCores;
 		private readonly SafeCriticalSection m_DiscoveredSection;
-		private readonly SafeTimer m_TimeoutTimer;
 		
 		private ILoggerService Logger { get { return ServiceProvider.GetService<ILoggerService>(); } }
 
@@ -50,11 +45,8 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			m_Discovered = new Dictionary<int, CoreDiscoveryInfo>();
 			m_RemoteCores = new Dictionary<HostSessionInfo, RemoteCore>();
 			m_DiscoveredSection = new SafeCriticalSection();
-			m_TimeoutTimer = SafeTimer.Stopped(TimeoutCallback);
 
 			SetBroadcaster(new RecurringBroadcaster<CoreDiscoveryData>(DEFAULT_INTERVAL));
-
-			m_TimeoutTimer.Reset(TIMEOUT_INTERVAL, TIMEOUT_INTERVAL);
 		}
 
 		/// <summary>
@@ -66,38 +58,9 @@ namespace ICD.Connect.Krang.Remote.Broadcast.CoreDiscovery
 			OnCoreLost = null;
 
 			base.Dispose();
-
-			m_TimeoutTimer.Stop();
 		}
 
 		#region Private Methods
-
-		/// <summary>
-		/// Called periodically to cull any cores that have timed out.
-		/// </summary>
-		private void TimeoutCallback()
-		{
-			CoreDiscoveryInfo[] dropped;
-
-			m_DiscoveredSection.Enter();
-
-			try
-			{
-				DateTime cutoff = IcdEnvironment.GetUtcTime() - TimeSpan.FromMilliseconds(TIMEOUT_DURATION);
-
-				dropped =
-					m_Discovered.Where(kvp => kvp.Value.DiscoveryTime <= cutoff)
-					            .Select(kvp => kvp.Value)
-								.ToArray();
-			}
-			finally
-			{
-				m_DiscoveredSection.Leave();
-			}
-
-			foreach (CoreDiscoveryInfo item in dropped)
-				RemoveCore(item);
-		}
 
 		private void LazyLoadRemoteCore(CoreDiscoveryInfo info)
 		{
