@@ -10,6 +10,7 @@ using ICD.Common.Logging.LoggingContexts;
 using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
+using ICD.Common.Utils.Extensions;
 using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
@@ -22,12 +23,15 @@ using ICD.Connect.Krang.Remote.Direct.API;
 using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
+using ICD.Connect.Settings.Originators;
 
 namespace ICD.Connect.Krang.Cores
 {
 	[ApiClass("ControlSystem", null)]
 	public sealed class KrangBootstrap : IConsoleNode
 	{
+		public event EventHandler<LifecycleStateEventArgs> OnCoreLifecycleStateChanged;
+
 		private readonly ILoggingContext m_Logger;
 
 #if NETSTANDARD
@@ -106,6 +110,7 @@ namespace ICD.Connect.Krang.Cores
 			AddServices();
 
 			m_Core = new KrangCore { Serialize = true };
+			m_Core.OnLifecycleStateChanged += CoreOnLifecycleStateChanged;
 
 			PrintProgramInfo();
 			ValidateProgram();
@@ -128,6 +133,11 @@ namespace ICD.Connect.Krang.Cores
 			}
 		}
 
+		private void CoreOnLifecycleStateChanged(object sender, LifecycleStateEventArgs args)
+		{
+			OnCoreLifecycleStateChanged.Raise(this, new LifecycleStateEventArgs(args.Data));
+		}
+
 		/// <summary>
 		/// Unload the core configuration.
 		/// </summary>
@@ -144,7 +154,10 @@ namespace ICD.Connect.Krang.Cores
 				BroadcastManager = null;
 
 				if (m_Core != null)
+				{
+					m_Core.OnLifecycleStateChanged -= CoreOnLifecycleStateChanged;
 					m_Core.Dispose();
+				}
 				m_Core = null;
 
 				// Avoid disposing the logging service
