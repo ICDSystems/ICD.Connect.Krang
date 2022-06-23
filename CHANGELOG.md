@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [16.2.1] - 2022-06-23
+### Changed
+ - Fixed null reference exception in SPlusKrangBootstrap
+ - Removed timeout removals for remote cores
+
 ## [16.2.0] - 2022-05-23
 ### Added
  - KrangCoreSettings now adds theme's child originators
