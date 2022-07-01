@@ -46,9 +46,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.Library" Version="2.17.69" />
-    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.Program" Version="2.17.69" />
-    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.ProgramLibrary" Version="2.17.69" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.Library" Version="2.18.96" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.Program" Version="2.18.96" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net472'" Include="Crestron.SimplSharp.SDK.ProgramLibrary" Version="2.18.96" />
     <PackageReference Include="Topshelf" Version="4.3.1-develop.253" />
     <PackageReference Include="TopShelf.StartParameters" Version="1.0.2" />
   </ItemGroup>
