@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [16.2.3] - 2022-07-11
+### Changed
+ - Fixed package reference for netstandard target
+
 ## [16.2.2] - 2022-07-01
 ### Changed
  - Updated Crestron SDK to 2.18.96

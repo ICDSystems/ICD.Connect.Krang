@@ -4,7 +4,7 @@ using System.Reflection;
 [assembly: AssemblyCompany("ICD Systems")]
 [assembly: AssemblyProduct("ICD.Connect.Krang")]
 [assembly: AssemblyCopyright("Copyright © ICD Systems 2022")]
-[assembly: AssemblyVersion("16.2.2.0")]
+[assembly: AssemblyVersion("16.2.3.0")]
 
 [assembly: AssemblyInformationalVersion("1.10.0")]
 #if SIMPLSHARP
