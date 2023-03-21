@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-#if !SIMPLSHARP
-using System.Threading;
-#endif
 using ICD.Common.Logging;
 using ICD.Common.Logging.Loggers;
 using ICD.Common.Logging.LoggingContexts;
@@ -11,7 +8,6 @@ using ICD.Common.Permissions;
 using ICD.Common.Properties;
 using ICD.Common.Utils;
 using ICD.Common.Utils.Extensions;
-using ICD.Common.Utils.IO;
 using ICD.Common.Utils.Services;
 using ICD.Common.Utils.Services.Logging;
 using ICD.Common.Utils.Services.Scheduler;
@@ -24,6 +20,11 @@ using ICD.Connect.Protocol.Network.Broadcast;
 using ICD.Connect.Protocol.Network.Direct;
 using ICD.Connect.Settings;
 using ICD.Connect.Settings.Originators;
+#if NETSTANDARD
+using System.Threading;
+#else
+using ICD.Common.Utils.IO;
+#endif
 
 namespace ICD.Connect.Krang.Cores
 {
@@ -70,11 +71,6 @@ namespace ICD.Connect.Krang.Cores
 		/// </summary>
 		public DirectMessageManager DirectMessageManager { get; private set; }
 
-		/// <summary>
-		/// Gets the system key manager instance.
-		/// </summary>
-		public SystemKeyManager SystemKeyManager { get; private set; }
-
 		#endregion
 
 		/// <summary>
@@ -114,14 +110,6 @@ namespace ICD.Connect.Krang.Cores
 
 			PrintProgramInfo();
 			ValidateProgram();
-
-// ReSharper disable UnusedVariable
-			bool validSystemKey = ValidateSystemKey();
-// ReSharper restore UnusedVariable
-#if LICENSING
-			if (!validSystemKey)
-				return;
-#endif
 
 			try
 			{
@@ -209,7 +197,6 @@ namespace ICD.Connect.Krang.Cores
 
 			DirectMessageManager = ServiceProvider.GetOrAddService(() => new DirectMessageManager());
 			BroadcastManager = ServiceProvider.GetOrAddService(() => new BroadcastManager());
-			SystemKeyManager = ServiceProvider.GetOrAddService(() => new SystemKeyManager());
 		}
 
 		private void PrintProgramInfo()
@@ -239,35 +226,6 @@ namespace ICD.Connect.Krang.Cores
 				             " YOU MAY WISH TO VALIDATE THAT THE CORRECT PROGRAM IS RUNNING.");
 			}
 #endif
-		}
-
-		/// <summary>
-		/// Returns true if we loaded a valid license file.
-		/// </summary>
-		/// <returns></returns>
-		private bool ValidateSystemKey()
-		{
-			string systemKeyPath = IcdFile.Exists(FileOperations.SystemKeyPath)
-				                       ? FileOperations.SystemKeyPath
-				                       : null;
-
-			// Backwards compatibility
-// ReSharper disable CSharpWarnings::CS0618
-#pragma warning disable CS0618 // Type or member is obsolete
-			if (systemKeyPath == null)
-				systemKeyPath = IcdFile.Exists(FileOperations.LicensePath)
-									? FileOperations.LicensePath
-					                : null;
-// ReSharper restore CSharpWarnings::CS0618
-#pragma warning restore CS0618 // Type or member is obsolete
-
-			// Revert back to the system key path for logging
-			systemKeyPath = systemKeyPath ?? FileOperations.SystemKeyPath;
-
-			ProgramUtils.PrintProgramInfoLine("System Key", systemKeyPath);
-
-			SystemKeyManager.LoadSystemKey(systemKeyPath);
-			return SystemKeyManager.IsValid();
 		}
 
 #if NETSTANDARD

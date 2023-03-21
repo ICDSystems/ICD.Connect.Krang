@@ -37,7 +37,6 @@ namespace ICD.Connect.Krang.Cores
 			yield return instance.Krang;
 			yield return instance.BroadcastManager;
 			yield return instance.DirectMessageManager;
-			yield return instance.SystemKeyManager;
 
 			yield return ConsoleNodeGroup.IndexNodeMap("Services", ServiceProvider.GetServices().OfType<IConsoleNodeBase>().OrderBy(s => s.GetType().Name));
 		}

@@ -45,7 +45,7 @@
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
     <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
-    <DefineConstants>SIMPLSHARP;LICENSING</DefineConstants>
+    <DefineConstants>SIMPLSHARP</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -114,15 +114,10 @@
     <Compile Include="Cores\KrangCoreSettings.cs" />
     <Compile Include="ObfuscationSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SystemKeyManager.cs" />
     <Compile Include="KrangSystemKeyAttributes.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ICD.Common.Licensing\ICD.Common.Licensing\ICD.Common.Licensing_SimplSharp.csproj">
-      <Project>{57BDBCF2-FBD4-4F2C-AA5D-A0B79B730749}</Project>
-      <Name>ICD.Common.Licensing_SimplSharp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ICD.Common.Logging\ICD.Common.Logging\ICD.Common.Logging_SimplSharp.csproj">
       <Project>{8093AE94-7250-411E-9C55-68AB2B5D705A}</Project>
       <Name>ICD.Common.Logging_SimplSharp</Name>
